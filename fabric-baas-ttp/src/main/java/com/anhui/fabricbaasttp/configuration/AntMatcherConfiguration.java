@@ -13,7 +13,6 @@ public class AntMatcherConfiguration {
                 "/api/v1/organization/login",
                 "/api/v1/organization/applyRegistration",
                 "/download/**",
-                "/api/v1/**",
         };
         return new AntMatcherCollection(matchers);
     }

@@ -2,9 +2,11 @@ package com.anhui.fabricbaascommon.bean;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
+@AllArgsConstructor
 @ApiModel(value = "证书信息")
 public class Certfile {
     @ApiModelProperty(value = "CA服务账号", required = true)

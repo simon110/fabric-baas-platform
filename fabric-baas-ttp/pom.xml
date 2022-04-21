@@ -11,6 +11,7 @@
     <version>0.0.1-SNAPSHOT</version>
     <name>fabric-baas-ttp</name>
     <description>Demo project for Spring Boot</description>
+    <packaging>jar</packaging>
     <properties>
         <java.version>11</java.version>
         <skipTests>true</skipTests>
@@ -36,4 +37,21 @@
         </dependency>
     </dependencies>
 
+    <build>
+        <finalName>fabric-baas-ttp</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <exclude>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>

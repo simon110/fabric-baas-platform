@@ -16,7 +16,7 @@ public class CertfileEntity {
     @Id
     private String caUsername;
 
-    private String caUsertype;
-
     private String caPassword;
+
+    private String caUsertype;
 }
