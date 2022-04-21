@@ -1,6 +1,6 @@
 package com.anhui.fabricbaascommon.util;
 
-import com.anhui.fabricbaascommon.exception.IncorrectCertfileException;
+import com.anhui.fabricbaascommon.exception.CertfileException;
 
 import java.io.File;
 
@@ -25,9 +25,9 @@ public class CertfileUtils {
         return checkMSPDir(dir + "/msp") && checkTLSDir(dir + "/tls");
     }
 
-    public static void assertCerts(File dir) throws IncorrectCertfileException {
+    public static void assertCerts(File dir) throws CertfileException {
         if (!checkCerts(dir)) {
-            throw new IncorrectCertfileException("证书格式不正确");
+            throw new CertfileException("证书格式不正确");
         }
     }
 

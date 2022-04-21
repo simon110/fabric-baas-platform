@@ -11,6 +11,19 @@ public class ResourceUtils {
 
     static {
         WORKING_DIR = System.getProperty("user.dir");
+        assert !WORKING_DIR.endsWith("/");
+    }
+
+    public static void assertFileExists(File file) throws IOException {
+        if (!file.exists() || !file.isFile()) {
+            throw new IOException("文件不存在：" + file.getAbsolutePath());
+        }
+    }
+
+    public static void assertDirExists(File dir) throws IOException {
+        if (!dir.exists() || !dir.isDirectory()) {
+            throw new IOException("文件夹不存在：" + dir.getAbsolutePath());
+        }
     }
 
     /**
