@@ -9,11 +9,11 @@ import java.io.File;
 @Data
 public class MSPEnv {
     private String mspId;
-    private File mspConfigPath;
+    private File mspConfig;
 
-    public MSPEnv(String mspId, File mspConfigPath) {
-        assert mspConfigPath.isDirectory();
+    public MSPEnv(String mspId, File mspConfig) {
+        assert mspConfig.isDirectory();
         this.mspId = mspId;
-        this.mspConfigPath = mspConfigPath;
+        this.mspConfig = mspConfig;
     }
 }

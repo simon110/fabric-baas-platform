@@ -9,12 +9,11 @@ import java.io.File;
 @Data
 public class TLSEnv {
     private String address;
-    private File tlsRootCertFile;
+    private File tlsRootCert;
 
-    public TLSEnv(String address, File tlsRootCertFile) {
-        assert tlsRootCertFile.isFile();
+    public TLSEnv(String address, File tlsRootCert) {
+        assert tlsRootCert.isFile();
         this.address = address;
-        this.tlsRootCertFile = tlsRootCertFile;
+        this.tlsRootCert = tlsRootCert;
     }
 }
-
