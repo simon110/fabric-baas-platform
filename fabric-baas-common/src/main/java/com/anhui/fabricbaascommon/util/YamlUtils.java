@@ -39,4 +39,18 @@ public class YamlUtils {
         FileUtils.writeStringToFile(file, yamlContent, StandardCharsets.UTF_8);
         return yamlContent;
     }
+
+    /**
+     * 相较于save方法多了"---\n"的前缀
+     *
+     * @param map  要保存为Yaml文件的Map对象
+     * @param file 保存的Yaml文件路径
+     * @return 保存到文件的内容
+     * @throws IOException 写入Yaml文件的过程中异常
+     */
+    public static String saveWithPrefix(Map<String, Object> map, File file) throws IOException {
+        String yamlContent = "---\n" + YAML.dump(map);
+        FileUtils.writeStringToFile(file, yamlContent, StandardCharsets.UTF_8);
+        return yamlContent;
+    }
 }

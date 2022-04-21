@@ -19,7 +19,12 @@ import java.util.List;
 @Slf4j
 public class CAUtils {
 
-    public static void register(File adminCertfileDir, File caTlsCert, String caName, Certfile certfile) throws IOException, InterruptedException, CertfileException, CAException {
+    public static void register(
+            File adminCertfileDir,
+            File caTlsCert,
+            String caName,
+            Certfile certfile)
+            throws IOException, InterruptedException, CertfileException, CAException {
         assert !StringUtils.isBlank(certfile.getCaUsername());
         assert !StringUtils.isBlank(certfile.getCaPassword());
         assert CertfileType.exists(certfile.getCaUsertype());
@@ -38,7 +43,14 @@ public class CAUtils {
         }
     }
 
-    public static void enroll(File certfileDir, File caTlsCert, String caName, String caAddr, Certfile certfile, List<String> csrHosts) throws IOException, InterruptedException, CAException {
+    public static void enroll(
+            File certfileDir,
+            File caTlsCert,
+            String caName,
+            String caAddr,
+            Certfile certfile,
+            List<String> csrHosts)
+            throws IOException, InterruptedException, CAException {
         assert !StringUtils.isBlank(certfile.getCaUsername());
         assert !StringUtils.isBlank(certfile.getCaPassword());
         assert csrHosts.size() >= 2;
