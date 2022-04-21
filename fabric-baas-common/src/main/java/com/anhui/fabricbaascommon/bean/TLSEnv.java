@@ -1,5 +1,7 @@
 package com.anhui.fabricbaascommon.bean;
 
+import com.anhui.fabricbaascommon.exception.CertfileException;
+import com.anhui.fabricbaascommon.util.CertfileUtils;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -15,5 +17,11 @@ public class TLSEnv {
         assert tlsRootCert.isFile();
         this.address = address;
         this.tlsRootCert = tlsRootCert;
+    }
+
+    public void selfAssert() throws CertfileException {
+        if (!tlsRootCert.isFile() || !CertfileUtils.checkTLSDir(tlsRootCert.getParentFile())) {
+            throw new CertfileException("非法的TLS证书路径：" + tlsRootCert);
+        }
     }
 }

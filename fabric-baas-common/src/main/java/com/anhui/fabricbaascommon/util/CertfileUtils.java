@@ -5,13 +5,13 @@ import com.anhui.fabricbaascommon.exception.CertfileException;
 import java.io.File;
 
 public class CertfileUtils {
-    private static boolean checkMSPDir(String mspDir) {
+    public static boolean checkMSPDir(File mspDir) {
         return new File(mspDir + "/keystore/key.pem").exists() &&
                 new File(mspDir + "/signcerts/cert.pem").exists() &&
                 new File(mspDir + "/cacerts/ca.pem").exists();
     }
 
-    private static boolean checkTLSDir(String tlsDir) {
+    public static boolean checkTLSDir(File tlsDir) {
         return new File(tlsDir + "/ca.crt").exists() &&
                 new File(tlsDir + "/server.crt").exists() &&
                 new File(tlsDir + "/server.key").exists();
@@ -22,7 +22,7 @@ public class CertfileUtils {
      * @return 目录中是否包含关键的证书文件
      */
     public static boolean checkCerts(File dir) {
-        return checkMSPDir(dir + "/msp") && checkTLSDir(dir + "/tls");
+        return checkMSPDir(new File(dir + "/msp")) && checkTLSDir(new File(dir + "/tls"));
     }
 
     public static void assertCerts(File dir) throws CertfileException {

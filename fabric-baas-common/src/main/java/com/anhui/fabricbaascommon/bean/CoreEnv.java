@@ -1,5 +1,6 @@
 package com.anhui.fabricbaascommon.bean;
 
+import com.anhui.fabricbaascommon.exception.CertfileException;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -22,5 +23,10 @@ public class CoreEnv {
 
     public TLSEnv getTLSEnv() {
         return new TLSEnv(address, tlsRootCert);
+    }
+
+    public void selfAssert() throws CertfileException {
+        getMSPEnv().selfAssert();
+        getTLSEnv().selfAssert();
     }
 }
