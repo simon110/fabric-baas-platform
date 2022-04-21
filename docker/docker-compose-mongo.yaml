@@ -1,0 +1,31 @@
+version: '3'
+
+services:
+  ttp-mongo:
+    container_name: ttp-mongo
+    image: mongo:4.4.10
+    restart: always
+    volumes:
+      - ./mongo/db:/data/db
+      - ./mongo/log:/var/log/mongodb
+    ports:
+      - 27017:27017
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: aDqKVcITnoVYwhzA
+
+  ttp-mongo-express:
+    container_name: ttp-mongo-express
+    image: mongo-express:1.0.0-alpha
+    restart: always
+    depends_on:
+      - mongo
+    ports:
+      - 8081:8081
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+      ME_CONFIG_MONGODB_ADMINPASSWORD: aDqKVcITnoVYwhzA
+      ME_CONFIG_MONGODB_URL: mongodb://root:aDqKVcITnoVYwhzA@mongo:27017/
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: niXy8U9a1VAKw23E
+      ME_CONFIG_OPTIONS_EDITORTHEME: 3024-night
