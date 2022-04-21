@@ -3,7 +3,7 @@ package com.anhui.fabricbaasorg;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = {"com.anhui"})
 public class FabricBaasOrgApplication {
 
     public static void main(String[] args) {
