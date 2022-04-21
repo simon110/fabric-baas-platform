@@ -1,4 +1,4 @@
-package com.anhui.fabricbaasweb.response;
+package com.anhui.fabricbaascommon.response;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;

@@ -1,7 +1,7 @@
 package com.anhui.fabricbaasweb.advice;
 
-import com.anhui.fabricbaasweb.response.CommonResponse;
-import com.anhui.fabricbaasweb.response.ResultCode;
+import com.anhui.fabricbaasweb.bean.CommonResponse;
+import com.anhui.fabricbaasweb.bean.ResultCode;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
 import org.springframework.http.server.ServerHttpRequest;

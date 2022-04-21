@@ -3,7 +3,7 @@ package com.anhui.fabricbaasttp.controller;
 import com.anhui.fabricbaascommon.constant.Authority;
 import com.anhui.fabricbaasttp.request.SystemInitRequest;
 import com.anhui.fabricbaasttp.service.SystemService;
-import com.anhui.fabricbaasweb.response.EmptyResult;
+import com.anhui.fabricbaascommon.response.EmptyResult;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;

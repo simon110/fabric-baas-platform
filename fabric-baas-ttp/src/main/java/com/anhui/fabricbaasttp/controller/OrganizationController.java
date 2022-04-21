@@ -1,13 +1,14 @@
 package com.anhui.fabricbaasttp.controller;
 
 import com.anhui.fabricbaascommon.constant.Authority;
+import com.anhui.fabricbaascommon.request.LoginRequest;
 import com.anhui.fabricbaasttp.entity.OrganizationEntity;
 import com.anhui.fabricbaasttp.entity.RegistrationEntity;
 import com.anhui.fabricbaasttp.request.*;
 import com.anhui.fabricbaasttp.service.OrganizationService;
-import com.anhui.fabricbaasweb.response.EmptyResult;
-import com.anhui.fabricbaasweb.response.LoginResult;
-import com.anhui.fabricbaasweb.response.PaginationQueryResult;
+import com.anhui.fabricbaascommon.response.EmptyResult;
+import com.anhui.fabricbaascommon.response.LoginResult;
+import com.anhui.fabricbaascommon.response.PaginationQueryResult;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;

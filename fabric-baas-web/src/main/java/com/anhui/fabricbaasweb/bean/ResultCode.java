@@ -1,4 +1,4 @@
-package com.anhui.fabricbaasweb.response;
+package com.anhui.fabricbaasweb.bean;
 
 import lombok.Getter;
 
