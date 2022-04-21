@@ -1,0 +1,30 @@
+#!/bin/bash
+# shellcheck disable=SC2003
+
+export CORE_PEER_TLS_ENABLED=true
+export CHAINCODE_NAME=$1
+export CHAINCODE_VERSION=$2
+export CHAINCODE_SEQUENCE=$3
+export CHANNEL_NAME=$4
+export ORDERER_ADDRESS=$5
+export ORDERER_TLS_CERTFILE=$6
+export CORE_PEER_LOCALMSPID=$7
+export CORE_PEER_MSPCONFIGPATH=$8
+export CORE_PEER_ADDRESS=$9
+export CORE_PEER_TLS_ROOTCERT_FILE=${10}
+
+ENDORSOR_PEER_ADDRESSES=()
+ENDORSOR_PEER_TLS_CERTFILES=()
+PEER_OPTIONS=""
+
+for ((i1 = 9; i1 < $#; i1 += 2)); do
+  i2=$(expr "$i1" + 1)
+  ENDORSOR_PEER_ADDRESSES[${#ENDORSOR_PEER_ADDRESSES[*]}]=${!i1}
+  ENDORSOR_PEER_TLS_CERTFILES[${#ENDORSOR_PEER_TLS_CERTFILES[*]}]=${!i2}
+done
+
+for ((i = 0; i < ${#ENDORSOR_PEER_ADDRESSES[@]}; i++)); do
+  PEER_OPTIONS="$PEER_OPTIONS --peerAddresses ${ENDORSOR_PEER_ADDRESSES[i]} --tlsRootCertFiles ${ENDORSOR_PEER_TLS_CERTFILES[i]}"
+done
+
+sh -c "peer lifecycle chaincode commit -o $ORDERER_ADDRESS --tls --cafile $ORDERER_TLS_CERTFILE --channelID $CHANNEL_NAME --name $CHAINCODE_NAME --version $CHAINCODE_VERSION --sequence $CHAINCODE_SEQUENCE $PEER_OPTIONS" >&/dev/stdout
