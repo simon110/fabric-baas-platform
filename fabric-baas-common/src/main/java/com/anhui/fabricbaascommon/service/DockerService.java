@@ -36,6 +36,9 @@ public class DockerService {
         return false;
     }
 
+    /**
+     * @return 当前服务器是否存在已经启动的CA服务容器
+     */
     public boolean checkCAServer() throws DockerException, InterruptedException {
         // List<Container> containers = dockerClient.listContainers();
         // 默认只能获取正在运行的容器
