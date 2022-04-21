@@ -11,16 +11,16 @@ import java.io.File;
 @Data
 public class CoreEnv {
     private String mspId;
-    private File mspConfigPath;
+    private File mspConfig;
 
     private String address;
-    private File tlsRootCertFile;
+    private File tlsRootCert;
 
     public MSPEnv getMSPEnv() {
-        return new MSPEnv(mspId, mspConfigPath);
+        return new MSPEnv(mspId, mspConfig);
     }
 
     public TLSEnv getTLSEnv() {
-        return new TLSEnv(address, tlsRootCertFile);
+        return new TLSEnv(address, tlsRootCert);
     }
 }
