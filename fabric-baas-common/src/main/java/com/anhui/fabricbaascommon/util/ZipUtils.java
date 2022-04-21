@@ -1,4 +1,4 @@
-package com.anhui.fabricbaascommon;
+package com.anhui.fabricbaascommon.util;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tools.zip.ZipEntry;
