@@ -10,8 +10,8 @@ public class ParamPattern {
     public static final String CONSORTIUM_NAME_REGEX = "^[A-Za-z0-9]{4,}$";
     public static final String CONSORTIUM_NAME_MSG = "联盟名称长度至少为4，只能由字母和数字组成";
 
-    public static final String ORGANIZATION_NAME_REGEX = "^[A-Za-z]{3,}$";
-    public static final String ORGANIZATION_NAME_MSG = "组织名称只能由大小写字母组成且长度不小于4，例如WikimediaFoundationInc";
+    public static final String ORG_NAME_REGEX = "^[A-Za-z]{3,}$";
+    public static final String ORG_NAME_MSG = "组织名称只能由大小写字母组成且长度不小于4，例如WikimediaFoundationInc";
 
     public static final String HOST_REGEX = "^((?!-)[A-Za-z0-9-]{1,63}(?<!-)\\.)+[A-Za-z]{2,6}$";
     public static final String HOST_MSG = "请检查域名格式是否正确";

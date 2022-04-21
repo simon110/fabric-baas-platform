@@ -4,13 +4,15 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+import java.util.List;
+
 /**
  * 参考资料：
  * https://en.wikipedia.org/wiki/Certificate_signing_request
  */
 @Data
 @ApiModel("CA服务配置")
-public class CAServer {
+public class CAInfo {
     @ApiModelProperty(value = "CA名称（例如WikimediaFoundationCA，对应CA配置ca.name）", required = true)
     private String caName;
 
@@ -33,5 +35,5 @@ public class CAServer {
     private String csrLocality;
 
     @ApiModelProperty(value = "CSR证书域名（例如localhost,wikipedia.org，对应CA配置csr.hosts）", required = true)
-    private String csrHosts;
+    private List<String> csrHosts;
 }

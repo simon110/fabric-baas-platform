@@ -20,7 +20,7 @@ import java.util.Optional;
 @ConfigurationProperties(prefix = "admin")
 @Data
 @Slf4j
-public class SystemAdminConfiguration {
+public class AdminConfiguration {
     private String defaultUsername;
     private String defaultPassword;
 
@@ -30,7 +30,7 @@ public class SystemAdminConfiguration {
     private PasswordEncoder passwordEncoder;
 
     @Bean
-    public CommandLineRunner initSystemAdminPassword() {
+    public CommandLineRunner adminPasswordInitializer() {
         return args -> {
             Optional<UserEntity> adminOptional = userRepo.findById(defaultUsername);
             if (adminOptional.isEmpty()) {

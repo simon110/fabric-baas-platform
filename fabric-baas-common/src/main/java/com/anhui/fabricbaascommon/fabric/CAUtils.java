@@ -18,9 +18,6 @@ import java.util.List;
 
 @Slf4j
 public class CAUtils {
-    private final static String FABRIC_CA_SERVER_DOCKER_COMPOSE = ResourceUtils.getWorkingDir() + "/docker/docker-compose-fabric-ca.yaml";
-    private final static String FABRIC_CA_SERVER_CONFIG = ResourceUtils.getWorkingDir() + "/docker/fabric-ca/fabric-ca-server-config.yaml";
-
     public static void register(
             File adminCertfileDir,
             File caTlsCert,

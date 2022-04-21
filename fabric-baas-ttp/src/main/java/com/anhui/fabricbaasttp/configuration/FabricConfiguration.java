@@ -20,15 +20,16 @@ import java.util.Optional;
 @Slf4j
 public class FabricConfiguration {
     private String systemChannelName;
-    private String caServerAddress;
     private String caAdminUsername;
     private String caAdminPassword;
+    private String caAddr;
+    private String caName;
 
     @Autowired
     private CertfileRepo certfileRepo;
 
     @Bean
-    public CommandLineRunner fabricNetworkInitCommandLineRunner() {
+    public CommandLineRunner adminCertfileInfoInitializer() {
         return args -> {
             log.info("正在检查CA管理员信息...");
             Optional<CertfileEntity> adminCertfileOptional = certfileRepo.findById(caAdminUsername);

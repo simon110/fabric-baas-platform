@@ -18,7 +18,7 @@ import javax.validation.constraints.Pattern;
 @AllArgsConstructor
 @NoArgsConstructor
 public class TTPEntity {
-    @Pattern(regexp = ParamPattern.ORGANIZATION_NAME_REGEX, message = ParamPattern.ORGANIZATION_NAME_MSG)
+    @Pattern(regexp = ParamPattern.ORG_NAME_REGEX, message = ParamPattern.ORG_NAME_MSG)
     @ApiModelProperty(value = "可信第三方组织名称", required = true)
     @Id
     private String name;
@@ -39,4 +39,3 @@ public class TTPEntity {
     @ApiModelProperty(value = "可信第三方所在城市，例如Guilin", required = true)
     private String locality;
 }
-
