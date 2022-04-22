@@ -21,7 +21,7 @@ public class ConfigtxUtils {
         Map<String, Object> organization = new HashMap<>();
         organization.put("Name", ordererOrganization.getName());
         organization.put("ID", ordererOrganization.getId());
-        organization.put("MSPDir", ordererOrganization.getMspDir());
+        organization.put("MSPDir", ordererOrganization.getMspDir().getAbsolutePath());
 
         Map<String, Object> policies = new HashMap<>();
         Map<String, Object> readersPolicy = new HashMap<>();
@@ -53,7 +53,7 @@ public class ConfigtxUtils {
         Map<String, Object> organization = new HashMap<>();
         organization.put("Name", configtxOrganization.getName());
         organization.put("ID", configtxOrganization.getId());
-        organization.put("MSPDir", configtxOrganization.getMspDir());
+        organization.put("MSPDir", configtxOrganization.getMspDir().getAbsolutePath());
 
         Map<String, Object> policies = new HashMap<>();
         Map<String, Object> readersPolicy = new HashMap<>();

@@ -9,7 +9,13 @@ import java.io.File;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ConfigtxOrderer extends Node {
+public class ConfigtxOrderer {
+    private String host;
+    private int port;
     private File serverTlsCert;
     private File clientTlsCert;
+
+    public String getAddr() {
+        return host + ":" + port;
+    }
 }

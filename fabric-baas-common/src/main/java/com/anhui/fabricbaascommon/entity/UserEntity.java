@@ -1,4 +1,4 @@
-package com.anhui.fabricbaasttp.entity;
+package com.anhui.fabricbaascommon.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

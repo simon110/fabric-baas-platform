@@ -1,6 +1,6 @@
 package com.anhui.fabricbaasttp.request;
 
-import com.anhui.fabricbaasttp.entity.TTPEntity;
+import com.anhui.fabricbaascommon.entity.CAEntity;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -17,5 +17,5 @@ public class SystemInitRequest {
 
     @NotNull
     @ApiModelProperty(value = "可信第三方信息", required = true)
-    private TTPEntity ttp;
+    private CAEntity ttp;
 }

@@ -1,6 +1,6 @@
-package com.anhui.fabricbaasttp.repository;
+package com.anhui.fabricbaascommon.repository;
 
-import com.anhui.fabricbaasttp.entity.UserEntity;
+import com.anhui.fabricbaascommon.entity.UserEntity;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
 public interface UserRepo extends MongoRepository<UserEntity, String> {

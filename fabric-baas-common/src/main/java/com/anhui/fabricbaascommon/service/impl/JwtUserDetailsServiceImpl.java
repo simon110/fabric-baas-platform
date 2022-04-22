@@ -1,7 +1,7 @@
-package com.anhui.fabricbaasttp.service.impl;
+package com.anhui.fabricbaascommon.service.impl;
 
-import com.anhui.fabricbaasttp.entity.UserEntity;
-import com.anhui.fabricbaasttp.repository.UserRepo;
+import com.anhui.fabricbaascommon.entity.UserEntity;
+import com.anhui.fabricbaascommon.repository.UserRepo;
 import com.anhui.fabricbaasweb.service.JwtUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;

@@ -1,15 +1,16 @@
 package com.anhui.fabricbaasttp.service;
 
 
-import com.anhui.fabricbaascommon.bean.CAInfo;
+import com.anhui.fabricbaascommon.bean.CAConfig;
 import com.anhui.fabricbaascommon.exception.DuplicatedOperationException;
+import com.anhui.fabricbaascommon.service.CAService;
 import com.anhui.fabricbaascommon.service.DockerService;
-import com.anhui.fabricbaasttp.configuration.AdminConfiguration;
-import com.anhui.fabricbaasttp.configuration.FabricConfiguration;
-import com.anhui.fabricbaasttp.entity.TTPEntity;
-import com.anhui.fabricbaasttp.entity.UserEntity;
-import com.anhui.fabricbaasttp.repository.TTPRepo;
-import com.anhui.fabricbaasttp.repository.UserRepo;
+import com.anhui.fabricbaascommon.configuration.AdminConfiguration;
+import com.anhui.fabricbaascommon.configuration.FabricConfiguration;
+import com.anhui.fabricbaascommon.entity.CAEntity;
+import com.anhui.fabricbaascommon.entity.UserEntity;
+import com.anhui.fabricbaascommon.repository.CARepo;
+import com.anhui.fabricbaascommon.repository.UserRepo;
 import com.anhui.fabricbaasttp.request.SystemInitRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +35,7 @@ public class SystemService {
     @Autowired
     private PasswordEncoder passwordEncoder;
     @Autowired
-    private TTPRepo ttpRepo;
+    private CARepo caRepo;
 
     /**
      * 初始化主要包括两个任务：
@@ -46,17 +47,17 @@ public class SystemService {
         if (dockerService.checkCAServer()) {
             throw new DuplicatedOperationException("CA服务已进入运行状态，请勿重复初始化系统");
         }
-        if (ttpRepo.count() != 0) {
+        if (caRepo.count() != 0) {
             throw new DuplicatedOperationException("系统中已存在TTP信息，请勿重复初始化系统");
         }
-        TTPEntity ttp = req.getTtp();
+        CAEntity ttp = req.getTtp();
         log.info("可信第三方信息：" + ttp);
-        CAInfo caInfo = caService.generateCAInfo(ttp);
-        log.info("生成CA服务信息：" + caInfo);
+        CAConfig caConfig = caService.buildCAConfig(ttp);
+        log.info("生成CA服务信息：" + caConfig);
         // 启动CA容器并尝试初始化管理员证书
-        dockerService.startCAServer(caInfo, fabricConfiguration.getCaAdminUsername(), fabricConfiguration.getCaAdminPassword());
+        dockerService.startCAServer(caConfig, fabricConfiguration.getCaAdminUsername(), fabricConfiguration.getCaAdminPassword());
         log.info("正在初始化CA服务管理员证书...");
-        caService.initAdminCertfile(caInfo);
+        caService.initAdminCertfile(caConfig);
 
         Optional<UserEntity> adminOptional = userRepo.findById(adminConfiguration.getDefaultUsername());
         adminOptional.ifPresent(admin -> {
@@ -65,7 +66,7 @@ public class SystemService {
             log.info("正在修改系统管理员密码...");
             userRepo.save(admin);
             log.info("正在保存TTP信息...");
-            ttpRepo.save(ttp);
+            caRepo.save(ttp);
         });
     }
 }

@@ -90,6 +90,6 @@ public class ResourceUtils {
                 type.equals(CertfileType.ADMIN) ||
                 type.equals(CertfileType.CLIENT) ||
                 type.equals(CertfileType.PEER);
-        return new File(String.format("%s/fabric/crypto/%s/%s", getWorkingDir(), type, name));
+        return new File(String.format("%s/fabric/certfile/%s/%s", getWorkingDir(), type, name));
     }
 }

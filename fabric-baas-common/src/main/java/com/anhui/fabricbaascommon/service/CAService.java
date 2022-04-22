@@ -1,16 +1,17 @@
-package com.anhui.fabricbaasttp.service;
+package com.anhui.fabricbaascommon.service;
 
-import com.anhui.fabricbaascommon.bean.CAInfo;
+import com.anhui.fabricbaascommon.bean.CAConfig;
 import com.anhui.fabricbaascommon.bean.Certfile;
+import com.anhui.fabricbaascommon.configuration.FabricConfiguration;
 import com.anhui.fabricbaascommon.exception.CAException;
 import com.anhui.fabricbaascommon.exception.CertfileException;
 import com.anhui.fabricbaascommon.fabric.CAUtils;
+import com.anhui.fabricbaascommon.repository.CARepo;
 import com.anhui.fabricbaascommon.util.CertfileUtils;
 import com.anhui.fabricbaascommon.util.ResourceUtils;
-import com.anhui.fabricbaasttp.configuration.FabricConfiguration;
-import com.anhui.fabricbaasttp.entity.CertfileEntity;
-import com.anhui.fabricbaasttp.entity.TTPEntity;
-import com.anhui.fabricbaasttp.repository.CertfileRepo;
+import com.anhui.fabricbaascommon.entity.CertfileEntity;
+import com.anhui.fabricbaascommon.entity.CAEntity;
+import com.anhui.fabricbaascommon.repository.CertfileRepo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -26,24 +27,14 @@ import java.util.Optional;
 public class CAService {
     private final static File FABRIC_CA_ADMIN_CERTFILE_DIR = new File(ResourceUtils.getWorkingDir() + "/fabric/admin");
     private final static File FABRIC_CA_SERVER_CERT = new File(ResourceUtils.getWorkingDir() + "/docker/fabric-ca/tls-cert.pem");
+    private final static String FABRIC_CA_SERVER_ADDR = "localhost:7054";
 
-    @Autowired
-    private FabricConfiguration fabricConfiguration;
     @Autowired
     private CertfileRepo certfileRepo;
-
-    public CAInfo generateCAInfo(TTPEntity ttp) {
-        CAInfo caInfo = new CAInfo();
-        caInfo.setCaName(fabricConfiguration.getCaName());
-        caInfo.setCsrCommonName("ca." + ttp.getDomain());
-        caInfo.setCsrOrganizationName(ttp.getName());
-        caInfo.setCsrOrganizationUnit("");
-        caInfo.setCsrCountryCode(ttp.getCountryCode());
-        caInfo.setCsrStateOrProvince(ttp.getStateOrProvince());
-        caInfo.setCsrLocality(ttp.getLocality());
-        caInfo.setCsrHosts(Arrays.asList("localhost,", ttp.getDomain()));
-        return caInfo;
-    }
+    @Autowired
+    private CARepo caRepo;
+    @Autowired
+    private FabricConfiguration fabricConfig;
 
     public void register(String username, String password, String usertype) throws CertfileException, CAException, IOException, InterruptedException {
         Optional<CertfileEntity> certfileOptional = certfileRepo.findById(username);
@@ -56,7 +47,8 @@ public class CAService {
 
         log.info("正在注册证书...");
         Certfile certfile = new Certfile(username, password, usertype);
-        CAUtils.register(FABRIC_CA_ADMIN_CERTFILE_DIR, FABRIC_CA_SERVER_CERT, fabricConfiguration.getCaName(), certfile);
+
+        CAUtils.register(FABRIC_CA_ADMIN_CERTFILE_DIR, FABRIC_CA_SERVER_CERT, getCAName(), certfile);
 
         CertfileEntity entity = new CertfileEntity(username, password, usertype);
         log.info("证书信息：" + entity);
@@ -71,14 +63,46 @@ public class CAService {
         CertfileEntity entity = certfileOptional.get();
         log.info("正在登记证书...");
         Certfile certfile = new Certfile(entity.getCaUsername(), entity.getCaPassword(), entity.getCaUsertype());
-        CAUtils.enroll(targetCertfileDir, FABRIC_CA_SERVER_CERT, fabricConfiguration.getCaName(),
-                fabricConfiguration.getCaAddr(), certfile, csrHosts);
+        CAUtils.enroll(targetCertfileDir,
+                FABRIC_CA_SERVER_CERT,
+                getCAName(),
+                FABRIC_CA_SERVER_ADDR,
+                certfile, csrHosts);
     }
 
-    public void initAdminCertfile(CAInfo caInfo) throws IOException, InterruptedException, CertfileException, CAException {
+    public void initAdminCertfile(CAConfig caConfig) throws IOException, InterruptedException, CertfileException, CAException {
         enroll(FABRIC_CA_ADMIN_CERTFILE_DIR,
-                fabricConfiguration.getCaAdminUsername(),
-                caInfo.getCsrHosts());
+                fabricConfig.getCaAdminUsername(),
+                caConfig.getCsrHosts());
         log.info("CA服务管理员证书初始化成功");
+    }
+
+    public File getAdminCertfileDir() {
+        return FABRIC_CA_ADMIN_CERTFILE_DIR;
+    }
+
+    public String getAdminOrgName() throws CAException {
+        Optional<CAEntity> caOptional = caRepo.findFirstByNameIsNotNull();
+        if (caOptional.isPresent()) {
+            return caOptional.get().getName();
+        }
+        throw new CAException("未找到CA信息，请确认系统已经初始化");
+    }
+
+    public String getCAName() throws CAException {
+        return getAdminOrgName() + "CA";
+    }
+
+    public CAConfig buildCAConfig(CAEntity ca) {
+        CAConfig caConfig = new CAConfig();
+        caConfig.setCaName(ca.getName() + "CA");
+        caConfig.setCsrCommonName("ca." + ca.getDomain());
+        caConfig.setCsrOrganizationName(ca.getName());
+        caConfig.setCsrOrganizationUnit("");
+        caConfig.setCsrCountryCode(ca.getCountryCode());
+        caConfig.setCsrStateOrProvince(ca.getStateOrProvince());
+        caConfig.setCsrLocality(ca.getLocality());
+        caConfig.setCsrHosts(Arrays.asList("localhost", ca.getDomain()));
+        return caConfig;
     }
 }

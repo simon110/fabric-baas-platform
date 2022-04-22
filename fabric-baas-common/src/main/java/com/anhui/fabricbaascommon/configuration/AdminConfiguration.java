@@ -1,8 +1,8 @@
-package com.anhui.fabricbaasttp.configuration;
+package com.anhui.fabricbaascommon.configuration;
 
 import com.anhui.fabricbaascommon.constant.Authority;
-import com.anhui.fabricbaasttp.entity.UserEntity;
-import com.anhui.fabricbaasttp.repository.UserRepo;
+import com.anhui.fabricbaascommon.entity.UserEntity;
+import com.anhui.fabricbaascommon.repository.UserRepo;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,12 +10,14 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+@PropertySource("classpath:fabricbaascommon.properties")
 @Configuration
 @ConfigurationProperties(prefix = "admin")
 @Data

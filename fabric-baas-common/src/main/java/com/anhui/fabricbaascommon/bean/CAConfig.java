@@ -12,7 +12,7 @@ import java.util.List;
  */
 @Data
 @ApiModel("CA服务配置")
-public class CAInfo {
+public class CAConfig {
     @ApiModelProperty(value = "CA名称（例如WikimediaFoundationCA，对应CA配置ca.name）", required = true)
     private String caName;
 
