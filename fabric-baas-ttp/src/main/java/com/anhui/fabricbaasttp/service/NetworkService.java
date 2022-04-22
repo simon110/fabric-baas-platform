@@ -41,7 +41,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
@@ -67,31 +66,7 @@ public class NetworkService {
         }
     }
 
-    /**
-     * 检查完成后返回压缩包的随机路径，如果检查不通过则抛出异常。
-     */
-    public static void assertCertfileFormat(MultipartFile certZip) throws IOException, CertfileException {
-        // 创建临时文件
-        File tempDir = ResourceUtils.createTempDir();
-        File certfileZip = ResourceUtils.createTempFile("zip");
-
-        // 将文件写入临时目录并解压
-        log.info("正在将证书文件写入：" + certfileZip.getAbsoluteFile());
-        FileUtils.writeByteArrayToFile(certfileZip, certZip.getBytes());
-        log.info("正在将证书文件解压到：" + tempDir.getAbsoluteFile());
-        ZipUtils.unzip(certfileZip, tempDir);
-        log.info("正在检查证书文件：" + tempDir.getAbsoluteFile());
-
-        // 检查清除写入的文件
-        try {
-            CertfileUtils.assertCertfile(tempDir);
-        } finally {
-            FileUtils.deleteQuietly(certfileZip);
-            FileUtils.deleteDirectory(tempDir);
-        }
-    }
-
-    public static void assertOrderersNotInNetwork(List<Node> orderers, NetworkEntity network) throws NodeException {
+    private static void assertOrderersNotInNetwork(List<Node> orderers, NetworkEntity network) throws NodeException {
         Set<String> set = new TreeSet<>();
         network.getOrderers().forEach(node -> set.add(node.getAddr()));
         for (Node orderer : orderers) {
@@ -128,7 +103,7 @@ public class NetworkService {
      * @param network Orderer所属的网络
      * @return Orderer节点的名称（默认为Orderer加查找到的下标，例如Orderer0）
      */
-    public String getOrdererIdentifierOrThrowException(NetworkEntity network, Node orderer) throws NodeNotFoundException {
+    private String getOrdererIdentifierOrThrowException(NetworkEntity network, Node orderer) throws NodeNotFoundException {
         List<Orderer> orderers = network.getOrderers();
         for (int i = 0, size = orderers.size(); i < size; i++) {
             Orderer endpoint = orderers.get(i);
@@ -140,7 +115,7 @@ public class NetworkService {
         throw new NodeNotFoundException("未找到相应的Orderer");
     }
 
-    public String getOrdererOrgNameOrThrowException(NetworkEntity network, Node orderer) throws NodeNotFoundException {
+    private String getOrdererOrgNameOrThrowException(NetworkEntity network, Node orderer) throws NodeNotFoundException {
         List<Orderer> orderers = network.getOrderers();
         for (Orderer endpoint : orderers) {
             if (endpoint.getHost().equals(orderer.getHost()) &&
@@ -190,7 +165,6 @@ public class NetworkService {
         // 将签名后的Envelope提交到Orderer
         ChannelUtils.submitChannelUpdate(ordererCoreEnv.getMSPEnv(), ordererCoreEnv.getTLSEnv(), fabricConfig.getSystemChannelName(), envelope);
     }
-
 
 
     public ResourceResult queryOrdererTlsCert(NetworkQueryOrdererTlsCertRequest request) throws Exception {
@@ -503,7 +477,7 @@ public class NetworkService {
         // 检查是否存在重复的Orderer地址
         assertOrderersNotInNetwork(request.getOrderers(), network);
         // 检查证书格式是否正确
-        assertCertfileFormat(adminCertZip);
+        CertfileUtils.assertCertfileZip(adminCertZip);
         // 保存管理员证书至MinIO
         String orgCertId = IdentifierGenerator.ofCertfile(request.getNetworkName(), curOrgName);
         log.info("正在将证书文件保存至MinIO：" + orgCertId);

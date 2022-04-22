@@ -1,7 +1,6 @@
-package com.anhui.fabricbaasttp.util;
+package com.anhui.fabricbaascommon.util;
 
 import com.anhui.fabricbaascommon.bean.Invitation;
-import com.anhui.fabricbaascommon.util.AESUtils;
 import org.springframework.util.Base64Utils;
 
 import javax.crypto.spec.SecretKeySpec;

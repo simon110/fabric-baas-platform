@@ -23,7 +23,7 @@ import com.anhui.fabricbaasttp.response.ChannelQueryOrdererResult;
 import com.anhui.fabricbaasttp.response.ChannelQueryPeerResult;
 import com.anhui.fabricbaasttp.response.InvitationCodeResult;
 import com.anhui.fabricbaasttp.util.IdentifierGenerator;
-import com.anhui.fabricbaasttp.util.InvitationUtils;
+import com.anhui.fabricbaascommon.util.InvitationUtils;
 import com.anhui.fabricbaasweb.util.SecurityUtils;
 import com.spotify.docker.client.exceptions.NodeNotFoundException;
 import lombok.extern.slf4j.Slf4j;
@@ -64,18 +64,19 @@ public class ChannelService {
         return channelOptional.get();
     }
 
-    public String getPeerIdentifierOrThrowException(ChannelEntity channel, String host, int port) throws NodeException {
+    public String getPeerIdentifierOrThrowException(ChannelEntity channel, Node peer) throws NodeException {
         List<Peer> peers = channel.getPeers();
         for (int i = 0, size = peers.size(); i < size; i++) {
-            Peer peer = peers.get(i);
-            if (peer.getHost().equals(host) && peer.getPort() == port) {
+            Peer endpoint = peers.get(i);
+            if (endpoint.getHost().equals(peer.getHost()) &&
+                    endpoint.getPort() == peer.getPort()) {
                 return IdentifierGenerator.ofPeer(channel.getName(), i);
             }
         }
         throw new NodeException("未找到相应的Peer");
     }
 
-    public static Node findNodeByAddr(Node node, List<? extends Node> nodes) {
+    private static Node findNodeByAddress(Node node, List<? extends Node> nodes) {
         String target = node.getAddr();
         for (Node item : nodes) {
             if (item.getAddr().equals(target)) {
@@ -109,7 +110,6 @@ public class ChannelService {
             throw new InvitationException("必须包含所有通道中的组织的邀请码");
         }
     }
-
 
 
     public ResourceResult createChannel(ChannelCreateRequest request) throws Exception {
@@ -209,11 +209,11 @@ public class ChannelService {
         assertOrganizationInChannel(channel, curOrgName);
 
         // 保证Orderer已经在网络中
-        Orderer newOrderer = (Orderer) findNodeByAddr(request.getOrderer(), network.getOrderers());
+        Orderer newOrderer = (Orderer) findNodeByAddress(request.getOrderer(), network.getOrderers());
         if (newOrderer == null) {
             throw new NodeNotFoundException("Orderer不在网络中");
         }
-        if (findNodeByAddr(request.getOrderer(), channel.getOrderers()) != null) {
+        if (findNodeByAddress(request.getOrderer(), channel.getOrderers()) != null) {
             throw new NodeException("Orderer已经加入通道中");
         }
 
@@ -305,10 +305,10 @@ public class ChannelService {
         ChannelEntity channel = getChannelOrThrowException(request.getChannelName());
 
         // 对证书格式进行检查
-        NetworkService.assertCertfileFormat(peerCertZip);
+        CertfileUtils.assertCertfileZip(peerCertZip);
 
         // 检查Peer是否在通道中且为该组织的节点
-        Peer peer = (Peer) findNodeByAddr(request.getPeer(), channel.getPeers());
+        Peer peer = (Peer) findNodeByAddress(request.getPeer(), channel.getPeers());
         if (peer != null) {
             throw new NodeException("相应的Peer节点已经加入了通道");
         }
@@ -421,7 +421,7 @@ public class ChannelService {
         String curOrgName = SecurityUtils.getUsername();
         assertOrganizationInChannel(channelOptional.get(), curOrgName);
 
-        String peerName = getPeerIdentifierOrThrowException(channelOptional.get(), request.getPeer().getHost(), request.getPeer().getPort());
+        String peerName = getPeerIdentifierOrThrowException(channelOptional.get(), request.getPeer());
         // 检查Orderer证书
         File ordererCertfileDir = ResourceUtils.getCertfileDir(peerName, CertfileType.PEER);
         CertfileUtils.assertCertfile(ordererCertfileDir);
