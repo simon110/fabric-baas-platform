@@ -21,12 +21,12 @@ public class CertfileUtils {
      * @param dir 该目录必须存在且包含msp和tls文件夹
      * @return 目录中是否包含关键的证书文件
      */
-    public static boolean checkCerts(File dir) {
+    public static boolean checkCertfile(File dir) {
         return checkMSPDir(new File(dir + "/msp")) && checkTLSDir(new File(dir + "/tls"));
     }
 
-    public static void assertCerts(File dir) throws CertfileException {
-        if (!checkCerts(dir)) {
+    public static void assertCertfile(File dir) throws CertfileException {
+        if (!checkCertfile(dir)) {
             throw new CertfileException("证书格式不正确");
         }
     }

@@ -29,7 +29,7 @@ public class CAUtils {
         assert CertfileType.exists(certfile.getCaUsertype());
 
         ResourceUtils.assertFileExists(caTlsCert);
-        CertfileUtils.assertCerts(adminCertfileDir);
+        CertfileUtils.assertCertfile(adminCertfileDir);
         String str = CommandUtils.exec(
                 ResourceUtils.getWorkingDir() + "/shell/fabric-ca-register.sh",
                 adminCertfileDir.getCanonicalPath(),
@@ -64,7 +64,7 @@ public class CAUtils {
                 certfile.getCaPassword(),
                 String.join(",", csrHosts)
         );
-        if (!CertfileUtils.checkCerts(certfileDir)) {
+        if (!CertfileUtils.checkCertfile(certfileDir)) {
             FileUtils.deleteDirectory(certfileDir);
             throw new CAException("登记证书失败");
         }

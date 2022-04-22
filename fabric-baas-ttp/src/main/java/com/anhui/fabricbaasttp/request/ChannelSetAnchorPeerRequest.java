@@ -6,6 +6,7 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
 @Data
@@ -15,6 +16,7 @@ public class ChannelSetAnchorPeerRequest {
     @ApiModelProperty(value = "通道名称", required = true)
     private String channelName;
 
+    @NotNull
     @ApiModelProperty(value = "加入网络的Peer信息", required = true)
     private Node peer;
 }

@@ -41,7 +41,7 @@ public class CAService {
         if (certfileOptional.isPresent()) {
             throw new CertfileException("证书已注册，请勿重复操作");
         }
-        if (!CertfileUtils.checkCerts(FABRIC_CA_ADMIN_CERTFILE_DIR)) {
+        if (!CertfileUtils.checkCertfile(FABRIC_CA_ADMIN_CERTFILE_DIR)) {
             throw new CertfileException("CA管理员的证书未初始化");
         }
 

@@ -84,7 +84,7 @@ public class NetworkService {
 
         // 检查清除写入的文件
         try {
-            CertfileUtils.assertCerts(tempDir);
+            CertfileUtils.assertCertfile(tempDir);
         } finally {
             FileUtils.deleteQuietly(certfileZip);
             FileUtils.deleteDirectory(tempDir);
@@ -203,7 +203,7 @@ public class NetworkService {
 
         // 检查Orderer证书
         File ordererCertfileDir = ResourceUtils.getCertfileDir(ordererName, CertfileType.ORDERER);
-        CertfileUtils.assertCerts(ordererCertfileDir);
+        CertfileUtils.assertCertfile(ordererCertfileDir);
         String downloadUrl = String.format("/download/certfile/%s.crt", UUID.randomUUID());
         FileUtils.copyFile(new File(ordererCertfileDir + "/tls/ca.crt"), new File("static" + downloadUrl));
 
@@ -228,7 +228,7 @@ public class NetworkService {
 
         // 检查Orderer证书
         File ordererCertfileDir = ResourceUtils.getCertfileDir(ordererName, CertfileType.ORDERER);
-        CertfileUtils.assertCerts(ordererCertfileDir);
+        CertfileUtils.assertCertfile(ordererCertfileDir);
         String downloadUrl = String.format("/download/certfile/%s.zip", UUID.randomUUID());
         ZipUtils.zip(new File("static" + downloadUrl),
                 CertfileUtils.getMSPDir(ordererCertfileDir),
@@ -337,7 +337,7 @@ public class NetworkService {
         log.info(String.format("正在将组织%s上传的网络管理员证书解压到：", curOrgName) + orgCertfileDir.getAbsolutePath());
         ZipUtils.unzip(organizationCertfileZip, orgCertfileDir);
         log.info(String.format("正在检查组织%s上传的网络管理员证书：", curOrgName) + orgCertfileDir.getAbsolutePath());
-        CertfileUtils.assertCerts(orgCertfileDir);
+        CertfileUtils.assertCertfile(orgCertfileDir);
 
         List<Node> orderers = request.getOrderers();
         List<ConfigtxOrderer> configtxOrderers = new ArrayList<>();
