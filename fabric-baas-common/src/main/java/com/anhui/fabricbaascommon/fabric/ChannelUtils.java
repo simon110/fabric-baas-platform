@@ -118,8 +118,8 @@ public class ChannelUtils {
             File channelJsonConfig)
             throws IOException, ChannelException {
         String addr = newOrderer.getAddr();
-        String base64ServerTlsCert = Base64Utils.encodeToString(FileUtils.readFileToByteArray(new File(newOrderer.getServerTlsCert().getAbsolutePath())));
-        String base64ClientTlsCert = Base64Utils.encodeToString(FileUtils.readFileToByteArray(new File(newOrderer.getClientTlsCert().getAbsolutePath())));
+        byte[] newOrdererTlsCertBytes = FileUtils.readFileToByteArray(newOrderer.getServerTlsCert());
+        String base64TlsCert = Base64Utils.encodeToString(newOrdererTlsCertBytes);
 
         Map<String, Object> channelConfig = JsonUtils.loadAsMap(channelJsonConfig);
         Map<String, Object> channelGroup = (Map<String, Object>) channelConfig.get("channel_group");
@@ -144,8 +144,8 @@ public class ChannelUtils {
         List<Object> consenters = (List<Object>) consensusTypeValueMetadata.get("consenters");
 
         Map<String, Object> newConsenter = new TreeMap<>();
-        newConsenter.put("client_tls_cert", base64ClientTlsCert);
-        newConsenter.put("server_tls_cert", base64ServerTlsCert);
+        newConsenter.put("client_tls_cert", base64TlsCert);
+        newConsenter.put("server_tls_cert", base64TlsCert);
         newConsenter.put("host", newOrderer.getHost());
         newConsenter.put("port", newOrderer.getPort());
         consenters.add(newConsenter);

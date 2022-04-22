@@ -81,7 +81,7 @@ public class CAService {
         return FABRIC_CA_ADMIN_CERTFILE_DIR;
     }
 
-    public String getAdminOrgName() throws CAException {
+    public String getAdminOrganizationName() throws CAException {
         Optional<CAEntity> caOptional = caRepo.findFirstByNameIsNotNull();
         if (caOptional.isPresent()) {
             return caOptional.get().getName();
@@ -90,7 +90,7 @@ public class CAService {
     }
 
     public String getCAName() throws CAException {
-        return getAdminOrgName() + "CA";
+        return getAdminOrganizationName() + "CA";
     }
 
     public CAConfig buildCAConfig(CAEntity ca) {

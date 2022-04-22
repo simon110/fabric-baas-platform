@@ -6,6 +6,7 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
 @Data
@@ -15,6 +16,7 @@ public class NetworkAddOrdererRequest {
     @ApiModelProperty(value = "网络名称", required = true)
     private String networkName;
 
+    @NotNull
     @ApiModelProperty(value = "Orderer节点的信息", required = true)
     private Node orderer;
 }

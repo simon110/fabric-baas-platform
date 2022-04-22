@@ -28,15 +28,15 @@ public class MinIOService {
     /**
      * @param bucketName 之前创建的桶名，例如"asiatrip"
      * @param objectName 保存的文件对象的名称，例如"asiaphotos-2015.zip"
-     * @param path       文件路径，例如"/home/user/Photos/asiaphotos.zip"
+     * @param file       文件，例如"/home/user/Photos/asiaphotos.zip"
      */
-    public void putFile(String bucketName, String objectName, String path) throws MinioException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+    public void putFile(String bucketName, String objectName, File file) throws MinioException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         createBucketIfNotPresent(bucketName);
         minioClient.uploadObject(
                 UploadObjectArgs.builder()
                         .bucket(bucketName)
                         .object(objectName)
-                        .filename(path)
+                        .filename(file.getAbsolutePath())
                         .build());
     }
 
@@ -55,11 +55,11 @@ public class MinIOService {
     /**
      * @param bucketName 之前创建的桶名，例如"asiatrip"
      * @param objectName 保存的文件对象的名称，例如"asiaphotos-2015.zip"
-     * @param path       文件路径，例如"/home/user/Photos/asiaphotos.zip"
+     * @param file       文件，例如"/home/user/Photos/asiaphotos.zip"
      */
-    public void getAsFile(String bucketName, String objectName, String path) throws InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException, ServerException {
+    public void getAsFile(String bucketName, String objectName, File file) throws InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException, ServerException {
         byte[] bytes = getAsBytes(bucketName, objectName);
-        FileUtils.writeByteArrayToFile(new File(path), bytes);
+        FileUtils.writeByteArrayToFile(file, bytes);
     }
 
     public byte[] getAsBytes(String bucketName, String objectName) throws InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException, ServerException {

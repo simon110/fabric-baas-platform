@@ -52,15 +52,18 @@ public class ZipUtils {
     }
 
     /**
+     * 如果目标路径为文件则会抛出异常
+     * 如果目标路径不存在内容则会自动创建文件夹
+     *
      * @param src 需要解压的Zip文件
-     * @param dst Zip文件根目录下内容的输出路径，必须为文件夹
+     * @param dst Zip文件根目录下内容的输出路径
      */
     @SuppressWarnings("rawtypes")
     public static void unzip(File src, File dst) throws IOException {
         if (!dst.exists()) {
             boolean mkdirs = dst.mkdirs();
         } else if (!dst.isDirectory()) {
-            throw new IOException("目标路径必须是文件夹");
+            throw new IOException("目标路径已存在文件");
         }
         ZipFile zipFile = new ZipFile(src, "GBK");
         for (Enumeration entries = zipFile.getEntries(); entries.hasMoreElements(); ) {
