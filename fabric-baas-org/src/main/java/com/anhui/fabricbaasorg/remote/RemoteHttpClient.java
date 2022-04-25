@@ -80,7 +80,7 @@ public class RemoteHttpClient {
      * @param url 文件地址
      * @return 文件byte数组
      */
-    public byte[] getFile(String url) {
+    public byte[] download(String url) {
         String portUrl = this.url + url;
         return HttpRequest.get(portUrl).header(this.headers).execute().bodyBytes();
     }
