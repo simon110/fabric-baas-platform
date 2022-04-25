@@ -1,5 +1,6 @@
 package com.anhui.fabricbaascommon.util;
 
+import com.anhui.fabricbaascommon.constant.CertfileType;
 import com.anhui.fabricbaascommon.exception.CertfileException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
@@ -44,6 +45,21 @@ public class CertfileUtils {
         return new File(dir + "/tls");
     }
 
+
+    /**
+     * 注意该方法不检查对应路径的内容是否存在以及是否正确
+     *
+     * @param name CA账户名称
+     * @param type CA账户类型
+     * @return CA账户证书应该被存放的位置
+     */
+    public static File getCertfileDir(String name, String type) {
+        assert type.equals(CertfileType.ORDERER) ||
+                type.equals(CertfileType.ADMIN) ||
+                type.equals(CertfileType.CLIENT) ||
+                type.equals(CertfileType.PEER);
+        return new File(String.format("%s/fabric/certfile/%s/%s", ResourceUtils.getWorkingDir(), type, name));
+    }
     /**
      * 检查完成后返回压缩包的随机路径，如果检查不通过则抛出异常。
      */

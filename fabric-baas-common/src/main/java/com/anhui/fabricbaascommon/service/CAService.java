@@ -3,15 +3,16 @@ package com.anhui.fabricbaascommon.service;
 import com.anhui.fabricbaascommon.bean.CAConfig;
 import com.anhui.fabricbaascommon.bean.Certfile;
 import com.anhui.fabricbaascommon.configuration.FabricConfiguration;
+import com.anhui.fabricbaascommon.entity.CAEntity;
+import com.anhui.fabricbaascommon.entity.CertfileEntity;
 import com.anhui.fabricbaascommon.exception.CAException;
 import com.anhui.fabricbaascommon.exception.CertfileException;
 import com.anhui.fabricbaascommon.fabric.CAUtils;
 import com.anhui.fabricbaascommon.repository.CARepo;
+import com.anhui.fabricbaascommon.repository.CertfileRepo;
 import com.anhui.fabricbaascommon.util.CertfileUtils;
 import com.anhui.fabricbaascommon.util.ResourceUtils;
-import com.anhui.fabricbaascommon.entity.CertfileEntity;
-import com.anhui.fabricbaascommon.entity.CAEntity;
-import com.anhui.fabricbaascommon.repository.CertfileRepo;
+import com.anhui.fabricbaascommon.util.ZipUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -91,6 +92,14 @@ public class CAService {
 
     public File getAdminCertfileDir() {
         return FABRIC_CA_ADMIN_CERTFILE_DIR;
+    }
+
+    public void getAdminCertfileZip(File output) throws IOException, CertfileException {
+        CertfileUtils.assertCertfile(FABRIC_CA_ADMIN_CERTFILE_DIR);
+        ZipUtils.zip(output,
+                CertfileUtils.getMSPDir(FABRIC_CA_ADMIN_CERTFILE_DIR),
+                CertfileUtils.getTLSDir(FABRIC_CA_ADMIN_CERTFILE_DIR)
+        );
     }
 
     public String getAdminOrganizationName() throws CAException {

@@ -7,7 +7,7 @@ import com.anhui.fabricbaascommon.bean.TLSEnv;
 import com.anhui.fabricbaascommon.constant.CertfileType;
 import com.anhui.fabricbaascommon.exception.CAException;
 import com.anhui.fabricbaascommon.service.CAService;
-import com.anhui.fabricbaascommon.util.ResourceUtils;
+import com.anhui.fabricbaascommon.util.CertfileUtils;
 import com.anhui.fabricbaasttp.bean.Orderer;
 import com.anhui.fabricbaasttp.bean.Peer;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,7 +49,7 @@ public class FabricEnvService {
     }
 
     public MSPEnv buildMSPEnvForOrg(String orgName) {
-        File dir = ResourceUtils.getCertfileDir(orgName, CertfileType.ADMIN);
+        File dir = CertfileUtils.getCertfileDir(orgName, CertfileType.ADMIN);
 
         MSPEnv mspEnv = new MSPEnv();
         mspEnv.setMspId(orgName);
@@ -58,12 +58,12 @@ public class FabricEnvService {
     }
 
     public TLSEnv buildTLSEnvForOrderer(Orderer orderer) {
-        File homeDir = ResourceUtils.getCertfileDir(orderer.getCaUsername(), CertfileType.ORDERER);
+        File homeDir = CertfileUtils.getCertfileDir(orderer.getCaUsername(), CertfileType.ORDERER);
         return buildTLSEnv(orderer, homeDir);
     }
 
     public TLSEnv buildTLSEnvForPeer(Peer peer) {
-        File homeDir = ResourceUtils.getCertfileDir(peer.getName(), CertfileType.PEER);
+        File homeDir = CertfileUtils.getCertfileDir(peer.getName(), CertfileType.PEER);
         return buildTLSEnv(peer, homeDir);
     }
 

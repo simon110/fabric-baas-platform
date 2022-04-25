@@ -1,7 +1,5 @@
 package com.anhui.fabricbaascommon.util;
 
-import com.anhui.fabricbaascommon.constant.CertfileType;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.UUID;
@@ -76,20 +74,5 @@ public class ResourceUtils {
      */
     public static String toCanonicalPath(String path) throws IOException {
         return new File(path).getCanonicalPath();
-    }
-
-    /**
-     * 注意该方法不检查对应路径的内容是否存在以及是否正确
-     *
-     * @param name CA账户名称
-     * @param type CA账户类型
-     * @return CA账户证书应该被存放的位置
-     */
-    public static File getCertfileDir(String name, String type) {
-        assert type.equals(CertfileType.ORDERER) ||
-                type.equals(CertfileType.ADMIN) ||
-                type.equals(CertfileType.CLIENT) ||
-                type.equals(CertfileType.PEER);
-        return new File(String.format("%s/fabric/certfile/%s/%s", getWorkingDir(), type, name));
     }
 }

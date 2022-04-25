@@ -126,7 +126,7 @@ public class ChannelService {
 
         // 默认配置该网络中当前的所有Orderer作为排序节点
         String organizationCertfileId = IdentifierGenerator.ofCertfile(request.getNetworkName(), curOrgName);
-        File organizationCertfileDir = ResourceUtils.getCertfileDir(organizationCertfileId, CertfileType.ADMIN);
+        File organizationCertfileDir = CertfileUtils.getCertfileDir(organizationCertfileId, CertfileType.ADMIN);
         ConfigtxOrganization ordererConfigtxOrg = new ConfigtxOrganization(
                 caService.getAdminOrganizationName(),
                 caService.getAdminOrganizationName(),
@@ -137,7 +137,7 @@ public class ChannelService {
         List<ConfigtxOrganization> configtxOrganizations = Collections.singletonList(currentConfigtxOrg);
         List<ConfigtxOrderer> configtxOrderers = new ArrayList<>(network.getOrderers().size());
         for (Orderer endpoint : network.getOrderers()) {
-            File tlsServerCrt = new File(ResourceUtils.getCertfileDir(endpoint.getCaUsername(), CertfileType.ORDERER) + "/tls/server.crt");
+            File tlsServerCrt = new File(CertfileUtils.getCertfileDir(endpoint.getCaUsername(), CertfileType.ORDERER) + "/tls/server.crt");
 
             ConfigtxOrderer configtxOrderer = new ConfigtxOrderer();
             configtxOrderer.setHost(endpoint.getHost());
@@ -219,7 +219,7 @@ public class ChannelService {
 
         // 从现有的通道中随机选择一个Orderer节点
         Orderer selectedOrderer = RandomUtils.select(channel.getOrderers());
-        File selectedOrdererCertfileDir = ResourceUtils.getCertfileDir(selectedOrderer.getCaUsername(), CertfileType.ORDERER);
+        File selectedOrdererCertfileDir = CertfileUtils.getCertfileDir(selectedOrderer.getCaUsername(), CertfileType.ORDERER);
 
         // 拉取通道的配置文件（以Orderer组织管理员的身份）
         CoreEnv ordererCoreEnv = fabricEnvService.buildCoreEnvForOrderer(selectedOrderer);
@@ -271,7 +271,7 @@ public class ChannelService {
         File newOrgConfigtxDir = ResourceUtils.createTempDir();
         File newOrgConfigtxYaml = new File(newOrgConfigtxDir + "configtx.yaml");
         File newOrgConfigtxJson = ResourceUtils.createTempFile("json");
-        File newOrgCertfileDir = ResourceUtils.getCertfileDir(curOrgName, CertfileType.ADMIN);
+        File newOrgCertfileDir = CertfileUtils.getCertfileDir(curOrgName, CertfileType.ADMIN);
         ConfigtxOrganization configtxOrganization = new ConfigtxOrganization();
         configtxOrganization.setId(curOrgName);
         configtxOrganization.setName(curOrgName);
@@ -341,7 +341,7 @@ public class ChannelService {
 
         // 将Peer证书保存到MinIO和证书目录
         minioService.putBytes(MinIOBucket.PEER_CERTFILE_BUCKET_NAME, peer.getName(), peerCertZip.getBytes());
-        File peerCertfileDir = ResourceUtils.getCertfileDir(peer.getName(), CertfileType.PEER);
+        File peerCertfileDir = CertfileUtils.getCertfileDir(peer.getName(), CertfileType.PEER);
         ZipUtils.unzip(peerCertfileZip, peerCertfileDir);
 
         // 更新MongoDB中的信息
@@ -423,7 +423,7 @@ public class ChannelService {
 
         String peerName = getPeerIdentifierOrThrowException(channelOptional.get(), request.getPeer());
         // 检查Orderer证书
-        File ordererCertfileDir = ResourceUtils.getCertfileDir(peerName, CertfileType.PEER);
+        File ordererCertfileDir = CertfileUtils.getCertfileDir(peerName, CertfileType.PEER);
         CertfileUtils.assertCertfile(ordererCertfileDir);
         String downloadUrl = String.format("/download/cert/%s.crt", UUID.randomUUID());
         FileUtils.copyFile(new File(ordererCertfileDir + "/tls/ca.crt"), new File("static" + downloadUrl));

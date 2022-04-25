@@ -102,7 +102,7 @@ public class KubernetesService {
         throw new KubernetesException("等待Pod内的容器启动超时：" + podName);
     }
 
-    public void assertKubePortNotOccupied(int kubePort) throws KubernetesException {
+    public void assertKubePortUnused(int kubePort) throws KubernetesException {
         if (!peerRepo.findAllByKubeNodePortOrKubeEventNodePort(kubePort, kubePort).isEmpty() ||
                 !ordererRepo.findAllByKubeNodePort(kubePort).isEmpty()) {
             throw new KubernetesException("端口已被占用：" + kubePort);
@@ -124,8 +124,8 @@ public class KubernetesService {
     public void startPeer(PeerEntity peer, String clusterDomain, File peerCertfileDir) throws Exception {
         kubernetesClient.connect();
         // 检查端口占用情况
-        assertKubePortNotOccupied(peer.getKubeNodePort());
-        assertKubePortNotOccupied(peer.getKubeEventNodePort());
+        assertKubePortUnused(peer.getKubeNodePort());
+        assertKubePortUnused(peer.getKubeEventNodePort());
 
         // 检查是否存在同名Peer
         assertDeploymentNameNotOccupied(peer.getName());
@@ -176,7 +176,7 @@ public class KubernetesService {
         kubernetesClient.connect();
 
         // 检查端口是否冲突
-        assertKubePortNotOccupied(orderer.getKubeNodePort());
+        assertKubePortUnused(orderer.getKubeNodePort());
 
         // 检查Orderer是否已经存在
         assertDeploymentNameNotOccupied(orderer.getName());
