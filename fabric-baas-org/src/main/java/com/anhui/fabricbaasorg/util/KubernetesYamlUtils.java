@@ -75,12 +75,12 @@ public class KubernetesYamlUtils {
         FileUtils.writeStringToFile(output, config, StandardCharsets.UTF_8);
     }
 
-    public static void generatePeerYaml(PeerEntity peer, String clusterDomain, File output) throws IOException {
+    public static void generatePeerYaml(PeerEntity peer, String domain, File output) throws IOException {
         String templatePath = "fabric/template/fabric-peer.yaml";
         String config = FileUtils.readFileToString(new File(templatePath), StandardCharsets.UTF_8);
         String[][] replacements = new String[][]{
                 {"peer-org-example-com", peer.getName()},
-                {"peer.org.example.com", clusterDomain},
+                {"peer.org.example.com", domain},
                 {"mspid", peer.getOrganizationName() + "MSP"},
                 {"couchdb-username", peer.getCouchDBUsername()},
                 {"couchdb-password", peer.getCouchDBPassword()},

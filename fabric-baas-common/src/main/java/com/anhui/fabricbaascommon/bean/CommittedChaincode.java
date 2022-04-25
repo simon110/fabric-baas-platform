@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @ApiModel(value = "已生效的链码")
-public class CommittedChaincode extends ChaincodeBasicProperties {
+public class CommittedChaincode extends BasicChaincodeProperties {
     @ApiModelProperty(value = "链码所在的通道", required = true)
     private String channelName;
 }

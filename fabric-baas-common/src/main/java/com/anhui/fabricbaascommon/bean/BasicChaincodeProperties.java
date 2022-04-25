@@ -7,7 +7,7 @@ import nonapi.io.github.classgraph.json.Id;
 
 @ApiModel(value = "链码基本标识字段")
 @Data
-public class ChaincodeBasicProperties {
+public class BasicChaincodeProperties {
     @Id
     @ApiModelProperty(value = "链码名称", required = true)
     private String name;

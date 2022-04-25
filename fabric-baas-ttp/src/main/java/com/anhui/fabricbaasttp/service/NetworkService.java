@@ -247,9 +247,9 @@ public class NetworkService {
         ConfigtxOrderer configtxOrderer = new ConfigtxOrderer();
         configtxOrderer.setHost(request.getOrderer().getHost());
         configtxOrderer.setPort(request.getOrderer().getPort());
-        File newOrdererTlsServerCrt = new File(newOrdererCertfileDir + "/tls/server.crt");
-        configtxOrderer.setClientTlsCert(newOrdererTlsServerCrt);
-        configtxOrderer.setServerTlsCert(newOrdererTlsServerCrt);
+        File newOrdererTlsServerCert = new File(newOrdererCertfileDir + "/tls/server.crt");
+        configtxOrderer.setClientTlsCert(newOrdererTlsServerCert);
+        configtxOrderer.setServerTlsCert(newOrdererTlsServerCert);
         File newChannelConfig = ResourceUtils.createTempFile("json");
         FileUtils.copyFile(oldChannelConfig, newChannelConfig);
         ChannelUtils.appendOrdererToChannelConfig(configtxOrderer, newChannelConfig);
@@ -334,8 +334,8 @@ public class NetworkService {
 
             // 增加configtx的Orderer定义
             // 注意此处的TLS证书路径是configtx.yaml的相对路径
-            File tlsSeverCrt = new File(ordererCertfileDir + "/tls/server.crt");
-            configtxOrderers.add(new ConfigtxOrderer(orderer.getHost(), orderer.getPort(), tlsSeverCrt, tlsSeverCrt));
+            File tlsSeverCert = new File(ordererCertfileDir + "/tls/server.crt");
+            configtxOrderers.add(new ConfigtxOrderer(orderer.getHost(), orderer.getPort(), tlsSeverCert, tlsSeverCert));
 
             // 生成保存到数据库的Orderer信息
             Orderer node = new Orderer();

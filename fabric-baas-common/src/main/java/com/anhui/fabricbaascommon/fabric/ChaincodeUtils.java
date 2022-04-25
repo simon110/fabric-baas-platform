@@ -42,8 +42,8 @@ public class ChaincodeUtils {
         String[] outputLines = str.split("\n");
         assert outputLines.length > 0;
         List<CommittedChaincode> committedChaincodes = new ArrayList<>();
-        for (int i = 1; i < outputLines.length; i++) {
-            String[] parts = outputLines[i].split(", ");
+        for (String outputLine : outputLines) {
+            String[] parts = outputLine.split(", ");
             assert parts.length == 5;
             assert parts[0].startsWith("Name: ");
             assert parts[1].startsWith("Version: ");
@@ -84,9 +84,9 @@ public class ChaincodeUtils {
         //Package ID: basic_1.0:dee2d612e15f5059478b9048fa4b3c9f792096554841d642b9b59099fa0e04a4, Label: basic_1.0
         List<InstalledChaincode> installedChaincodes = new ArrayList<>();
         String[] outputLines = str.split("\n");
-        for (int i = 1; i < outputLines.length; i++) {
+        for (String outputLine : outputLines) {
             InstalledChaincode installedChaincode = new InstalledChaincode();
-            String[] parts = outputLines[i].split(", ");
+            String[] parts = outputLine.split(", ");
             assert parts[0].startsWith("Package ID: ");
             assert parts[1].startsWith("Label: ");
             installedChaincode.setIdentifier(parts[0].replaceFirst("Package ID: ", ""));
@@ -167,7 +167,7 @@ public class ChaincodeUtils {
             CoreEnv peerCoreEnv,
             String channelName,
             String packageId,
-            ChaincodeBasicProperties chaincodeProperties) throws IOException, InterruptedException, CertfileException, ChaincodeException {
+            BasicChaincodeProperties chaincodeProperties) throws IOException, InterruptedException, CertfileException, ChaincodeException {
         peerCoreEnv.selfAssert();
         ordererTlsEnv.selfAssert();
 
@@ -203,7 +203,7 @@ public class ChaincodeUtils {
             TLSEnv ordererTlsEnv,
             CoreEnv peerCoreEnv,
             String channelName,
-            ChaincodeBasicProperties chaincodeProperties)
+            BasicChaincodeProperties chaincodeProperties)
             throws IOException, InterruptedException, CertfileException, ChaincodeException {
         peerCoreEnv.selfAssert();
         ordererTlsEnv.selfAssert();
@@ -256,7 +256,7 @@ public class ChaincodeUtils {
             CoreEnv committerPeerCoreEnv,
             List<TLSEnv> endorsorPeerTlsEnvs,
             String channelName,
-            ChaincodeBasicProperties chaincodeProperties)
+            BasicChaincodeProperties chaincodeProperties)
             throws IOException, InterruptedException, CertfileException, ChaincodeException {
         committerPeerCoreEnv.selfAssert();
         ordererTlsEnv.selfAssert();
