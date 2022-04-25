@@ -1,6 +1,6 @@
 package com.anhui.fabricbaascommon.bean;
 
-import com.anhui.fabricbaascommon.constant.KubernetesPort;
+import com.anhui.fabricbaascommon.constant.ParamRange;
 import com.anhui.fabricbaascommon.constant.ParamPattern;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -16,7 +16,7 @@ public class Node {
     @ApiModelProperty(value = "域名", required = true)
     private String host;
 
-    @Range(min = KubernetesPort.MIN_VALUE, max = KubernetesPort.MAX_VALUE, message = "端口范围必须位于[30000, 32767]区间内")
+    @Range(min = ParamRange.MIN_KUBE_PORT, max = ParamRange.MAX_KUBE_PORT, message = ParamRange.KUBE_PORT_MSG)
     @ApiModelProperty(value = "端口", required = true)
     private int port;
 
