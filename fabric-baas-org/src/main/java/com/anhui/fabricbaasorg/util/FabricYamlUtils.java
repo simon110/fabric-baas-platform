@@ -10,7 +10,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-public class KubernetesYamlUtils {
+public class FabricYamlUtils {
     /**
      * 下标在前面的替换选项会优先被替换。
      *

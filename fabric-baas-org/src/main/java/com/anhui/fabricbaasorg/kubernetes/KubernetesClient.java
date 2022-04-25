@@ -1,30 +1,165 @@
 package com.anhui.fabricbaasorg.kubernetes;
 
+import com.anhui.fabricbaasorg.exception.KubernetesException;
+import io.kubernetes.client.Copy;
+import io.kubernetes.client.Exec;
+import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.ApiClient;
+import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.Configuration;
+import io.kubernetes.client.openapi.apis.AppsV1Api;
+import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.models.*;
 import io.kubernetes.client.util.ClientBuilder;
 import io.kubernetes.client.util.KubeConfig;
+import io.kubernetes.client.util.Streams;
+import io.kubernetes.client.util.Yaml;
 import lombok.Data;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
+import java.nio.file.Paths;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
-/**
- * 包含集群的链接信息和证书信息
- */
+
 @Data
 public class KubernetesClient {
-    private ApiClient client;
+    private static final String KUBERNETES_NAMESPACE = "default";
+    private ApiClient apiClient;
 
-    public KubernetesClient(File adminConfig) throws IOException {
+    /**
+     * @param adminConfig 包含集群的链接信息和证书信息
+     */
+    public KubernetesClient(File adminConfig) throws IOException, ApiException {
         FileReader fileReader = new FileReader(adminConfig);
         KubeConfig kubeConfig = KubeConfig.loadKubeConfig(fileReader);
-        this.client = ClientBuilder.kubeconfig(kubeConfig).build();
+        this.apiClient = ClientBuilder.kubeconfig(kubeConfig).build();
+        getAllNodes();
+        getAllPods();
     }
 
     public void connect() {
-        Configuration.setDefaultApiClient(client);
+        Configuration.setDefaultApiClient(apiClient);
+    }
+
+    /**
+     * 将编排文件定义的内容部署到集群中
+     */
+    public void applyYaml(File yaml) throws IOException, ApiException, KubernetesException {
+        connect();
+        List<Object> objects = Yaml.loadAll(yaml);
+        AppsV1Api appsV1Api = new AppsV1Api();
+        CoreV1Api coreV1Api = new CoreV1Api();
+        for (Object object : objects) {
+            KubernetesObject kubernetesObject = (KubernetesObject) object;
+            String kind = kubernetesObject.getKind();
+            if ("Deployment".equals(kind)) {
+                appsV1Api.createNamespacedDeployment(KUBERNETES_NAMESPACE, (V1Deployment) kubernetesObject, null, null, null);
+            } else if ("Service".equals(kind)) {
+                coreV1Api.createNamespacedService(KUBERNETES_NAMESPACE, (V1Service) kubernetesObject, null, null, null);
+            } else {
+                throw new KubernetesException("不受支持的Kubernetes对象类型");
+            }
+        }
+    }
+
+    /**
+     * 将编排文件定义的内容从集群中删掉
+     */
+    public void deleteYaml(File yaml) throws IOException, ApiException, KubernetesException {
+        connect();
+        List<Object> objects = Yaml.loadAll(yaml);
+        AppsV1Api appsV1Api = new AppsV1Api();
+        CoreV1Api coreV1Api = new CoreV1Api();
+        for (Object object : objects) {
+            KubernetesObject kubernetesObject = (KubernetesObject) object;
+            String kind = kubernetesObject.getKind();
+            String name = kubernetesObject.getMetadata().getName();
+            if ("Deployment".equals(kind)) {
+                appsV1Api.deleteNamespacedDeployment(name, KUBERNETES_NAMESPACE, null, null, null, null, null, new V1DeleteOptions());
+            } else if ("Service".equals(kind)) {
+                coreV1Api.deleteNamespacedService(name, KUBERNETES_NAMESPACE, null, null, null, null, null, new V1DeleteOptions());
+            } else {
+                throw new KubernetesException("不受支持的Kubernetes对象类型");
+            }
+        }
+    }
+
+    /**
+     * 将本地的内容复制到集群中的指定容器中
+     * 路径规范参考scp命令
+     *
+     * @param src           要上传的文件或文件夹的本地路径
+     * @param dst           要上传的容器路径
+     * @param podName       集群Pod名称
+     * @param containerName Pod中的容器名称
+     */
+    public void uploadToContainer(File src, String dst, String podName, String containerName) throws IOException, ApiException {
+        connect();
+        Copy copy = new Copy();
+        copy.copyFileToPod(KUBERNETES_NAMESPACE, podName, containerName, src.toPath(), Paths.get(dst));
+    }
+
+    /**
+     * 将容器的内容下载到本地
+     * 路径规范参考scp命令
+     *
+     * @param src           要下载文件或文件夹的容器路径
+     * @param dst           要下载到的本地路径
+     * @param containerName 集群Pod名称
+     */
+    public void downloadFromContainer(String src, File dst, String podName, String containerName) throws IOException, ApiException {
+        connect();
+        Copy copy = new Copy();
+        InputStream dataStream = copy.copyFileFromPod(KUBERNETES_NAMESPACE, podName, containerName, src);
+        Streams.copy(dataStream, new FileOutputStream(dst));
+    }
+
+    /**
+     * 在集群中的指定容器上执行命令
+     */
+    public static void executeCommandOnContainer(KubernetesClient kubernetesClient, String[] command, String podName, String containerName, boolean asnyc) throws IOException, ApiException, InterruptedException {
+        kubernetesClient.connect();
+        Exec exec = new Exec();
+        Process process = exec.exec(KUBERNETES_NAMESPACE, podName, command, containerName, false, false);
+        if (!asnyc) {
+            process.waitFor();
+        }
+        // process.destroy();
+    }
+
+
+    /**
+     * 获取集群内所有节点的名称，用于nodeSelector
+     *
+     * @return 集群内所有节点的名称
+     */
+    public List<V1Node> getAllNodes() throws ApiException {
+        connect();
+        CoreV1Api api = new CoreV1Api();
+        V1NodeList nodes = api.listNode(null, null, null, null, null, null, null, null, null, null);
+        return nodes.getItems();
+    }
+
+    /**
+     * 获取集群内所有Pod
+     *
+     * @return 集群内所有Pod
+     */
+    public List<V1Pod> getAllPods() throws ApiException {
+        connect();
+        CoreV1Api api = new CoreV1Api();
+        V1PodList podList = api.listNamespacedPod(KUBERNETES_NAMESPACE, null, null, null, null, null, null, null, null, null, null);
+        return podList.getItems();
+    }
+
+    public List<V1Pod> getPodsByKeyword(String keyword) throws ApiException {
+        List<V1Pod> pods = getAllPods();
+        return pods.stream().filter(pod -> {
+            String podName = Objects.requireNonNull(pod.getMetadata()).getName();
+            return Objects.requireNonNull(podName).contains(keyword);
+        }).collect(Collectors.toList());
     }
 }
 

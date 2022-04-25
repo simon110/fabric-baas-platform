@@ -70,6 +70,18 @@ public class CAService {
                 certfile, csrHosts);
     }
 
+    public CAEntity getCAEntity() throws CAException {
+        Optional<CAEntity> caOptional = caRepo.findFirstByNameIsNotNull();
+        if (caOptional.isPresent()) {
+            return caOptional.get();
+        }
+        throw new CAException("未找到CA信息，请确认系统已经初始化");
+    }
+
+    public String getCAName() throws CAException {
+        return getAdminOrganizationName() + "CA";
+    }
+
     public void initAdminCertfile(CAConfig caConfig) throws IOException, InterruptedException, CertfileException, CAException {
         enroll(FABRIC_CA_ADMIN_CERTFILE_DIR,
                 fabricConfig.getCaAdminUsername(),
@@ -82,15 +94,11 @@ public class CAService {
     }
 
     public String getAdminOrganizationName() throws CAException {
-        Optional<CAEntity> caOptional = caRepo.findFirstByNameIsNotNull();
-        if (caOptional.isPresent()) {
-            return caOptional.get().getName();
-        }
-        throw new CAException("未找到CA信息，请确认系统已经初始化");
+        return getCAEntity().getName();
     }
 
-    public String getCAName() throws CAException {
-        return getAdminOrganizationName() + "CA";
+    public String getAdminOrganizationDomain() throws CAException {
+        return getCAEntity().getDomain();
     }
 
     public CAConfig buildCAConfig(CAEntity ca) {

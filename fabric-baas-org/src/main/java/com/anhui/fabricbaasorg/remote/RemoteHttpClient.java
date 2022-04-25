@@ -7,7 +7,6 @@ import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.anhui.fabricbaasweb.bean.CommonResponse;
 import lombok.Data;
-import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -15,21 +14,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@Component
 @Data
 public class RemoteHttpClient {
-    private String addr;
-    private int port;
-    private String url;
+    private String baseUrl = null;
     private Map<String, List<String>> headers = new HashMap<>();
 
     public RemoteHttpClient() {
     }
 
-    public void init(String addr, int port) {
-        this.addr = addr;
-        this.port = port;
-        this.url = String.format("http://%s:%d", this.addr, this.port);
+    public void init(String baseUrl) {
+        assert this.baseUrl == null;
+        this.baseUrl = baseUrl;
     }
 
     public void setHeaderProperty(String key, String value) {
@@ -47,20 +42,20 @@ public class RemoteHttpClient {
      */
     @SuppressWarnings("rawtypes")
     public JSONObject request(String api, Object data) throws Exception {
-        String postUrl = this.url + api;
+        String postUrl = "http://" + this.baseUrl + api;
         HttpRequest header = HttpRequest.post(postUrl).header(this.headers);
         if (data instanceof JSONObject) {
             header.header("Content-Type", "application/json");
             header.body(JSONUtil.toJsonStr(data));
         } else if (data instanceof Map) {
             header.header("Content-Type", "multipart/form-data");
-            Map<String, Object> map = (Map) data;
-            for (String key : map.keySet()) {
+            Map map = (Map) data;
+            for (Object key : map.keySet()) {
                 Object value = map.get(key);
                 if (value instanceof File) {
-                    header.form(key, value);
+                    header.form((String) key, value);
                 } else {
-                    header.form(key, JSONUtil.toJsonStr(value));
+                    header.form((String) key, JSONUtil.toJsonStr(value));
                 }
             }
         } else {
@@ -81,7 +76,7 @@ public class RemoteHttpClient {
      * @return 文件byte数组
      */
     public byte[] download(String url) {
-        String portUrl = this.url + url;
+        String portUrl = this.baseUrl + url;
         return HttpRequest.get(portUrl).header(this.headers).execute().bodyBytes();
     }
 }
