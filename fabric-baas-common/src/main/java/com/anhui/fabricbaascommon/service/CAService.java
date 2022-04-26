@@ -71,7 +71,7 @@ public class CAService {
     }
 
     public CAEntity getCAEntity() throws CAException {
-        Optional<CAEntity> caOptional = caRepo.findFirstByNameIsNotNull();
+        Optional<CAEntity> caOptional = caRepo.findFirstByOrganizationNameIsNotNull();
         if (caOptional.isPresent()) {
             return caOptional.get();
         }
