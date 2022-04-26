@@ -1,8 +1,8 @@
 version: "3"
 
 services:
-  ttp-redis:
-    container_name: ttp-redis
+  fabric-baas-platform-redis:
+    container_name: fabric-baas-platform-redis
     restart: always
     image: "redis:6.2"
     ports:

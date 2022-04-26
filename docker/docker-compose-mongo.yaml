@@ -1,8 +1,8 @@
 version: '3'
 
 services:
-  ttp-mongo:
-    container_name: ttp-mongo
+  fabric-baas-platform-mongo:
+    container_name: fabric-baas-platform-mongo
     image: mongo:4.4.10
     restart: always
     volumes:
@@ -15,11 +15,11 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: aDqKVcITnoVYwhzA
 
   ttp-mongo-express:
-    container_name: ttp-mongo-express
+    container_name: fabric-baas-platform-mongo-express
     image: mongo-express:1.0.0-alpha
     restart: always
     depends_on:
-      - mongo
+      - fabric-baas-platform-mongo
     ports:
       - 8081:8081
     environment:
