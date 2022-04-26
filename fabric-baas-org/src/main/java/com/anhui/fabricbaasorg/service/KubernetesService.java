@@ -25,6 +25,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * 注意所有的Kubernetes实例的名称应该只包含小写字母、小数点和横杠！
+ */
 @Slf4j
 @Service
 public class KubernetesService {

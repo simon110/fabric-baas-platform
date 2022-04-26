@@ -16,7 +16,7 @@ spec:
       restartPolicy: Always
       containers:
         - name: orderer-example-com
-          image: hyperledger/fabric-orderer:2.2.0
+          image: hyperledger/fabric-orderer:2.2.4
           imagePullPolicy: Never
           env:
             - name: FABRIC_LOGGING_SPEC

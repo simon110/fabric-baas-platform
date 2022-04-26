@@ -67,7 +67,7 @@ public class FabricYamlUtils {
         String templatePath = "fabric/template/fabric-orderer.yaml";
         String config = FileUtils.readFileToString(new File(templatePath), StandardCharsets.UTF_8);
         String[][] replacements = new String[][]{
-                {"orderer-example-com", orderer.getName()},
+                {"orderer-example-com", orderer.getName().toLowerCase()},
                 {"kube-node", orderer.getKubeNodeName()},
                 {"8050", orderer.getKubeNodePort().toString()}
         };
@@ -79,7 +79,7 @@ public class FabricYamlUtils {
         String templatePath = "fabric/template/fabric-peer.yaml";
         String config = FileUtils.readFileToString(new File(templatePath), StandardCharsets.UTF_8);
         String[][] replacements = new String[][]{
-                {"peer-org-example-com", peer.getName()},
+                {"peer-org-example-com", peer.getName().toLowerCase()},
                 {"peer.org.example.com", domain},
                 {"mspid", peer.getOrganizationName() + "MSP"},
                 {"couchdb-username", peer.getCouchDBUsername()},

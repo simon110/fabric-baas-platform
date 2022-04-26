@@ -15,6 +15,7 @@ import io.kubernetes.client.util.KubeConfig;
 import io.kubernetes.client.util.Streams;
 import io.kubernetes.client.util.Yaml;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.*;
 import java.nio.file.Paths;
@@ -24,6 +25,7 @@ import java.util.stream.Collectors;
 
 
 @Data
+@Slf4j
 public class KubernetesClient {
     private static final String KUBERNETES_NAMESPACE = "default";
     private ApiClient apiClient;
@@ -98,7 +100,7 @@ public class KubernetesClient {
     public void uploadToContainer(File src, String dst, String podName, String containerName) throws IOException, ApiException {
         connect();
         Copy copy = new Copy();
-        copy.copyFileToPod(KUBERNETES_NAMESPACE, podName, containerName, src.toPath(), Paths.get(dst));
+        copy.copyFileToPod(KUBERNETES_NAMESPACE, podName.toLowerCase(), containerName.toLowerCase(), src.toPath(), Paths.get(dst));
     }
 
     /**
@@ -112,7 +114,7 @@ public class KubernetesClient {
     public void downloadFromContainer(String src, File dst, String podName, String containerName) throws IOException, ApiException {
         connect();
         Copy copy = new Copy();
-        InputStream dataStream = copy.copyFileFromPod(KUBERNETES_NAMESPACE, podName, containerName, src);
+        InputStream dataStream = copy.copyFileFromPod(KUBERNETES_NAMESPACE, podName.toLowerCase(), containerName.toLowerCase(), src);
         Streams.copy(dataStream, new FileOutputStream(dst));
     }
 
@@ -122,7 +124,7 @@ public class KubernetesClient {
     public static void executeCommandOnContainer(KubernetesClient kubernetesClient, String[] command, String podName, String containerName, boolean asnyc) throws IOException, ApiException, InterruptedException {
         kubernetesClient.connect();
         Exec exec = new Exec();
-        Process process = exec.exec(KUBERNETES_NAMESPACE, podName, command, containerName, false, false);
+        Process process = exec.exec(KUBERNETES_NAMESPACE, podName.toLowerCase(), command, containerName.toLowerCase(), false, false);
         if (!asnyc) {
             process.waitFor();
         }
@@ -155,10 +157,11 @@ public class KubernetesClient {
     }
 
     public List<V1Pod> getPodsByKeyword(String keyword) throws ApiException {
+        String lowerCaseKeyword = keyword.toLowerCase();
         List<V1Pod> pods = getAllPods();
         return pods.stream().filter(pod -> {
             String podName = Objects.requireNonNull(pod.getMetadata()).getName();
-            return Objects.requireNonNull(podName).contains(keyword);
+            return Objects.requireNonNull(podName).contains(lowerCaseKeyword);
         }).collect(Collectors.toList());
     }
 }

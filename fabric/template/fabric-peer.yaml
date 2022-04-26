@@ -16,7 +16,7 @@ spec:
       restartPolicy: Always
       containers:
         - name: peer-org-example-com
-          image: hyperledger/fabric-peer:2.2.0
+          image: hyperledger/fabric-peer:2.2.4
           imagePullPolicy: Never
           env:
             - name: CORE_LEDGER_STATE_STATEDATABASE
