@@ -71,6 +71,7 @@ public class SystemService {
                 fabricConfiguration.getCaAdminUsername(),
                 fabricConfiguration.getCaAdminPassword()
         );
+        caRepo.save(org);
         log.info("正在初始化CA服务管理员证书");
         caService.initAdminCertfile(caConfig);
 
@@ -81,7 +82,6 @@ public class SystemService {
             String encodedPassword = passwordEncoder.encode(req.getAdminPassword());
             admin.setPassword(encodedPassword);
             userRepo.save(admin);
-            caRepo.save(org);
         });
     }
 

@@ -57,6 +57,8 @@ public class SystemService {
         log.info("生成CA服务信息：" + caConfig);
         // 启动CA容器并尝试初始化管理员证书
         dockerService.startCAServer(caConfig, fabricConfiguration.getCaAdminUsername(), fabricConfiguration.getCaAdminPassword());
+        caRepo.save(ttp);
+
         log.info("正在初始化CA服务管理员证书...");
         caService.initAdminCertfile(caConfig);
 
@@ -67,7 +69,6 @@ public class SystemService {
             log.info("正在修改系统管理员密码...");
             userRepo.save(admin);
             log.info("正在保存TTP信息...");
-            caRepo.save(ttp);
         });
     }
 }
