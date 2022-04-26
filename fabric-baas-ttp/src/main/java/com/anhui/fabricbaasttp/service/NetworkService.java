@@ -205,8 +205,8 @@ public class NetworkService {
         CertfileUtils.assertCertfile(ordererCertfileDir);
         String downloadUrl = String.format("/download/certfile/%s.zip", UUID.randomUUID());
         ZipUtils.zip(new File("static" + downloadUrl),
-                CertfileUtils.getMSPDir(ordererCertfileDir),
-                CertfileUtils.getTLSDir(ordererCertfileDir)
+                CertfileUtils.getCertfileMSPDir(ordererCertfileDir),
+                CertfileUtils.getCertfileTLSDir(ordererCertfileDir)
         );
 
         ResourceResult result = new ResourceResult();

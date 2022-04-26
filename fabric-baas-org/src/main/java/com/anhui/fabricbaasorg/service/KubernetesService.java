@@ -150,8 +150,8 @@ public class KubernetesService {
         String containerName = containerStatuses.get(0).getName();
 
         CertfileUtils.assertCertfile(peerCertfileDir);
-        File peerCertfileMSPDir = CertfileUtils.getMSPDir(peerCertfileDir);
-        File peerCertfileTLSDir = CertfileUtils.getTLSDir(peerCertfileDir);
+        File peerCertfileMSPDir = CertfileUtils.getCertfileMSPDir(peerCertfileDir);
+        File peerCertfileTLSDir = CertfileUtils.getCertfileTLSDir(peerCertfileDir);
         kubernetesClient.uploadToContainer(peerCertfileMSPDir, "/var/crypto-config", podName, containerName);
         kubernetesClient.uploadToContainer(peerCertfileTLSDir, "/var/crypto-config", podName, containerName);
 
@@ -201,8 +201,8 @@ public class KubernetesService {
 
         // 上传创世区块和证书
         CertfileUtils.assertCertfile(ordererCertfileDir);
-        File ordererCertfileMSPDir = CertfileUtils.getMSPDir(ordererCertfileDir);
-        File ordererCertfileTLSDir = CertfileUtils.getTLSDir(ordererCertfileDir);
+        File ordererCertfileMSPDir = CertfileUtils.getCertfileMSPDir(ordererCertfileDir);
+        File ordererCertfileTLSDir = CertfileUtils.getCertfileTLSDir(ordererCertfileDir);
         kubernetesClient.uploadToContainer(genesisBlock, "/var/crypto-config", podName, containerName);
         kubernetesClient.uploadToContainer(ordererCertfileMSPDir, "/var/crypto-config", podName, containerName);
         kubernetesClient.uploadToContainer(ordererCertfileTLSDir, "/var/crypto-config", podName, containerName);

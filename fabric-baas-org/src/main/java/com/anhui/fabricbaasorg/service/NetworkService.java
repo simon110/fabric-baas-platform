@@ -169,7 +169,7 @@ public class NetworkService {
         peer.setCaPassword(caPassword);
         peer.setCouchDBUsername("admin");
         peer.setCouchDBPassword(UUID.randomUUID().toString().replace("-", ""));
-        peer.setOrganizationName(caEntity.getName());
+        peer.setOrganizationName(caEntity.getOrganizationName());
         try {
             kubernetesService.startPeer(peer, domain, peerCertfileDir);
         } catch (Exception e) {

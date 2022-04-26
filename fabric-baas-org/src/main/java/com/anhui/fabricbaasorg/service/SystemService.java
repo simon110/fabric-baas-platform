@@ -6,6 +6,7 @@ import com.anhui.fabricbaascommon.configuration.FabricConfiguration;
 import com.anhui.fabricbaascommon.entity.CAEntity;
 import com.anhui.fabricbaascommon.entity.UserEntity;
 import com.anhui.fabricbaascommon.exception.DuplicatedOperationException;
+import com.anhui.fabricbaascommon.fabric.CAUtils;
 import com.anhui.fabricbaascommon.repository.CARepo;
 import com.anhui.fabricbaascommon.repository.UserRepo;
 import com.anhui.fabricbaascommon.service.CAService;
@@ -61,7 +62,7 @@ public class SystemService {
         }
         CAEntity org = req.getOrg();
         log.info("可信第三方信息：" + org);
-        CAConfig caConfig = caService.buildCAConfig(org);
+        CAConfig caConfig = CAUtils.buildCAConfig(org);
         log.info("生成CA服务信息：" + caConfig);
 
 

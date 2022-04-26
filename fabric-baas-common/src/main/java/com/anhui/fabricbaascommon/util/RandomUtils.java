@@ -14,4 +14,9 @@ public class RandomUtils {
         int i = generateInt(objects.size());
         return objects.get(i);
     }
+
+    public static <T> T select(T[] objects) {
+        int i = generateInt(objects.length);
+        return objects[i];
+    }
 }

@@ -1,8 +1,10 @@
 package com.anhui.fabricbaascommon.fabric;
 
 
+import com.anhui.fabricbaascommon.bean.CAConfig;
 import com.anhui.fabricbaascommon.bean.Certfile;
 import com.anhui.fabricbaascommon.constant.CertfileType;
+import com.anhui.fabricbaascommon.entity.CAEntity;
 import com.anhui.fabricbaascommon.exception.CAException;
 import com.anhui.fabricbaascommon.exception.CertfileException;
 import com.anhui.fabricbaascommon.util.CertfileUtils;
@@ -14,6 +16,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
 @Slf4j
@@ -68,6 +71,19 @@ public class CAUtils {
             FileUtils.deleteDirectory(certfileDir);
             throw new CAException("登记证书失败");
         }
+    }
+
+    public static CAConfig buildCAConfig(CAEntity ca) {
+        CAConfig caConfig = new CAConfig();
+        caConfig.setCaName(ca.getOrganizationName() + "CA");
+        caConfig.setCsrCommonName("ca." + ca.getDomain());
+        caConfig.setCsrOrganizationName(ca.getOrganizationName());
+        caConfig.setCsrOrganizationUnit("");
+        caConfig.setCsrCountryCode(ca.getCountryCode());
+        caConfig.setCsrStateOrProvince(ca.getStateOrProvince());
+        caConfig.setCsrLocality(ca.getLocality());
+        caConfig.setCsrHosts(Arrays.asList("localhost", ca.getDomain()));
+        return caConfig;
     }
 }
 

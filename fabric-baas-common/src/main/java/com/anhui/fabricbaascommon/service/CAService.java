@@ -19,7 +19,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -97,29 +96,16 @@ public class CAService {
     public void getAdminCertfileZip(File output) throws IOException, CertfileException {
         CertfileUtils.assertCertfile(FABRIC_CA_ADMIN_CERTFILE_DIR);
         ZipUtils.zip(output,
-                CertfileUtils.getMSPDir(FABRIC_CA_ADMIN_CERTFILE_DIR),
-                CertfileUtils.getTLSDir(FABRIC_CA_ADMIN_CERTFILE_DIR)
+                CertfileUtils.getCertfileMSPDir(FABRIC_CA_ADMIN_CERTFILE_DIR),
+                CertfileUtils.getCertfileTLSDir(FABRIC_CA_ADMIN_CERTFILE_DIR)
         );
     }
 
     public String getAdminOrganizationName() throws CAException {
-        return getCAEntity().getName();
+        return getCAEntity().getOrganizationName();
     }
 
     public String getAdminOrganizationDomain() throws CAException {
         return getCAEntity().getDomain();
-    }
-
-    public CAConfig buildCAConfig(CAEntity ca) {
-        CAConfig caConfig = new CAConfig();
-        caConfig.setCaName(ca.getName() + "CA");
-        caConfig.setCsrCommonName("ca." + ca.getDomain());
-        caConfig.setCsrOrganizationName(ca.getName());
-        caConfig.setCsrOrganizationUnit("");
-        caConfig.setCsrCountryCode(ca.getCountryCode());
-        caConfig.setCsrStateOrProvince(ca.getStateOrProvince());
-        caConfig.setCsrLocality(ca.getLocality());
-        caConfig.setCsrHosts(Arrays.asList("localhost", ca.getDomain()));
-        return caConfig;
     }
 }

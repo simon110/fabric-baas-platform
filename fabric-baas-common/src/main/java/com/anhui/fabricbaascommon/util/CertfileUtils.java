@@ -37,11 +37,11 @@ public class CertfileUtils {
         }
     }
 
-    public static File getMSPDir(File dir) {
+    public static File getCertfileMSPDir(File dir) {
         return new File(dir + "/msp");
     }
 
-    public static File getTLSDir(File dir) {
+    public static File getCertfileTLSDir(File dir) {
         return new File(dir + "/tls");
     }
 

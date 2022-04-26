@@ -73,7 +73,7 @@ public class ChannelService {
         File certfileDir = CertfileUtils.getCertfileDir(request.getPeerName(), CertfileType.PEER);
         CertfileUtils.assertCertfile(certfileDir);
         File peerCertfileZip = ResourceUtils.createTempFile("zip");
-        ZipUtils.zip(peerCertfileZip, CertfileUtils.getMSPDir(certfileDir), CertfileUtils.getTLSDir(certfileDir));
+        ZipUtils.zip(peerCertfileZip, CertfileUtils.getCertfileMSPDir(certfileDir), CertfileUtils.getCertfileTLSDir(certfileDir));
 
         // 获取Peer连接信息
         Optional<PeerEntity> peerOptional = peerRepo.findById(request.getPeerName());

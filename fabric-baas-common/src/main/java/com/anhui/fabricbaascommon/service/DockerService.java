@@ -8,13 +8,14 @@ import com.spotify.docker.client.DockerClient;
 import com.spotify.docker.client.exceptions.DockerException;
 import com.spotify.docker.client.messages.Container;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.apache.commons.io.FileUtils;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -23,8 +24,11 @@ public class DockerService {
     private final static String FABRIC_CA_SERVER_DOCKER_COMPOSE = ResourceUtils.getWorkingDir() + "/docker/docker-compose-fabric-ca.yaml";
     private final static String FABRIC_CA_SERVER_CONFIG = ResourceUtils.getWorkingDir() + "/docker/fabric-ca/fabric-ca-server-config.yaml";
 
-    @Autowired
-    private DockerClient dockerClient;
+    private final DockerClient dockerClient;
+
+    public DockerService(DockerClient dockerClient) {
+        this.dockerClient = dockerClient;
+    }
 
     private static boolean waitForFile(File file, int maxCheckCount, int checkIntervalMs) throws InterruptedException {
         for (int i = 0; i < maxCheckCount; i++) {
@@ -53,6 +57,17 @@ public class DockerService {
         return false;
     }
 
+    public void cleanCAServer() throws IOException, InterruptedException {
+        CommandUtils.exec("docker-compose", "-f", FABRIC_CA_SERVER_DOCKER_COMPOSE, "down");
+        File mountedDir = new File(FABRIC_CA_SERVER_CONFIG).getCanonicalFile().getParentFile();
+        assert mountedDir.isDirectory();
+        for (File file : Objects.requireNonNull(mountedDir.listFiles())) {
+            if (!file.getName().equals("fabric-ca-server-config.yaml")) {
+                FileUtils.deleteQuietly(file);
+            }
+        }
+    }
+
     /**
      * 根据传入的CAServer在当前机器上部署一个CA服务容器
      *
@@ -64,8 +79,9 @@ public class DockerService {
         File caConfigFile = new File(FABRIC_CA_SERVER_CONFIG);
         // 修改Docker Compose配置文件
         Map<String, Object> dockerComposeYaml = YamlUtils.load(dockerComposeFile);
+        System.out.println(dockerComposeYaml);
         Map<String, Object> containers = (Map<String, Object>) dockerComposeYaml.get("services");
-        Map<String, Object> container = (Map<String, Object>) containers.get("ca-server");
+        Map<String, Object> container = (Map<String, Object>) containers.get("fabric-baas-platform-ca");
         List<String> environmentVars = (List<String>) container.get("environment");
         for (int i = 0; i < environmentVars.size(); i++) {
             String var = environmentVars.get(i);
@@ -106,7 +122,7 @@ public class DockerService {
         if (!waitForFile(tlsCert, 10, 1000)) {
             // 如果启动失败则删除容器并抛出异常
             log.info("CA服务启动失败，即将清除容器");
-            CommandUtils.exec("docker-compose", "-f", FABRIC_CA_SERVER_DOCKER_COMPOSE, "down");
+            cleanCAServer();
             throw new DockerException("CA服务容器启动失败");
         }
     }

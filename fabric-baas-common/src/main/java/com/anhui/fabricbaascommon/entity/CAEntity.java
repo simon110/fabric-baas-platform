@@ -21,7 +21,7 @@ public class CAEntity {
     @Pattern(regexp = ParamPattern.ORG_NAME_REGEX, message = ParamPattern.ORG_NAME_MSG)
     @ApiModelProperty(value = "组织名称", required = true)
     @Id
-    private String name;
+    private String organizationName;
 
     @Pattern(regexp = ParamPattern.HOST_REGEX, message = ParamPattern.HOST_MSG)
     @ApiModelProperty(value = "组织域名", required = true)

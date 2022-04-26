@@ -3,6 +3,7 @@ package com.anhui.fabricbaasttp.service;
 
 import com.anhui.fabricbaascommon.bean.CAConfig;
 import com.anhui.fabricbaascommon.exception.DuplicatedOperationException;
+import com.anhui.fabricbaascommon.fabric.CAUtils;
 import com.anhui.fabricbaascommon.service.CAService;
 import com.anhui.fabricbaascommon.service.DockerService;
 import com.anhui.fabricbaascommon.configuration.AdminConfiguration;
@@ -52,7 +53,7 @@ public class SystemService {
         }
         CAEntity ttp = req.getTtp();
         log.info("可信第三方信息：" + ttp);
-        CAConfig caConfig = caService.buildCAConfig(ttp);
+        CAConfig caConfig = CAUtils.buildCAConfig(ttp);
         log.info("生成CA服务信息：" + caConfig);
         // 启动CA容器并尝试初始化管理员证书
         dockerService.startCAServer(caConfig, fabricConfiguration.getCaAdminUsername(), fabricConfiguration.getCaAdminPassword());
