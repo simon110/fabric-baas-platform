@@ -44,7 +44,7 @@ class CAUtilsTest {
     public void generateCertfiles() throws DockerException, InterruptedException, IOException, CAException, CertfileException {
         String adminUsername = "admin";
         String commonPassword = "OMX0LmIyXdt8CC9U";
-        String address = "127.0.0.1:7054";
+        String address = "localhost:7054";
         int typeCertfileCount = 3;
 
         DockerService dockerService = startDockerService();
