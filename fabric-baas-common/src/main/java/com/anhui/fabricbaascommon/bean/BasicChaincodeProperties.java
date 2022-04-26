@@ -4,7 +4,7 @@ import com.anhui.fabricbaascommon.constant.ParamPattern;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-import nonapi.io.github.classgraph.json.Id;
+import org.springframework.data.annotation.Id;
 
 import javax.validation.constraints.Min;
 import javax.validation.constraints.Pattern;
