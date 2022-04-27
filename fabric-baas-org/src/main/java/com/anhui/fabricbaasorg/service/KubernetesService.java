@@ -8,11 +8,10 @@ import com.anhui.fabricbaasorg.kubernetes.KubernetesClient;
 import com.anhui.fabricbaasorg.repository.OrdererRepo;
 import com.anhui.fabricbaasorg.repository.PeerRepo;
 import com.anhui.fabricbaasorg.util.FabricYamlUtils;
-import io.kubernetes.client.openapi.ApiException;
-import io.kubernetes.client.openapi.models.V1ContainerStatus;
-import io.kubernetes.client.openapi.models.V1Node;
-import io.kubernetes.client.openapi.models.V1Pod;
-import io.kubernetes.client.openapi.models.V1PodStatus;
+import io.fabric8.kubernetes.api.model.ContainerStatus;
+import io.fabric8.kubernetes.api.model.Node;
+import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.api.model.PodStatus;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,7 +35,7 @@ public class KubernetesService {
     @Autowired
     private OrdererRepo ordererRepo;
 
-    public KubernetesService() throws IOException, ApiException {
+    public KubernetesService() throws IOException {
         if (KUBERNETES_ADMIN_CONFIG.exists()) {
             kubernetesClient = new KubernetesClient(KUBERNETES_ADMIN_CONFIG);
         }
@@ -48,7 +47,7 @@ public class KubernetesService {
         }
     }
 
-    public void importAdminConfig(File file) throws IOException, ApiException {
+    public void importAdminConfig(File file) throws IOException {
         FileUtils.copyFile(file, KUBERNETES_ADMIN_CONFIG);
         kubernetesClient = new KubernetesClient(KUBERNETES_ADMIN_CONFIG);
     }
@@ -61,38 +60,38 @@ public class KubernetesService {
         return new File(String.format("kubernetes/orderer/%s.yaml", ordererName));
     }
 
-    public List<String> getNodeNames() throws ApiException, KubernetesException {
+    public List<String> getNodeNames() throws KubernetesException {
         assertAdminConfig();
-        List<V1Node> nodes = kubernetesClient.getAllNodes();
+        List<Node> nodes = kubernetesClient.getAllNodes();
         List<String> nodeNames = new ArrayList<>();
-        for (V1Node node : nodes) {
+        for (Node node : nodes) {
             nodeNames.add(Objects.requireNonNull(node.getMetadata()).getName());
         }
         return nodeNames;
     }
 
-    private List<V1ContainerStatus> getContainerStatuses(V1Pod pod) {
-        V1PodStatus podStatus = pod.getStatus();
-        List<V1ContainerStatus> containerStatuses = Objects.requireNonNull(podStatus).getContainerStatuses();
+    private List<ContainerStatus> getContainerStatuses(Pod pod) {
+        PodStatus podStatus = pod.getStatus();
+        List<ContainerStatus> containerStatuses = Objects.requireNonNull(podStatus).getContainerStatuses();
         return Objects.requireNonNull(containerStatuses);
     }
 
-    private void waitForReadiness(String podName, int sleepMs, int timeoutMs) throws ApiException, InterruptedException, KubernetesException {
+    private void waitForReadiness(String podName, int sleepMs, int timeoutMs) throws InterruptedException, KubernetesException {
         while (timeoutMs > 0) {
             TimeUnit.MILLISECONDS.sleep(sleepMs);
             timeoutMs -= sleepMs;
-            List<V1Pod> pods = kubernetesClient.getPodsByKeyword(podName);
+            List<Pod> pods = kubernetesClient.getPodsByKeyword(podName);
             if (pods.isEmpty()) {
                 throw new KubernetesException("未找到相应名称的Pod：" + podName);
             }
             assert pods.size() == 1;
-            V1Pod pod = pods.get(0);
+            Pod pod = pods.get(0);
             if ("Running".equals(Objects.requireNonNull(pod.getStatus()).getPhase())) {
                 break;
             }
-            List<V1ContainerStatus> containerStatuses = getContainerStatuses(pod);
+            List<ContainerStatus> containerStatuses = getContainerStatuses(pod);
             boolean isAllContainersReady = true;
-            for (V1ContainerStatus status : containerStatuses) {
+            for (ContainerStatus status : containerStatuses) {
                 if (Boolean.FALSE.equals(status.getReady())) {
                     isAllContainersReady = false;
                     break;
@@ -118,14 +117,13 @@ public class KubernetesService {
         }
     }
 
-    public void assertKubeNodeExisted(String kubeNode) throws ApiException, KubernetesException {
+    public void assertKubeNodeExisted(String kubeNode) throws KubernetesException {
         if (!getNodeNames().contains(kubeNode)) {
             throw new KubernetesException("物理节点不存在：" + kubeNode);
         }
     }
 
     public void startPeer(PeerEntity peer, String clusterDomain, File peerCertfileDir) throws Exception {
-        kubernetesClient.connect();
         // 检查端口占用情况
         assertKubePortUnused(peer.getKubeNodePort());
         assertKubePortUnused(peer.getKubeEventNodePort());
@@ -143,20 +141,20 @@ public class KubernetesService {
         FabricYamlUtils.generatePeerYaml(peer, clusterDomain, peerYaml);
         kubernetesClient.applyYaml(peerYaml);
 
-        List<V1Pod> podList = kubernetesClient.getPodsByKeyword(peer.getName());
+        List<Pod> podList = kubernetesClient.getPodsByKeyword(peer.getName());
 
         assert podList.size() == 1;
-        V1Pod pod = podList.get(0);
+        Pod pod = podList.get(0);
         String podName = Objects.requireNonNull(pod.getMetadata()).getName();
         waitForReadiness(podName, 3000, 30000);
-        List<V1ContainerStatus> containerStatuses = getContainerStatuses(pod);
+        List<ContainerStatus> containerStatuses = getContainerStatuses(pod);
         String containerName = containerStatuses.get(0).getName();
 
         CertfileUtils.assertCertfile(peerCertfileDir);
         File peerCertfileMSPDir = CertfileUtils.getCertfileMSPDir(peerCertfileDir);
         File peerCertfileTLSDir = CertfileUtils.getCertfileTLSDir(peerCertfileDir);
-        kubernetesClient.uploadToContainer(peerCertfileMSPDir, "/var/crypto-config", podName, containerName);
-        kubernetesClient.uploadToContainer(peerCertfileTLSDir, "/var/crypto-config", podName, containerName);
+        kubernetesClient.uploadToContainer(peerCertfileMSPDir, "/var/crypto-config/msp", podName, containerName);
+        kubernetesClient.uploadToContainer(peerCertfileTLSDir, "/var/crypto-config/tls", podName, containerName);
 
         log.info("保存Peer信息：" + peer);
         peerRepo.save(peer);
@@ -176,8 +174,6 @@ public class KubernetesService {
     }
 
     public void startOrderer(OrdererEntity orderer, File ordererCertfileDir, File genesisBlock) throws Exception {
-        kubernetesClient.connect();
-
         // 检查端口是否冲突
         assertKubePortUnused(orderer.getKubeNodePort());
 
@@ -194,12 +190,12 @@ public class KubernetesService {
         kubernetesClient.applyYaml(ordererYaml);
 
         // 等待容器启动完成
-        List<V1Pod> podList = kubernetesClient.getPodsByKeyword(orderer.getName());
+        List<Pod> podList = kubernetesClient.getPodsByKeyword(orderer.getName());
         assert podList.size() == 1;
-        V1Pod pod = podList.get(0);
+        Pod pod = podList.get(0);
         String podName = Objects.requireNonNull(pod.getMetadata()).getName();
         waitForReadiness(podName, 5000, 60000);
-        List<V1ContainerStatus> containerStatuses = getContainerStatuses(pod);
+        List<ContainerStatus> containerStatuses = getContainerStatuses(pod);
         String containerName = containerStatuses.get(0).getName();
 
         // 上传创世区块和证书
@@ -207,8 +203,8 @@ public class KubernetesService {
         File ordererCertfileMSPDir = CertfileUtils.getCertfileMSPDir(ordererCertfileDir);
         File ordererCertfileTLSDir = CertfileUtils.getCertfileTLSDir(ordererCertfileDir);
         kubernetesClient.uploadToContainer(genesisBlock, "/var/crypto-config", podName, containerName);
-        kubernetesClient.uploadToContainer(ordererCertfileMSPDir, "/var/crypto-config", podName, containerName);
-        kubernetesClient.uploadToContainer(ordererCertfileTLSDir, "/var/crypto-config", podName, containerName);
+        kubernetesClient.uploadToContainer(ordererCertfileMSPDir, "/var/crypto-config/msp", podName, containerName);
+        kubernetesClient.uploadToContainer(ordererCertfileTLSDir, "/var/crypto-config/tls", podName, containerName);
 
         log.info("保存Orderer信息：" + orderer);
         ordererRepo.save(orderer);
@@ -222,7 +218,6 @@ public class KubernetesService {
         assertAdminConfig();
         File ordererYaml = findOrdererYaml(ordererName);
         if (ordererYaml.exists()) {
-            kubernetesClient.connect();
             kubernetesClient.deleteYaml(ordererYaml);
         }
         ordererRepo.deleteById(ordererName);
