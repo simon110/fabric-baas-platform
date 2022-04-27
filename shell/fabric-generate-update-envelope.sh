@@ -37,7 +37,7 @@ configtxlator proto_decode \
 
 # 将JSON封装到交易中去
 # shellcheck disable=SC2046
-echo '{"payload":{"header":{"channel_header":{"channel_id":"'"$CHANNEL_NAME"'", "type":2}},"data":{"config_update":'$(cat "$UPDATE_JSON_PATH")'}}}' | jq . >"$UPDATE_ENVELOPE_PROTOBUF_PATH"
+echo '{"payload":{"header":{"channel_header":{"channel_id":"'"$CHANNEL_NAME"'", "type":2}},"data":{"config_update":'$(cat "$UPDATE_JSON_PATH")'}}}' | jq . >"$UPDATE_ENVELOPE_JSON_PATH"
 
 # 将交易转码为Protobuf文件
 configtxlator proto_encode \
