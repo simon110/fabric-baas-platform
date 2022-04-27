@@ -24,6 +24,10 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 
+/**
+ * 注意所有的Kubernetes实例的名称应该只包含小写字母、小数点和横杠！
+ * 所以该类会对所有的与实例名称相关的输入进行处理，将大写字母变成小写。
+ */
 @Data
 @Slf4j
 public class KubernetesClient {
@@ -60,6 +64,8 @@ public class KubernetesClient {
                 appsV1Api.createNamespacedDeployment(KUBERNETES_NAMESPACE, (V1Deployment) kubernetesObject, null, null, null);
             } else if ("Service".equals(kind)) {
                 coreV1Api.createNamespacedService(KUBERNETES_NAMESPACE, (V1Service) kubernetesObject, null, null, null);
+            } else if ("Pod".equals(kind)) {
+                coreV1Api.createNamespacedPod(KUBERNETES_NAMESPACE, (V1Pod) kubernetesObject, null, null, null);
             } else {
                 throw new KubernetesException("不受支持的Kubernetes对象类型");
             }
@@ -67,7 +73,8 @@ public class KubernetesClient {
     }
 
     /**
-     * 将编排文件定义的内容从集群中删掉
+     * 将编排文件定义的内容从集群中删掉。
+     * 目前只用到了Deployment和Service两种类型，所以暂时不去支持其他类。
      */
     public void deleteYaml(File yaml) throws IOException, ApiException, KubernetesException {
         connect();
@@ -82,6 +89,8 @@ public class KubernetesClient {
                 appsV1Api.deleteNamespacedDeployment(name, KUBERNETES_NAMESPACE, null, null, null, null, null, new V1DeleteOptions());
             } else if ("Service".equals(kind)) {
                 coreV1Api.deleteNamespacedService(name, KUBERNETES_NAMESPACE, null, null, null, null, null, new V1DeleteOptions());
+            } else if ("Pod".equals(kind)) {
+                coreV1Api.deleteNamespacedPod(name, KUBERNETES_NAMESPACE, null, null, null, null, null, new V1DeleteOptions());
             } else {
                 throw new KubernetesException("不受支持的Kubernetes对象类型");
             }

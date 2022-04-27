@@ -16,7 +16,7 @@ class FabricYamlUtilsTest {
     private static final String[] ORGANIZATION_NAMES = {"TestOrgA", "TestOrgB", "TestOrgC", "TestOrgD"};
     private static final String[] ORGANIZATION_DOMAINS = {"orga.example.com", "orgb.example.com", "orgc.example.com", "orgd.example.com"};
     private static final String[] KUBERNETES_NODE_NAMES = {"kubenode1", "kubenode2", "kubenode3"};
-    private static final String BASE_DIR_PATH = "example/deployment";
+    private static final String BASE_DIR_PATH = "example/kubernetes";
 
     @Test
     void generateOrdererYaml() throws IOException {

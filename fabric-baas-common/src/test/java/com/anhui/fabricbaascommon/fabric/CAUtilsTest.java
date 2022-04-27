@@ -32,7 +32,7 @@ class CAUtilsTest {
     private static final String[] ORGANIZATION_COUNTRY_CODES = {"CN", "US", "UK", "JP"};
     private static final String[] ORGANIZATION_STATES_OR_PROVINCES = {"Beijing", "NewYork", "London", "Tokyo"};
     private static final String[] ORGANIZATION_LOCALITIES = {"Chaoyang", "Queen", "Greenwich", "Chiyoda"};
-    private static final String BASE_DIR_PATH = "example/certfile";
+    private static final String BASE_DIR_PATH = "example/fabric";
 
     private DockerService startDockerService() throws DockerException, InterruptedException {
         DockerClientConfiguration dockerClientConfiguration = new DockerClientConfiguration();

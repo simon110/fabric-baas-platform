@@ -25,9 +25,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
-/**
- * 注意所有的Kubernetes实例的名称应该只包含小写字母、小数点和横杠！
- */
 @Slf4j
 @Service
 public class KubernetesService {
@@ -90,6 +87,9 @@ public class KubernetesService {
             }
             assert pods.size() == 1;
             V1Pod pod = pods.get(0);
+            if ("Running".equals(Objects.requireNonNull(pod.getStatus()).getPhase())) {
+                break;
+            }
             List<V1ContainerStatus> containerStatuses = getContainerStatuses(pod);
             boolean isAllContainersReady = true;
             for (V1ContainerStatus status : containerStatuses) {

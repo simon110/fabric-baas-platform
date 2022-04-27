@@ -1,0 +1,152 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: testorgapeer1-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: testorgapeer1-deployment
+  template:
+    metadata:
+      labels:
+        app: testorgapeer1-deployment
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: testorgapeer1
+          image: hyperledger/fabric-peer:2.2.4
+          imagePullPolicy: Never
+          env:
+            - name: CORE_LEDGER_STATE_STATEDATABASE
+              value: "CouchDB"
+            - name: CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS
+              value: "localhost:5984"
+            - name: CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME
+              value: "admin"
+            - name: CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD
+              value: "MhDAAH3kLfLVKA1slf"
+            - name: FABRIC_LOGGING_SPEC
+              value: "INFO"
+            - name: CORE_VM_ENDPOINT
+              value: "tcp://localhost:2375"
+            - name: CORE_PEER_TLS_ENABLED
+              value: "true"
+            - name: CORE_PEER_PROFILE_ENABLED
+              value: "false"
+            - name: CORE_PEER_TLS_CLIENTAUTHREQUIRED
+              value: "false"
+            - name: CORE_PEER_MSPCONFIGPATH
+              value: "/var/crypto-config/msp"
+            - name: CORE_PEER_TLS_CERT_FILE
+              value: "/var/crypto-config/tls/server.crt"
+            - name: CORE_PEER_TLS_KEY_FILE
+              value: "/var/crypto-config/tls/server.key"
+            - name: CORE_PEER_TLS_ROOTCERT_FILE
+              value: "/var/crypto-config/tls/ca.crt"
+            - name: CORE_PEER_ID
+              value: "testorgapeer1"
+            - name: CORE_PEER_ADDRESS
+              value: "orga.example.com:31001"
+            - name: CORE_PEER_LISTENADDRESS
+              value: "0.0.0.0:7051"
+            - name: CORE_PEER_CHAINCODEADDRESS
+              value: "testorgapeer1-internal-service:7052"
+            - name: CORE_PEER_CHAINCODELISTENADDRESS
+              value: "0.0.0.0:7052"
+            - name: CORE_PEER_GOSSIP_BOOTSTRAP
+              value: "orga.example.com:31001"
+            - name: CORE_PEER_GOSSIP_EXTERNALENDPOINT
+              value: "orga.example.com:31001"
+            - name: CORE_PEER_LOCALMSPID
+              value: "TestOrgAMSP"
+            - name: CORE_PEER_ADDRESSAUTODETECT
+              value: "true"
+            - name: CORE_VM_DOCKER_ATTACHSTDOUT
+              value: "true"
+            - name: CORE_PEER_GOSSIP_USELEADERELECTION
+              value: "true"
+            - name: CORE_PEER_GOSSIP_ORGLEADER
+              value: "false"
+          workingDir: /opt/gopath/src/github.com/hyperledger/fabric/peer
+          volumeMounts:
+            - mountPath: /var/crypto-config
+              name: crypto-config
+            - mountPath: /var/hyperledger/production
+              name: peer-production
+          command:
+            - "sh"
+          args:
+            - "-c"
+            - "sleep 15; peer node start;"
+          ports:
+            - containerPort: 7051
+            - containerPort: 7052
+            - containerPort: 7053
+        - name: couchdb-testorgapeer1
+          image: couchdb:3.1.1
+          imagePullPolicy: Never
+          env:
+            - name: COUCHDB_USER
+              value: "admin"
+            - name: COUCHDB_PASSWORD
+              value: "MhDAAH3kLfLVKA1slf"
+          volumeMounts:
+            - mountPath: /opt/couchdb/data
+              name: couchdb-volume
+          ports:
+            - containerPort: 5984
+        - name: dind-testorgapeer1
+          securityContext:
+            privileged: true
+          image: docker:18.05-dind
+          imagePullPolicy: Never
+          volumeMounts:
+            - mountPath: /var/lib/docker
+              name: dind-volume
+          ports:
+            - containerPort: 2375
+      volumes:
+        - name: crypto-config
+          emptyDir: { }
+        - name: peer-production
+          emptyDir: { }
+        - name: dind-volume
+          emptyDir: { }
+        - name: couchdb-volume
+          emptyDir: { }
+      nodeSelector:
+        "kubernetes.io/hostname": "kubenode2"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: testorgapeer1-internal-service
+spec:
+  selector:
+    app: testorgapeer1-deployment
+  ports:
+    - name: peer-chaincode-port
+      port: 7052
+      targetPort: 7052
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: testorgapeer1-external-service
+spec:
+  selector:
+    app: testorgapeer1-deployment
+  type: NodePort
+  ports:
+    - name: peer-port
+      port: 7051
+      targetPort: 7051
+      nodePort: 31001
+    - name: peer-event-port
+      port: 7053
+      targetPort: 7053
+      nodePort: 31501
