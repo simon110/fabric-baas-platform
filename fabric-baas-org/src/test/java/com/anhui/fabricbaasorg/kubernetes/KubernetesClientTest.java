@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit;
 @RunWith(SpringRunner.class)
 class KubernetesClientTest {
 
-    @Test
+    // @Test
     public void deployBusybox() throws IOException, InterruptedException {
         File adminConfig = new File("example/kubernetes/admin.conf");
         KubernetesClient kubernetesClient = new KubernetesClient(adminConfig);

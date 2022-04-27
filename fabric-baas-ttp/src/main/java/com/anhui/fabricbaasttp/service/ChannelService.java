@@ -86,9 +86,9 @@ public class ChannelService {
         return null;
     }
 
-    private void signEnvelopeWithOrganizations(List<String> organizationNames, File envelope) throws IOException, InterruptedException, EnvelopeException {
+    private void signEnvelopeWithOrganizations(String networkName, List<String> organizationNames, File envelope) throws IOException, InterruptedException, EnvelopeException {
         for (String orgName : organizationNames) {
-            MSPEnv organizationMspDir = fabricEnvService.buildMSPEnvForOrg(orgName);
+            MSPEnv organizationMspDir = fabricEnvService.buildMSPEnvForOrg(networkName, orgName);
             ChannelUtils.signEnvelope(organizationMspDir, envelope);
         }
     }
@@ -157,7 +157,7 @@ public class ChannelService {
         Orderer orderer = RandomUtils.select(network.getOrderers());
 
         // 创建通道
-        MSPEnv organizationMspEnv = fabricEnvService.buildMSPEnvForOrg(curOrgName);
+        MSPEnv organizationMspEnv = fabricEnvService.buildMSPEnvForOrg(network.getName(), curOrgName);
         TLSEnv ordererTlsEnv = fabricEnvService.buildTLSEnvForOrderer(orderer);
         File appChannelGenesis = ResourceUtils.createTempFile("block");
         ChannelUtils.createChannel(organizationMspEnv, ordererTlsEnv, configtxDir, request.getChannelName(), appChannelGenesis);
@@ -289,10 +289,10 @@ public class ChannelService {
         // 使用该通道中所有组织的身份对Envelope进行签名（包括未加入的组织）
         List<String> signerOrgNames = new ArrayList<>(channel.getOrganizationNames());
         signerOrgNames.add(curOrgName);
-        signEnvelopeWithOrganizations(signerOrgNames, envelope);
+        signEnvelopeWithOrganizations(channel.getNetworkName(), signerOrgNames, envelope);
 
         // 将Envelope提交到Orderer
-        MSPEnv organizationMspEnv = fabricEnvService.buildMSPEnvForOrg(curOrgName);
+        MSPEnv organizationMspEnv = fabricEnvService.buildMSPEnvForOrg(channel.getNetworkName(), curOrgName);
         ChannelUtils.submitChannelUpdate(organizationMspEnv, ordererEnvVars.getTLSEnv(), channel.getName(), envelope);
 
         // 将组织保存至MongoDB
@@ -335,7 +335,7 @@ public class ChannelService {
         ZipUtils.unzip(peerCertfileZip, peerCertTempCertfileDir);
 
         // 尝试将Peer加入到通道中
-        CoreEnv peerCoreEnv = fabricEnvService.buildCoreEnvForPeer(curOrgName, peer);
+        CoreEnv peerCoreEnv = fabricEnvService.buildCoreEnvForPeer(channel.getNetworkName(), curOrgName, peer);
         peerCoreEnv.setTlsRootCert(new File(peerCertTempCertfileDir + "/tls/ca.crt"));
         ChannelUtils.joinChannel(peerCoreEnv, channelGenesisBlock);
 
@@ -404,10 +404,10 @@ public class ChannelService {
         ChannelUtils.generateEnvelope(channel.getName(), envelope, oldChannelConfig, newChannelConfig);
 
         // 使用该通道中所有组织的身份对Envelope进行签名
-        signEnvelopeWithOrganizations(channel.getOrganizationNames(), envelope);
+        signEnvelopeWithOrganizations(channel.getNetworkName(), channel.getOrganizationNames(), envelope);
 
         // 将Envelope提交到Orderer
-        MSPEnv organizationMspEnv = fabricEnvService.buildMSPEnvForOrg(curOrgName);
+        MSPEnv organizationMspEnv = fabricEnvService.buildMSPEnvForOrg(channel.getNetworkName(), curOrgName);
         ChannelUtils.submitChannelUpdate(organizationMspEnv, ordererCoreEnv.getTLSEnv(), channel.getName(), envelope);
     }
 

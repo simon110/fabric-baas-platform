@@ -10,6 +10,7 @@ import com.anhui.fabricbaascommon.service.CAService;
 import com.anhui.fabricbaascommon.util.CertfileUtils;
 import com.anhui.fabricbaasttp.bean.Orderer;
 import com.anhui.fabricbaasttp.bean.Peer;
+import com.anhui.fabricbaasttp.util.IdentifierGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -35,8 +36,8 @@ public class FabricEnvService {
         return buildCoreEnv(mspEnv, tlsEnv);
     }
 
-    public CoreEnv buildCoreEnvForPeer(String orgName, Peer peer) {
-        MSPEnv mspEnv = buildMSPEnvForOrg(orgName);
+    public CoreEnv buildCoreEnvForPeer(String networkName, String orgName, Peer peer) {
+        MSPEnv mspEnv = buildMSPEnvForOrg(networkName, orgName);
         TLSEnv tlsEnv = buildTLSEnvForPeer(peer);
         return buildCoreEnv(mspEnv, tlsEnv);
     }
@@ -48,8 +49,9 @@ public class FabricEnvService {
         return mspEnv;
     }
 
-    public MSPEnv buildMSPEnvForOrg(String orgName) {
-        File dir = CertfileUtils.getCertfileDir(orgName, CertfileType.ADMIN);
+    public MSPEnv buildMSPEnvForOrg(String networkName, String orgName) {
+        String orgCertfileId = IdentifierGenerator.ofCertfile(networkName, orgName);
+        File dir = CertfileUtils.getCertfileDir(orgCertfileId, CertfileType.ADMIN);
 
         MSPEnv mspEnv = new MSPEnv();
         mspEnv.setMspId(orgName);
