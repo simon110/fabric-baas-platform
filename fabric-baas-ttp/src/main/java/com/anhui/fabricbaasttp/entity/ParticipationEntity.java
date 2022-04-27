@@ -1,6 +1,5 @@
 package com.anhui.fabricbaasttp.entity;
 
-import com.anhui.fabricbaascommon.bean.Node;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -31,9 +30,6 @@ public class ParticipationEntity {
 
     @ApiModelProperty(value = "申请加入的组织名称")
     private String organizationName;
-
-    @ApiModelProperty(value = "预计提供Orderer节点地址", required = true)
-    private List<Node> orderers;
 
     @Indexed
     @ApiModelProperty(value = "申请处理状态", required = true)

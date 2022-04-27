@@ -40,7 +40,7 @@ public class CAUtils {
                 certfile.getCaUsername(),
                 certfile.getCaPassword(),
                 certfile.getCaUsertype());
-        if (!str.contains("Password: ")) {
+        if (!str.contains("Password: ") && !str.contains("is already registered")) {
             throw new CAException("注册证书失败");
         }
     }

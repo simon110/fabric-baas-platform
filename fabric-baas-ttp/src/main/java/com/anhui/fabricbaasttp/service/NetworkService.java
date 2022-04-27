@@ -213,7 +213,10 @@ public class NetworkService {
         // 计算新旧JSON配置文件之间的差异得到Envelope，并对其进行签名
         File envelope = ResourceUtils.createTempFile("pb");
         ChannelUtils.generateEnvelope(fabricConfig.getSystemChannelName(), envelope, oldChannelConfig, newChannelConfig);
+        String creatorOrganizationName = network.getOrganizationNames().get(0);
+        MSPEnv creatorOrganizationMSPEnv = fabricEnvService.buildMSPEnvForOrg(network.getName(), creatorOrganizationName);
         ChannelUtils.signEnvelope(selectedOrdererCoreEnv.getMSPEnv(), envelope);
+        ChannelUtils.signEnvelope(creatorOrganizationMSPEnv, envelope);
 
         // 将Envelope提交到现有的Orderer节点
         ChannelUtils.submitChannelUpdate(
@@ -356,7 +359,6 @@ public class NetworkService {
         participation.setStatus(ApplStatus.ACCEPTED);
         participation.setTimestamp(System.currentTimeMillis());
         participation.setOrganizationName(curOrgName);
-        participation.setOrderers(request.getOrderers());
         participation.setApprovals(Collections.emptyList());
         log.info("保存网络参与权限：" + participation);
         participationRepo.save(participation);
@@ -430,8 +432,6 @@ public class NetworkService {
         if (network.getOrganizationNames().contains(curOrgName)) {
             throw new OrganizationException("组织已存在于网络中，请勿重复加入");
         }
-        // 检查是否存在重复的Orderer地址
-        assertOrderersNotInNetwork(request.getOrderers(), network);
         // 检查证书格式是否正确
         CertfileUtils.assertCertfileZip(adminCertZip);
         // 保存管理员证书至MinIO
@@ -446,7 +446,6 @@ public class NetworkService {
         participation.setStatus(ApplStatus.UNHANDLED);
         participation.setTimestamp(System.currentTimeMillis());
         participation.setOrganizationName(curOrgName);
-        participation.setOrderers(request.getOrderers());
         participation.setApprovals(Collections.emptyList());
         log.info("正在将申请信息保存到数据库：" + participation);
         participationRepo.save(participation);
