@@ -16,7 +16,7 @@ peer channel fetch config "$CONFIG_BLOCK_PATH" \
   -c "$CHANNEL_NAME" \
   --cafile "$ORDERER_CERT" --tls >&/dev/stdout
 
-if [ -d "$CONFIG_BLOCK_PATH" ]; then
+if [ -e "$CONFIG_BLOCK_PATH" ]; then
   configtxlator proto_decode \
     --input "$CONFIG_BLOCK_PATH" \
     --type common.Block | jq .data.data[0].payload.data.config >"$CONFIG_JSON_PATH"

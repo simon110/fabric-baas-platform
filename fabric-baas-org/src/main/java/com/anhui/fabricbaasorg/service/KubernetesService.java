@@ -202,7 +202,7 @@ public class KubernetesService {
         CertfileUtils.assertCertfile(ordererCertfileDir);
         File ordererCertfileMSPDir = CertfileUtils.getCertfileMSPDir(ordererCertfileDir);
         File ordererCertfileTLSDir = CertfileUtils.getCertfileTLSDir(ordererCertfileDir);
-        kubernetesClient.uploadToContainer(genesisBlock, "/var/crypto-config", podName, containerName);
+        kubernetesClient.uploadToContainer(genesisBlock, "/var/crypto-config/genesis.block", podName, containerName);
         kubernetesClient.uploadToContainer(ordererCertfileMSPDir, "/var/crypto-config/msp", podName, containerName);
         kubernetesClient.uploadToContainer(ordererCertfileTLSDir, "/var/crypto-config/tls", podName, containerName);
 

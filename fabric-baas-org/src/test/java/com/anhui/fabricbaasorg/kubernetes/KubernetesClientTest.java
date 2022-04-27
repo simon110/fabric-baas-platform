@@ -1,6 +1,6 @@
 package com.anhui.fabricbaasorg.kubernetes;
 
-import com.anhui.fabricbaasorg.exception.KubernetesException;
+import cn.hutool.core.lang.Pair;
 import io.fabric8.kubernetes.api.model.ContainerStatus;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
@@ -12,6 +12,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -19,16 +20,16 @@ import java.util.concurrent.TimeUnit;
 class KubernetesClientTest {
 
     @Test
-    public void deployBusybox() throws IOException, KubernetesException, InterruptedException {
+    public void deployBusybox() throws IOException, InterruptedException {
         File adminConfig = new File("example/kubernetes/admin.conf");
         KubernetesClient kubernetesClient = new KubernetesClient(adminConfig);
 
-        File ordererYaml = new File("example/kubernetes/busybox.yaml");
+        File busyboxYaml = new File("example/kubernetes/busybox.yaml");
 
         System.out.println(kubernetesClient.getAllNodes());
         System.out.println(kubernetesClient.getAllPods());
 
-        kubernetesClient.applyYaml(ordererYaml);
+        kubernetesClient.applyYaml(busyboxYaml);
         TimeUnit.SECONDS.sleep(10);
         List<Pod> pods = kubernetesClient.getPodsByKeyword("busybox");
         Assertions.assertFalse(pods.isEmpty());
@@ -56,6 +57,43 @@ class KubernetesClientTest {
         System.out.println(out);
 
         kubernetesClient.downloadFileFromContainer("/tmp/pom.xml", new File("temp/pom.xml"), podName, containerName);
-        kubernetesClient.deleteYaml(ordererYaml);
+        kubernetesClient.deleteYaml(busyboxYaml);
+    }
+
+    @Test
+    public void deployInitialOrderers() throws IOException, InterruptedException {
+        File adminConfig = new File("example/kubernetes/admin.conf");
+        KubernetesClient kubernetesClient = new KubernetesClient(adminConfig);
+        List<Pair<String, String>> pairs = new ArrayList<>();
+        pairs.add(new Pair<>("TestOrgA", "orderer0"));
+        pairs.add(new Pair<>("TestOrgA", "orderer1"));
+
+        for (Pair<String, String> pair : pairs) {
+            File ordererYaml = new File(String.format("example/kubernetes/%s/%s.yaml", pair.getKey(), pair.getValue()));
+            File materialDir = new File(String.format("temp/%s/%s", pair.getKey(), pair.getValue()));
+
+            kubernetesClient.applyYaml(ordererYaml);
+            TimeUnit.SECONDS.sleep(10);
+
+            List<Pod> pods = kubernetesClient.getPodsByKeyword((pair.getKey() + pair.getValue()).toLowerCase());
+            Assertions.assertEquals(1, pods.size());
+            Pod orderer = pods.get(0);
+            ObjectMeta ordererMetadata = orderer.getMetadata();
+            Assertions.assertNotNull(ordererMetadata);
+            PodStatus ordererStatus = orderer.getStatus();
+            Assertions.assertNotNull(ordererStatus);
+            List<ContainerStatus> containerStatuses = ordererStatus.getContainerStatuses();
+            Assertions.assertNotNull(containerStatuses);
+            Assertions.assertEquals(1, containerStatuses.size());
+
+            String podName = ordererMetadata.getName();
+            String containerName = containerStatuses.get(0).getName();
+            Assertions.assertNotNull(podName);
+            Assertions.assertNotNull(containerName);
+
+            kubernetesClient.uploadToContainer(new File(materialDir + "/msp"), "/var/crypto-config/msp", podName, containerName);
+            kubernetesClient.uploadToContainer(new File(materialDir + "/tls"), "/var/crypto-config/tls", podName, containerName);
+            kubernetesClient.uploadToContainer(new File(materialDir + "/genesis.block"), "/var/crypto-config/genesis.block", podName, containerName);
+        }
     }
 }
