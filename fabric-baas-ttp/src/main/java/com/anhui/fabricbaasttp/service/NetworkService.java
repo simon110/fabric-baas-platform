@@ -466,7 +466,7 @@ public class NetworkService {
         assertOrganizationInNetwork(network, curOrgName);
 
         // 确定操作者没有重复操作
-        if (participation.getApprovals().contains(curOrgName)) {
+        if (participation.getApprovals().contains(request.getOrganizationName())) {
             throw new DuplicatedOperationException("请勿重复操作");
         }
         log.info("当前网络中已经同意申请的组织包括：" + participation.getApprovals());
@@ -481,11 +481,11 @@ public class NetworkService {
                 participation.setTimestamp(System.currentTimeMillis());
                 // 将证书解压到指定目录
                 File certfileZip = ResourceUtils.createTempFile("zip");
-                String certfileId = IdentifierGenerator.ofCertfile(network.getName(), curOrgName);
+                String certfileId = IdentifierGenerator.ofCertfile(network.getName(), request.getOrganizationName());
                 minioService.getAsFile(MinIOBucket.ORGANIZATION_CERTFILE_BUCKET_NAME, certfileId, certfileZip);
                 ZipUtils.unzip(certfileZip, CertfileUtils.getCertfileDir(certfileId, CertfileType.ADMIN));
                 // 将组织加入到网络
-                network.getOrganizationNames().add(curOrgName);
+                network.getOrganizationNames().add(request.getOrganizationName());
             }
         } else {
             // 如果操作者拒绝
