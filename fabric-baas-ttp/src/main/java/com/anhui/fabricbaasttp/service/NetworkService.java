@@ -123,6 +123,56 @@ public class NetworkService {
         throw new NodeNotFoundException("未找到相应的Orderer");
     }
 
+    private void addOrganizationToConsortium(NetworkEntity network, String newOrgName) throws Exception {
+        // 从Orderer拉取通道配置
+        File oldConfig = ResourceUtils.createTempFile("json");
+        File newConfig = ResourceUtils.createTempFile("json");
+        File orgConfig = ResourceUtils.createTempFile("json");
+        File newOrgCertfileZip = ResourceUtils.createTempFile("zip");
+        File newOrgCertfileDir = ResourceUtils.createTempDir();
+        File envelope = ResourceUtils.createTempFile("pb");
+
+        // 随机选择一个Orderer并拉取配置文件
+        Orderer orderer = RandomUtils.select(network.getOrderers());
+        log.info("随机从网络中选择了Orderer：" + orderer.getAddr());
+        CoreEnv ordererCoreEnv = fabricEnvService.buildCoreEnvForOrderer(orderer);
+        log.info("生成Orderer的环境变量：" + ordererCoreEnv);
+        ChannelUtils.fetchConfig(ordererCoreEnv, fabricConfig.getSystemChannelName(), oldConfig);
+        log.info("从网络的系统通道拉取配置：" + FileUtils.readFileToString(oldConfig, StandardCharsets.UTF_8));
+
+        // 从MinIO下载新组织的证书并解压
+        String organizationCertfileId = IdentifierGenerator.ofCertfile(network.getName(), newOrgName);
+        minioService.getAsFile(MinIOBucket.ORGANIZATION_CERTFILE_BUCKET_NAME, organizationCertfileId, newOrgCertfileZip);
+        ZipUtils.unzip(newOrgCertfileZip, newOrgCertfileDir);
+        log.info("将组织的管理员证书解压到了临时目录：" + newOrgCertfileDir);
+
+        // 生成新组织的配置的JSON
+        ConfigtxOrganization newConfigtxOrganization = new ConfigtxOrganization();
+        newConfigtxOrganization.setName(newOrgName);
+        newConfigtxOrganization.setId(newOrgName);
+        newConfigtxOrganization.setMspDir(new File(newOrgCertfileDir + "/msp"));
+        File orgConfigtxDir = ResourceUtils.createTempDir();
+        File orgConfigtxYaml = new File(orgConfigtxDir + "/configtx.yaml");
+        ConfigtxUtils.generateOrgConfigtx(orgConfigtxYaml, newConfigtxOrganization);
+        log.info("生成组织的configtx.yaml配置文件：" + FileUtils.readFileToString(orgConfigtxYaml, StandardCharsets.UTF_8));
+        ConfigtxUtils.convertOrgConfigtxToJson(orgConfig, orgConfigtxDir, newOrgName);
+        log.info("将组织的configtx.yaml配置文件转换为json：" + FileUtils.readFileToString(orgConfig, StandardCharsets.UTF_8));
+
+        // 将新组织信息写入拉取下来的通道配置中
+        FileUtils.copyFile(oldConfig, newConfig);
+        ChannelUtils.appendOrganizationToSysChannelConfig(newOrgName, orgConfig, newConfig);
+        log.info("将组织的configtx.yaml配置文件合并到原来的configtx.yaml中：" + FileUtils.readFileToString(newConfig, StandardCharsets.UTF_8));
+
+        // 对比新旧配置文件生成Envelope，并对Envelope进行签名
+        log.info("正在生成提交到通道的Envelope并签名：" + envelope.getAbsolutePath());
+        ChannelUtils.generateEnvelope(fabricConfig.getSystemChannelName(), envelope, oldConfig, newConfig);
+        ChannelUtils.signEnvelope(ordererCoreEnv.getMSPEnv(), envelope);
+
+        // 将签名后的Envelope提交到Orderer
+        log.info("正在将Envelope提交到系统通道：" + fabricConfig.getSystemChannelName());
+        ChannelUtils.submitChannelUpdate(ordererCoreEnv.getMSPEnv(), ordererCoreEnv.getTLSEnv(), fabricConfig.getSystemChannelName(), envelope);
+    }
+
     public ResourceResult queryOrdererTlsCert(NetworkQueryOrdererTlsCertRequest request) throws Exception {
         // 检查网络是否存在
         NetworkEntity network = getNetworkOrThrowException(request.getNetworkName());
@@ -475,6 +525,7 @@ public class NetworkService {
             List<String> approvals = participation.getApprovals();
             approvals.add(curOrgName);
             if (approvals.size() == network.getOrganizationNames().size()) {
+                addOrganizationToConsortium(network, request.getOrganizationName());
                 // 如果达到条件则更新系统通道配置
                 participation.setStatus(ApplStatus.ACCEPTED);
                 participation.setTimestamp(System.currentTimeMillis());

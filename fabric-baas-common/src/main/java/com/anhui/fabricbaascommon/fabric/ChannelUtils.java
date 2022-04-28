@@ -90,6 +90,29 @@ public class ChannelUtils {
     }
 
     @SuppressWarnings("unchecked")
+    public static void appendOrganizationToSysChannelConfig(
+            String newOrgName,
+            File newOrgJsonConfig,
+            File channelJsonConfig)
+            throws IOException, ChannelException {
+        Map<String, Object> newOrgConfig = JsonUtils.loadAsMap(newOrgJsonConfig);
+        Map<String, Object> channelConfig = JsonUtils.loadAsMap(channelJsonConfig);
+
+        Map<String, Object> channelGroup = (Map<String, Object>) channelConfig.get("channel_group");
+        Map<String, Object> groups = (Map<String, Object>) channelGroup.get("groups");
+        Map<String, Object> consortiums = (Map<String, Object>) groups.get("Consortiums");
+        groups = (Map<String, Object>) consortiums.get("groups");
+        assert groups.size() == 1;
+        Map<String, Object> consortium = (Map<String, Object>) groups.values().toArray()[0];
+        groups = (Map<String, Object>) consortium.get("groups");
+        if (groups.containsKey(newOrgName)) {
+            throw new ChannelException("组织已存在于通道配置中：" + newOrgName);
+        }
+        groups.put(newOrgName, newOrgConfig);
+        JsonUtils.save(channelJsonConfig, channelConfig);
+    }
+
+    @SuppressWarnings("unchecked")
     public static void appendOrdererToChannelConfig(
             ConfigtxOrderer newOrderer,
             File channelJsonConfig)
