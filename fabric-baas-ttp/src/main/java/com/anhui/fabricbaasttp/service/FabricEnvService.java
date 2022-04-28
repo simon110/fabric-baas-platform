@@ -60,13 +60,13 @@ public class FabricEnvService {
     }
 
     public TLSEnv buildTLSEnvForOrderer(Orderer orderer) {
-        File homeDir = CertfileUtils.getCertfileDir(orderer.getCaUsername(), CertfileType.ORDERER);
-        return buildTLSEnv(orderer, homeDir);
+        File certfileDir = CertfileUtils.getCertfileDir(orderer.getCaUsername(), CertfileType.ORDERER);
+        return buildTLSEnv(orderer, certfileDir);
     }
 
     public TLSEnv buildTLSEnvForPeer(Peer peer) {
-        File homeDir = CertfileUtils.getCertfileDir(peer.getName(), CertfileType.PEER);
-        return buildTLSEnv(peer, homeDir);
+        File certfileDir = CertfileUtils.getCertfileDir(peer.getName(), CertfileType.PEER);
+        return buildTLSEnv(peer, certfileDir);
     }
 
     private static TLSEnv buildTLSEnv(Node node, File certfileDir) {
