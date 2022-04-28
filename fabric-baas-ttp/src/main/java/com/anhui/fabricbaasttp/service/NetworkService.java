@@ -11,10 +11,7 @@ import com.anhui.fabricbaascommon.response.PaginationQueryResult;
 import com.anhui.fabricbaascommon.response.ResourceResult;
 import com.anhui.fabricbaascommon.service.CAService;
 import com.anhui.fabricbaascommon.service.MinIOService;
-import com.anhui.fabricbaascommon.util.CertfileUtils;
-import com.anhui.fabricbaascommon.util.RandomUtils;
-import com.anhui.fabricbaascommon.util.ResourceUtils;
-import com.anhui.fabricbaascommon.util.ZipUtils;
+import com.anhui.fabricbaascommon.util.*;
 import com.anhui.fabricbaasttp.bean.Orderer;
 import com.anhui.fabricbaasttp.constant.MinIOBucket;
 import com.anhui.fabricbaasttp.entity.NetworkEntity;
@@ -234,20 +231,30 @@ public class NetworkService {
         // 为新Orderer注册证书并登记
         int newOrdererNo = network.getOrderers().size();
         String caUsername = IdentifierGenerator.ofOrderer(network.getName(), newOrdererNo);
-        String caPassword = UUID.randomUUID().toString().replace("-", "");
-        caService.register(caUsername, caPassword, CertfileType.ORDERER);
+        String caPassword = PasswordUtils.generatePassword();
+        try {
+            caService.register(caUsername, caPassword, CertfileType.ORDERER);
+        } catch (CertfileException e) {
+            // 此处可以假设抛出的异常不是因为缺少CA管理员证书
+            log.warn("账户已注册：" + caUsername);
+        }
 
         List<String> csrHosts = Arrays.asList("localhost", request.getOrderer().getHost());
         File newOrdererCertfileDir = ResourceUtils.createTempDir();
         caService.enroll(newOrdererCertfileDir, caUsername, csrHosts);
+        log.info("将证书登记到临时目录：" + newOrdererCertfileDir.getAbsolutePath());
 
         // 从现有的网络中随机选择一个Orderer节点
         Orderer selectedOrderer = RandomUtils.select(network.getOrderers());
+        log.info("随机选中Orderer节点：" + selectedOrderer);
 
         // 拉取通道的配置文件（以Orderer组织管理员的身份）
         CoreEnv selectedOrdererCoreEnv = fabricEnvService.buildCoreEnvForOrderer(selectedOrderer);
+        log.info("生成Orderer的环境变量：" + selectedOrdererCoreEnv);
         File oldChannelConfig = ResourceUtils.createTempFile("json");
         ChannelUtils.fetchConfig(selectedOrdererCoreEnv, fabricConfig.getSystemChannelName(), oldChannelConfig);
+        log.info("拉取系统通道的配置：" + FileUtils.readFileToString(oldChannelConfig, StandardCharsets.UTF_8));
+
 
         // 向通道配置文件中添加新Orderer的定义
         ConfigtxOrderer configtxOrderer = new ConfigtxOrderer();
@@ -256,17 +263,17 @@ public class NetworkService {
         File newOrdererTlsServerCert = new File(newOrdererCertfileDir + "/tls/server.crt");
         configtxOrderer.setClientTlsCert(newOrdererTlsServerCert);
         configtxOrderer.setServerTlsCert(newOrdererTlsServerCert);
+
         File newChannelConfig = ResourceUtils.createTempFile("json");
         FileUtils.copyFile(oldChannelConfig, newChannelConfig);
         ChannelUtils.appendOrdererToChannelConfig(configtxOrderer, newChannelConfig);
+        log.info("将新的Orderer信息添加到通道配置：" + FileUtils.readFileToString(newChannelConfig, StandardCharsets.UTF_8));
 
         // 计算新旧JSON配置文件之间的差异得到Envelope，并对其进行签名
         File envelope = ResourceUtils.createTempFile("pb");
         ChannelUtils.generateEnvelope(fabricConfig.getSystemChannelName(), envelope, oldChannelConfig, newChannelConfig);
-        String creatorOrganizationName = network.getOrganizationNames().get(0);
-        MSPEnv creatorOrganizationMSPEnv = fabricEnvService.buildMSPEnvForOrg(network.getName(), creatorOrganizationName);
         ChannelUtils.signEnvelope(selectedOrdererCoreEnv.getMSPEnv(), envelope);
-        ChannelUtils.signEnvelope(creatorOrganizationMSPEnv, envelope);
+        log.info("生成并使用Orderer身份对Envelope文件进行签名：" + envelope.getAbsolutePath());
 
         // 将Envelope提交到现有的Orderer节点
         ChannelUtils.submitChannelUpdate(
@@ -283,7 +290,10 @@ public class NetworkService {
                 new File(newOrdererCertfileDir + "/tls")
         );
         minioService.putFile(MinIOBucket.ORDERER_CERTFILE_BUCKET_NAME, caUsername, ordererCertfileZip);
-        ZipUtils.unzip(ordererCertfileZip, CertfileUtils.getCertfileDir(caUsername, CertfileType.ORDERER));
+        log.info("正在上传新Orderer的证书到MinIO...");
+        File formalCertfileDir = CertfileUtils.getCertfileDir(caUsername, CertfileType.ORDERER);
+        ZipUtils.unzip(ordererCertfileZip, formalCertfileDir);
+        log.info("将新Orderer的证书解压到正式目录：" + formalCertfileDir);
 
         // 将更新后的信息保存到数据库
         Orderer newOrderer = new Orderer();
@@ -294,6 +304,7 @@ public class NetworkService {
         newOrderer.setCaPassword(caPassword);
         network.getOrderers().add(newOrderer);
         networkRepo.save(network);
+        log.info("更新网络的信息：" + network);
 
         String downloadUrl = String.format("/download/certfile/%s.zip", UUID.randomUUID());
         FileUtils.copyFile(ordererCertfileZip, new File("static" + downloadUrl));
@@ -333,7 +344,7 @@ public class NetworkService {
             // 账户名称例如SampleNetwork-Orderer0
             // 账户密码例如13473cf3bc515bccbb81fa235ed33ff9
             String caUsername = IdentifierGenerator.ofOrderer(request.getNetworkName(), i);
-            String caPassword = UUID.randomUUID().toString().replace("-", "");
+            String caPassword = PasswordUtils.generatePassword();
             caService.register(caUsername, caPassword, CertfileType.ORDERER);
 
             List<String> csrHosts = Arrays.asList("localhost", orderer.getHost());
@@ -566,7 +577,7 @@ public class NetworkService {
         String organizationName = SecurityUtils.getUsername();
         assertOrganizationInNetwork(network, organizationName);
 
-        Orderer orderer = RandomUtils.select(network.getOrderers());
+        Orderer orderer = network.getOrderers().get(0);
         CoreEnv ordererCoreEnv = fabricEnvService.buildCoreEnvForOrderer(orderer);
 
         String downloadUrl = String.format("/download/block/%s.block", UUID.randomUUID());
@@ -575,6 +586,6 @@ public class NetworkService {
 
         ResourceResult result = new ResourceResult();
         result.setDownloadUrl(downloadUrl);
-        return new ResourceResult();
+        return result;
     }
 }

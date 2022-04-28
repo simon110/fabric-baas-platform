@@ -30,7 +30,7 @@ spec:
             - name: ORDERER_GENERAL_GENESISFILE
               value: "/var/crypto-config/genesis.block"
             - name: ORDERER_GENERAL_LOCALMSPID
-              value: "OrdererMSP"
+              value: "GXNU"
             - name: ORDERER_GENERAL_LOCALMSPDIR
               value: "/var/crypto-config/msp"
             - name: ORDERER_GENERAL_TLS_ENABLED
@@ -68,7 +68,7 @@ spec:
         - name: production
           emptyDir: { }
       nodeSelector:
-        "kubernetes.io/hostname": "kubenode2"
+        "kubernetes.io/hostname": "kubenode1"
 
 ---
 apiVersion: v1

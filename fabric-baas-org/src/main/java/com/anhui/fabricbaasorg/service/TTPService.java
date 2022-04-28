@@ -3,12 +3,15 @@ package com.anhui.fabricbaasorg.service;
 
 import com.anhui.fabricbaascommon.exception.DuplicatedOperationException;
 import com.anhui.fabricbaasorg.entity.TTPEntity;
+import com.anhui.fabricbaasorg.exception.TTPException;
 import com.anhui.fabricbaasorg.remote.RemoteHttpClient;
 import com.anhui.fabricbaasorg.remote.TTPOrganizationApi;
 import com.anhui.fabricbaasorg.repository.TTPRepo;
 import com.anhui.fabricbaasorg.request.TTPInitRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class TTPService {
@@ -18,6 +21,14 @@ public class TTPService {
     private RemoteHttpClient remoteHttpClient;
     @Autowired
     private TTPOrganizationApi ttpOrganizationApi;
+
+    public String getNameOrThrowException() throws TTPException {
+        List<TTPEntity> ttpEntities = ttpRepo.findAll();
+        if (ttpEntities.isEmpty()) {
+            throw new TTPException("TTP未初始化！");
+        }
+        return ttpEntities.get(0).getOrganizationName();
+    }
 
     public void init(TTPInitRequest request) throws Exception {
         if (ttpRepo.count() != 0) {

@@ -173,7 +173,7 @@ public class KubernetesService {
         peerRepo.deleteById(peerName);
     }
 
-    public void startOrderer(OrdererEntity orderer, File ordererCertfileDir, File genesisBlock) throws Exception {
+    public void startOrderer(String ttpOrgName, OrdererEntity orderer, File ordererCertfileDir, File genesisBlock) throws Exception {
         // 检查端口是否冲突
         assertKubePortUnused(orderer.getKubeNodePort());
 
@@ -186,7 +186,7 @@ public class KubernetesService {
         CertfileUtils.assertCertfile(ordererCertfileDir);
         assertAdminConfig();
         File ordererYaml = findOrdererYaml(orderer.getName());
-        FabricYamlUtils.generateOrdererYaml(orderer, ordererYaml);
+        FabricYamlUtils.generateOrdererYaml(ttpOrgName, orderer, ordererYaml);
         kubernetesClient.applyYaml(ordererYaml);
 
         // 等待容器启动完成

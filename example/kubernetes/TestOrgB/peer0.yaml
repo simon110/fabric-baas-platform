@@ -60,7 +60,7 @@ spec:
             - name: CORE_PEER_GOSSIP_EXTERNALENDPOINT
               value: "orgb.example.com:31003"
             - name: CORE_PEER_LOCALMSPID
-              value: "TestOrgBMSP"
+              value: "TestOrgB"
             - name: CORE_PEER_ADDRESSAUTODETECT
               value: "true"
             - name: CORE_VM_DOCKER_ATTACHSTDOUT
@@ -117,7 +117,7 @@ spec:
         - name: couchdb-volume
           emptyDir: { }
       nodeSelector:
-        "kubernetes.io/hostname": "kubenode2"
+        "kubernetes.io/hostname": "kubenode1"
 
 ---
 apiVersion: v1

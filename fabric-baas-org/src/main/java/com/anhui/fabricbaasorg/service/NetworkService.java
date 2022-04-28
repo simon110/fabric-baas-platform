@@ -11,6 +11,7 @@ import com.anhui.fabricbaascommon.repository.CertfileRepo;
 import com.anhui.fabricbaascommon.response.PaginationQueryResult;
 import com.anhui.fabricbaascommon.service.CAService;
 import com.anhui.fabricbaascommon.util.CertfileUtils;
+import com.anhui.fabricbaascommon.util.PasswordUtils;
 import com.anhui.fabricbaascommon.util.ResourceUtils;
 import com.anhui.fabricbaasorg.bean.Participation;
 import com.anhui.fabricbaasorg.entity.OrdererEntity;
@@ -44,6 +45,8 @@ public class NetworkService {
     private OrdererRepo ordererRepo;
     @Autowired
     private PeerRepo peerRepo;
+    @Autowired
+    private TTPService ttpService;
 
     private List<Node> getOrderers(List<Integer> ordererPorts) throws CAException {
         String domain = caService.getAdminOrganizationDomain();
@@ -130,7 +133,7 @@ public class NetworkService {
         orderer.setKubeNodeName(request.getKubeNodeName());
         orderer.setKubeNodePort(request.getKubeNodePort());
         try {
-            kubernetesService.startOrderer(orderer, certfileDir, genesisBlock);
+            kubernetesService.startOrderer(ttpService.getNameOrThrowException(), orderer, certfileDir, genesisBlock);
         } catch (Exception e) {
             kubernetesService.stopOrderer(orderer.getName());
             throw e;
@@ -146,7 +149,7 @@ public class NetworkService {
         File peerCertfileDir = CertfileUtils.getCertfileDir(request.getName(), CertfileType.PEER);
         boolean mkdirs = peerCertfileDir.mkdirs();
         String caUsername = request.getName();
-        String caPassword = UUID.randomUUID().toString().replace("-", "");
+        String caPassword = PasswordUtils.generatePassword();
         try {
             // 尝试注册证书
             caService.register(caUsername, caPassword, CertfileType.PEER);
@@ -168,7 +171,7 @@ public class NetworkService {
         peer.setCaUsername(caUsername);
         peer.setCaPassword(caPassword);
         peer.setCouchDBUsername("admin");
-        peer.setCouchDBPassword(UUID.randomUUID().toString().replace("-", ""));
+        peer.setCouchDBPassword(PasswordUtils.generatePassword());
         peer.setOrganizationName(caEntity.getOrganizationName());
         try {
             kubernetesService.startPeer(peer, domain, peerCertfileDir);

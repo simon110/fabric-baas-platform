@@ -31,7 +31,7 @@ class FabricYamlUtilsTest {
                 orderer.setKubeNodePort(ordererNodePort++);
 
                 File yaml = new File(String.format("%s/%s/orderer%d.yaml", BASE_DIR_PATH, organizationName, i));
-                FabricYamlUtils.generateOrdererYaml(orderer, yaml);
+                FabricYamlUtils.generateOrdererYaml("GXNU", orderer, yaml);
                 Assertions.assertTrue(yaml.exists());
             }
         }

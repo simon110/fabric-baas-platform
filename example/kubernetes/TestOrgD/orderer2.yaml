@@ -30,7 +30,7 @@ spec:
             - name: ORDERER_GENERAL_GENESISFILE
               value: "/var/crypto-config/genesis.block"
             - name: ORDERER_GENERAL_LOCALMSPID
-              value: "OrdererMSP"
+              value: "GXNU"
             - name: ORDERER_GENERAL_LOCALMSPDIR
               value: "/var/crypto-config/msp"
             - name: ORDERER_GENERAL_TLS_ENABLED
