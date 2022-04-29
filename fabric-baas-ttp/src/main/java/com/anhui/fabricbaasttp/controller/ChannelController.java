@@ -34,13 +34,6 @@ public class ChannelController {
     }
 
     @Secured({Authority.USER})
-    @PostMapping("/queryGenesisBlock")
-    @ApiOperation("查询通道创世区块")
-    public ResourceResult queryGenesisBlock(@Valid @RequestBody ChannelQueryGenesisBlockRequest request) throws Exception {
-        return channelService.queryGenesisBlock(request);
-    }
-
-    @Secured({Authority.USER})
     @PostMapping("/addOrderer")
     @ApiOperation("向通道中添加Orderer（必须是已经存在于网络中的Orderer）")
     public EmptyResult addOrderer(@Valid @RequestBody ChannelAddOrdererRequest request) throws Exception {
