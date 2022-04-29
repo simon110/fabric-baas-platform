@@ -323,6 +323,7 @@ public class ChannelService {
         if (peer != null) {
             throw new NodeException("相应的Peer节点已经加入了通道");
         }
+        // 生成新Peer的信息
         int newPeerNo = channel.getPeers().size();
         String newPeerId = IdentifierGenerator.ofPeer(channel.getName(), newPeerNo);
         peer = new Peer();
@@ -330,34 +331,45 @@ public class ChannelService {
         peer.setHost(request.getPeer().getHost());
         peer.setPort(request.getPeer().getPort());
         peer.setOrganizationName(curOrgName);
+        log.info("生成新Peer信息：" + peer);
 
         // 随机选择一个Orderer
         Orderer orderer = RandomUtils.select(channel.getOrderers());
+        log.info("随机选择Orderer节点：" + orderer);
 
         // 拉取通道的创世区块
-        CoreEnv ordererEnvVars = fabricEnvService.buildCoreEnvForOrderer(orderer);
+        CoreEnv ordererCoreEnv = fabricEnvService.buildCoreEnvForOrderer(orderer);
+        log.info("生成Orderer的环境变量参数：" + ordererCoreEnv);
         File channelGenesisBlock = ResourceUtils.createTempFile("block");
-        ChannelUtils.fetchGenesisBlock(ordererEnvVars, channel.getName(), channelGenesisBlock);
+        ChannelUtils.fetchGenesisBlock(ordererCoreEnv, channel.getName(), channelGenesisBlock);
+        log.info(String.format("拉取通道%s的启动区块：", channel.getName()) + channelGenesisBlock.getAbsolutePath());
 
         // 解压Peer证书到临时目录
         File peerCertfileZip = ResourceUtils.createTempFile("zip");
         FileUtils.writeByteArrayToFile(peerCertfileZip, peerCertZip.getBytes());
+        log.info("将用户上传的Peer证书保存至：" + peerCertfileZip.getAbsolutePath());
         File peerCertTempCertfileDir = ResourceUtils.createTempDir();
         ZipUtils.unzip(peerCertfileZip, peerCertTempCertfileDir);
+        log.info("将Peer证书解压到：" + peerCertTempCertfileDir.getAbsolutePath());
+        CertfileUtils.assertCertfile(peerCertTempCertfileDir);
 
-        // 尝试将Peer加入到通道中
+        // 尝试将Peer加入到通道中（TLS环境变量需要改为临时目录中的，因为还没保存到正式目录）
         CoreEnv peerCoreEnv = fabricEnvService.buildCoreEnvForPeer(channel.getNetworkName(), curOrgName, peer);
         peerCoreEnv.setTlsRootCert(new File(peerCertTempCertfileDir + "/tls/ca.crt"));
+        log.info("生成Peer的环境变量：" + peerCoreEnv);
         ChannelUtils.joinChannel(peerCoreEnv, channelGenesisBlock);
 
         // 将Peer证书保存到MinIO和证书目录
         minioService.putBytes(MinIOBucket.PEER_CERTFILE_BUCKET_NAME, peer.getName(), peerCertZip.getBytes());
-        File peerCertfileDir = CertfileUtils.getCertfileDir(peer.getName(), CertfileType.PEER);
-        ZipUtils.unzip(peerCertfileZip, peerCertfileDir);
+        log.info("将用户上传的Peer证书保存至MinIO：" + peerCertZip.getOriginalFilename());
+        File formalPeerCertfileDir = CertfileUtils.getCertfileDir(peer.getName(), CertfileType.PEER);
+        ZipUtils.unzip(peerCertfileZip, formalPeerCertfileDir);
+        log.info("将Peer证书保存到正式目录：" + formalPeerCertfileDir.getAbsolutePath());
 
         // 更新MongoDB中的信息
         channel.getPeers().add(peer);
         channelRepo.save(channel);
+        log.info("更新通道信息：" + channel);
     }
 
     public InvitationCodeResult generateInvitationCode(ChannelGenerateInvitationCodeRequest request) throws Exception {

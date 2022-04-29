@@ -148,7 +148,14 @@ public class KubernetesService {
         String podName = Objects.requireNonNull(pod.getMetadata()).getName();
         waitForReadiness(podName, 3000, 30000);
         List<ContainerStatus> containerStatuses = getContainerStatuses(pod);
-        String containerName = containerStatuses.get(0).getName();
+        String containerName = null;
+        for (ContainerStatus containerStatus : containerStatuses) {
+            if (containerStatus.getImage().contains("hyperledger/fabric-peer")) {
+                containerName = containerStatus.getName();
+                break;
+            }
+        }
+        assert containerName != null;
 
         CertfileUtils.assertCertfile(peerCertfileDir);
         File peerCertfileMSPDir = CertfileUtils.getCertfileMSPDir(peerCertfileDir);

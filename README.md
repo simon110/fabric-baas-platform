@@ -468,8 +468,18 @@ token用于身份验证，需要将其设置为Http请求Header的`Authorization
 
 ```json
 {
-  "channelName": "testchannel",
+  "channelName": "samplechannel",
   "networkName": "TestNetwork"
 }
+```
+
+
+
+### 4.2 加入通道
+
+创建通道完成后，组织端需要用自己的证书来先启动一个Peer。例如此处启动一个地址为**orga.example.com:31000**的Peer，然后通过`/api/v1/channel/joinChannel`将Peer加入到通道**samplechannel**中，要求上传Peer的证书压缩包：
+
+```json
+
 ```
 

@@ -68,7 +68,7 @@ spec:
         - name: production
           emptyDir: { }
       nodeSelector:
-        "kubernetes.io/hostname": "kubenode3"
+        "kubernetes.io/hostname": "kubenode2"
 
 ---
 apiVersion: v1

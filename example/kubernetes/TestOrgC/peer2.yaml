@@ -79,7 +79,7 @@ spec:
             - "sh"
           args:
             - "-c"
-            - "sleep 15; peer node start;"
+            - "sleep 20; peer node start;"
           ports:
             - containerPort: 7051
             - containerPort: 7052
