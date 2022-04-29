@@ -5,7 +5,10 @@ import com.anhui.fabricbaascommon.constant.CertfileType;
 import com.anhui.fabricbaascommon.exception.*;
 import com.anhui.fabricbaascommon.fabric.ChannelUtils;
 import com.anhui.fabricbaascommon.fabric.ConfigtxUtils;
+import com.anhui.fabricbaascommon.request.BaseChannelRequest;
+import com.anhui.fabricbaascommon.response.ListResult;
 import com.anhui.fabricbaascommon.response.ResourceResult;
+import com.anhui.fabricbaascommon.response.SingletonResult;
 import com.anhui.fabricbaascommon.service.CAService;
 import com.anhui.fabricbaascommon.service.MinIOService;
 import com.anhui.fabricbaascommon.util.*;
@@ -15,8 +18,10 @@ import com.anhui.fabricbaasttp.constant.MinIOBucket;
 import com.anhui.fabricbaasttp.entity.ChannelEntity;
 import com.anhui.fabricbaasttp.entity.NetworkEntity;
 import com.anhui.fabricbaasttp.repository.ChannelRepo;
-import com.anhui.fabricbaasttp.request.*;
-import com.anhui.fabricbaasttp.response.ChannelQueryPeerResult;
+import com.anhui.fabricbaasttp.request.ChannelCreateRequest;
+import com.anhui.fabricbaasttp.request.ChannelGenerateInvitationCodeRequest;
+import com.anhui.fabricbaasttp.request.ChannelPeerOptRequest;
+import com.anhui.fabricbaasttp.request.ChannelSubmitInvitationCodesRequest;
 import com.anhui.fabricbaasttp.response.InvitationCodeResult;
 import com.anhui.fabricbaasttp.util.IdentifierGenerator;
 import com.anhui.fabricbaasweb.util.SecurityUtils;
@@ -266,7 +271,7 @@ public class ChannelService {
         channelRepo.save(channel);
     }
 
-    public void joinChannel(ChannelJoinRequest request, MultipartFile peerCertZip) throws Exception {
+    public void joinChannel(ChannelPeerOptRequest request, MultipartFile peerCertZip) throws Exception {
         String curOrgName = SecurityUtils.getUsername();
         ChannelEntity channel = getChannelOrThrowException(request.getChannelName());
 
@@ -353,7 +358,7 @@ public class ChannelService {
         return new InvitationCodeResult(invitationCode);
     }
 
-    public void setAnchorPeer(ChannelSetAnchorPeerRequest request) throws Exception {
+    public void setAnchorPeer(ChannelPeerOptRequest request) throws Exception {
         String curOrgName = SecurityUtils.getUsername();
         ChannelEntity channel = getChannelOrThrowException(request.getChannelName());
         if (!channel.getOrganizationNames().contains(curOrgName)) {
@@ -393,7 +398,7 @@ public class ChannelService {
         ChannelUtils.submitChannelUpdate(organizationMspEnv, ordererCoreEnv.getTLSEnv(), channel.getName(), envelope);
     }
 
-    public ResourceResult queryPeerTlsCert(ChannelQueryPeerTlsCertRequest request) throws Exception {
+    public ResourceResult queryPeerTlsCert(ChannelPeerOptRequest request) throws Exception {
         // 检查网络是否存在
         Optional<ChannelEntity> channelOptional = channelRepo.findById(request.getChannelName());
         if (channelOptional.isEmpty()) {
@@ -415,15 +420,17 @@ public class ChannelService {
         return result;
     }
 
-    public ChannelQueryPeerResult queryPeers(ChannelQueryPeerRequest request) throws Exception {
+    public ListResult<Node> queryPeers(BaseChannelRequest request) throws Exception {
         Optional<ChannelEntity> channelOptional = channelRepo.findById(request.getChannelName());
         if (channelOptional.isPresent()) {
-            ChannelQueryPeerResult result = new ChannelQueryPeerResult();
             List<Node> peers = new ArrayList<>(channelOptional.get().getPeers());
-            result.setPeers(peers);
-            return result;
+            return new ListResult<>(peers);
         } else {
             throw new ChannelException("未找到通道：" + request.getChannelName());
         }
+    }
+    
+    public SingletonResult<ChannelEntity> getChannel(BaseChannelRequest request) throws ChannelException {
+        return new SingletonResult<>(getChannelOrThrowException(request.getChannelName()));
     }
 }

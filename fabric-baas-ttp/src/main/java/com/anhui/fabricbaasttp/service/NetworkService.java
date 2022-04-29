@@ -10,20 +10,23 @@ import com.anhui.fabricbaascommon.constant.CertfileType;
 import com.anhui.fabricbaascommon.exception.*;
 import com.anhui.fabricbaascommon.fabric.ChannelUtils;
 import com.anhui.fabricbaascommon.fabric.ConfigtxUtils;
+import com.anhui.fabricbaascommon.request.BaseNetworkRequest;
+import com.anhui.fabricbaascommon.response.ListResult;
 import com.anhui.fabricbaascommon.response.PaginationQueryResult;
 import com.anhui.fabricbaascommon.response.ResourceResult;
+import com.anhui.fabricbaascommon.response.SingletonResult;
 import com.anhui.fabricbaascommon.service.CAService;
 import com.anhui.fabricbaascommon.service.MinIOService;
 import com.anhui.fabricbaascommon.util.*;
 import com.anhui.fabricbaasttp.bean.Orderer;
 import com.anhui.fabricbaasttp.constant.MinIOBucket;
+import com.anhui.fabricbaasttp.entity.ChannelEntity;
 import com.anhui.fabricbaasttp.entity.NetworkEntity;
 import com.anhui.fabricbaasttp.entity.ParticipationEntity;
+import com.anhui.fabricbaasttp.repository.ChannelRepo;
 import com.anhui.fabricbaasttp.repository.NetworkRepo;
 import com.anhui.fabricbaasttp.repository.ParticipationRepo;
 import com.anhui.fabricbaasttp.request.*;
-import com.anhui.fabricbaasttp.response.NetworkGetResult;
-import com.anhui.fabricbaasttp.response.NetworkQueryOrganizationResult;
 import com.anhui.fabricbaasttp.util.IdentifierGenerator;
 import com.anhui.fabricbaasweb.util.SecurityUtils;
 import com.spotify.docker.client.exceptions.NodeNotFoundException;
@@ -56,6 +59,8 @@ public class NetworkService {
     private FabricConfiguration fabricConfig;
     @Autowired
     private FabricEnvService fabricEnvService;
+    @Autowired
+    private ChannelRepo channelRepo;
 
     public void assertOrganizationInNetwork(NetworkEntity network, String organizationName) throws OrganizationException {
         if (!network.getOrganizationNames().contains(organizationName)) {
@@ -177,7 +182,7 @@ public class NetworkService {
         return getNetworkOrThrowException(networkName).getOrderers();
     }
 
-    public ResourceResult queryOrdererTlsCert(NetworkQueryOrdererTlsCertRequest request) throws Exception {
+    public ResourceResult queryOrdererTlsCert(NetworkOrdererOptRequest request) throws Exception {
         // 检查网络是否存在
         NetworkEntity network = getNetworkOrThrowException(request.getNetworkName());
         // 检查当前组织是否位于该网络中
@@ -196,7 +201,7 @@ public class NetworkService {
         return result;
     }
 
-    public ResourceResult queryOrdererCert(NetworkQueryOrdererCertRequest request) throws Exception {
+    public ResourceResult queryOrdererCert(NetworkOrdererOptRequest request) throws Exception {
         // 检查网络是否存在
         NetworkEntity network = getNetworkOrThrowException(request.getNetworkName());
         // 检查当前组织是否位于该网络中
@@ -224,7 +229,7 @@ public class NetworkService {
         return result;
     }
 
-    public ResourceResult addOrderer(NetworkAddOrdererRequest request) throws Exception {
+    public ResourceResult addOrderer(NetworkOrdererOptRequest request) throws Exception {
         // 检查网络是否存在
         NetworkEntity network = getNetworkOrThrowException(request.getNetworkName());
 
@@ -488,7 +493,7 @@ public class NetworkService {
         return result;
     }
 
-    public void applyParticipation(ParticipationApplyRequest request, MultipartFile adminCertZip) throws Exception {
+    public void applyParticipation(NetworkApplyParticipationRequest request, MultipartFile adminCertZip) throws Exception {
         NetworkEntity network = getNetworkOrThrowException(request.getNetworkName());
         String curOrgName = SecurityUtils.getUsername();
         // 检查是否存在未处理的加入网络申请
@@ -519,7 +524,7 @@ public class NetworkService {
         participationRepo.save(participation);
     }
 
-    public void handleParticipation(ParticipationHandleRequest request) throws Exception {
+    public void handleParticipation(NetworkHandleParticipationRequest request) throws Exception {
         // 找到相应的申请
         Optional<ParticipationEntity> participationOptional = participationRepo.findFirstByNetworkNameAndOrganizationNameAndStatus(request.getNetworkName(), request.getOrganizationName(), ApplStatus.UNHANDLED);
         if (participationOptional.isEmpty()) {
@@ -567,7 +572,7 @@ public class NetworkService {
         networkRepo.save(network);
     }
 
-    public PaginationQueryResult<ParticipationEntity> queryParticipations(ParticipationQueryRequest request) throws NetworkException {
+    public PaginationQueryResult<ParticipationEntity> queryParticipations(NetworkQueryParticipationRequest request) throws NetworkException {
         getNetworkOrThrowException(request.getNetworkName());
 
         Sort sort = Sort.by(Sort.Direction.DESC, "timestamp");
@@ -580,7 +585,7 @@ public class NetworkService {
         return result;
     }
 
-    public ResourceResult queryGenesisBlock(NetworkQueryGenesisBlockRequest request) throws Exception {
+    public ResourceResult queryGenesisBlock(BaseNetworkRequest request) throws Exception {
         NetworkEntity network = getNetworkOrThrowException(request.getNetworkName());
         String organizationName = SecurityUtils.getUsername();
         assertOrganizationInNetwork(network, organizationName);
@@ -597,12 +602,16 @@ public class NetworkService {
         return result;
     }
 
-    public NetworkQueryOrganizationResult queryOrganizations(NetworkQueryOrganizationRequest request) throws NetworkException {
+    public ListResult<String> queryOrganizations(BaseNetworkRequest request) throws NetworkException {
         NetworkEntity network = getNetworkOrThrowException(request.getNetworkName());
-        return new NetworkQueryOrganizationResult(network.getOrganizationNames());
+        return new ListResult<>(network.getOrganizationNames());
     }
 
-    public NetworkGetResult getNetwork(NetworkGetRequest request) throws NetworkException {
-        return new NetworkGetResult(getNetworkOrThrowException(request.getNetworkName()));
+    public SingletonResult<NetworkEntity> getNetwork(BaseNetworkRequest request) throws NetworkException {
+        return new SingletonResult<>(getNetworkOrThrowException(request.getNetworkName()));
+    }
+
+    public ListResult<ChannelEntity> queryChannels(BaseNetworkRequest request) {
+        return new ListResult<>(channelRepo.findAllByNetworkName(request.getNetworkName()));
     }
 }

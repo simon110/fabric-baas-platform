@@ -1,14 +1,12 @@
 package com.anhui.fabricbaasttp.controller;
 
 import com.anhui.fabricbaascommon.constant.Authority;
-import com.anhui.fabricbaascommon.response.EmptyResult;
-import com.anhui.fabricbaascommon.response.PaginationQueryResult;
-import com.anhui.fabricbaascommon.response.ResourceResult;
+import com.anhui.fabricbaascommon.request.BaseNetworkRequest;
+import com.anhui.fabricbaascommon.response.*;
+import com.anhui.fabricbaasttp.entity.ChannelEntity;
 import com.anhui.fabricbaasttp.entity.NetworkEntity;
 import com.anhui.fabricbaasttp.entity.ParticipationEntity;
 import com.anhui.fabricbaasttp.request.*;
-import com.anhui.fabricbaasttp.response.NetworkGetResult;
-import com.anhui.fabricbaasttp.response.NetworkQueryOrganizationResult;
 import com.anhui.fabricbaasttp.service.NetworkService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -45,7 +43,7 @@ public class NetworkController {
     @Secured({Authority.USER})
     @PostMapping("/applyParticipation")
     @ApiOperation("申请加入网络")
-    public EmptyResult applyParticipation(@Valid @RequestPart ParticipationApplyRequest request,
+    public EmptyResult applyParticipation(@Valid @RequestPart NetworkApplyParticipationRequest request,
                                           @ApiParam(value = "CA管理员的证书压缩包（包含msp和tls两个文件夹）") @RequestPart MultipartFile adminCertZip) throws Exception {
         networkService.applyParticipation(request, adminCertZip);
         return new EmptyResult();
@@ -54,7 +52,7 @@ public class NetworkController {
     @Secured({Authority.USER})
     @PostMapping("/handleParticipation")
     @ApiOperation("处理加入网络请求（网络中所有组织都必须同意）")
-    public EmptyResult handleParticipation(@Valid @RequestBody ParticipationHandleRequest request) throws Exception {
+    public EmptyResult handleParticipation(@Valid @RequestBody NetworkHandleParticipationRequest request) throws Exception {
         networkService.handleParticipation(request);
         return new EmptyResult();
     }
@@ -62,49 +60,56 @@ public class NetworkController {
     @Secured({Authority.USER})
     @PostMapping("/addOrderer")
     @ApiOperation("向网络中添加Orderer")
-    public ResourceResult addOrderer(@Valid @RequestBody NetworkAddOrdererRequest request) throws Exception {
+    public ResourceResult addOrderer(@Valid @RequestBody NetworkOrdererOptRequest request) throws Exception {
         return networkService.addOrderer(request);
     }
 
     @Secured({Authority.ADMIN, Authority.USER})
     @PostMapping("/queryParticipations")
     @ApiOperation("查询加入网络申请")
-    public PaginationQueryResult<ParticipationEntity> queryParticipations(@Valid @RequestBody ParticipationQueryRequest request) throws Exception {
+    public PaginationQueryResult<ParticipationEntity> queryParticipations(@Valid @RequestBody NetworkQueryParticipationRequest request) throws Exception {
         return networkService.queryParticipations(request);
     }
 
     @Secured({Authority.USER})
     @PostMapping("/queryGenesisBlock")
     @ApiOperation("查询当前组织所参与的任意网络的创世区块")
-    public ResourceResult queryGenesisBlock(@Valid @RequestBody NetworkQueryGenesisBlockRequest request) throws Exception {
+    public ResourceResult queryGenesisBlock(@Valid @RequestBody BaseNetworkRequest request) throws Exception {
         return networkService.queryGenesisBlock(request);
     }
 
     @Secured({Authority.USER, Authority.ADMIN})
     @PostMapping("/queryOrdererTlsCert")
     @ApiOperation("查询当前组织所参与的任意网络中指定Orderer节点的tls/ca.crt")
-    public ResourceResult queryOrdererTlsCert(@Valid @RequestBody NetworkQueryOrdererTlsCertRequest request) throws Exception {
+    public ResourceResult queryOrdererTlsCert(@Valid @RequestBody NetworkOrdererOptRequest request) throws Exception {
         return networkService.queryOrdererTlsCert(request);
     }
 
     @Secured({Authority.USER, Authority.ADMIN})
     @PostMapping("/queryOrdererCert")
     @ApiOperation("查询当前组织所参与的任意网络中指定Orderer节点的证书（包括MSP和TLS，只有所属组织可以下载）")
-    public ResourceResult queryOrdererCert(@Valid @RequestBody NetworkQueryOrdererCertRequest request) throws Exception {
+    public ResourceResult queryOrdererCert(@Valid @RequestBody NetworkOrdererOptRequest request) throws Exception {
         return networkService.queryOrdererCert(request);
     }
 
     @Secured({Authority.USER, Authority.ADMIN})
     @PostMapping("/queryOrganizations")
     @ApiOperation("查询指定网络中所有的组织")
-    public NetworkQueryOrganizationResult queryOrganizations(@Valid @RequestBody NetworkQueryOrganizationRequest request) throws Exception {
+    public ListResult<String> queryOrganizations(@Valid @RequestBody BaseNetworkRequest request) throws Exception {
         return networkService.queryOrganizations(request);
     }
 
     @Secured({Authority.USER, Authority.ADMIN})
     @PostMapping("/qetNetwork")
     @ApiOperation("查询指定网络的信息")
-    public NetworkGetResult getNetwork(@Valid @RequestBody NetworkGetRequest request) throws Exception {
+    public SingletonResult<NetworkEntity> getNetwork(@Valid @RequestBody BaseNetworkRequest request) throws Exception {
         return networkService.getNetwork(request);
+    }
+
+    @Secured({Authority.USER, Authority.ADMIN})
+    @PostMapping("/queryChannels")
+    @ApiOperation("查询指定网络中的通道信息")
+    public ListResult<ChannelEntity> queryChannels(@Valid @RequestBody BaseNetworkRequest request) throws Exception {
+        return networkService.queryChannels(request);
     }
 }

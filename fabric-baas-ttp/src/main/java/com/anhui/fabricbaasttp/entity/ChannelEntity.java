@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.List;
@@ -22,6 +23,7 @@ public class ChannelEntity {
     @Id
     private String name;
 
+    @Indexed
     @ApiModelProperty(value = "通道所属网络名称", required = true)
     private String networkName;
 

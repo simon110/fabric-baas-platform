@@ -17,7 +17,7 @@ import javax.validation.constraints.Pattern;
 @AllArgsConstructor
 @NoArgsConstructor
 @ApiModel(value = "加入网络请求查询")
-public class ParticipationQueryRequest extends PaginationQueryRequest {
+public class NetworkQueryParticipationRequest extends PaginationQueryRequest {
     @Pattern(regexp = ParamPattern.NETWORK_NAME_REGEX, message = ParamPattern.NETWORK_NAME_MSG)
     @ApiModelProperty(value = "网络名称", required = true)
     private String networkName;
