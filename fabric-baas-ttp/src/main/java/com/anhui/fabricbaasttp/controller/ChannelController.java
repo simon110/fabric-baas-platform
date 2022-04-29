@@ -71,7 +71,7 @@ public class ChannelController {
         return new EmptyResult();
     }
 
-    @Secured({Authority.USER, Authority.ADMIN})
+    @Secured({Authority.USER})
     @PostMapping("/queryPeerTlsCert")
     @ApiOperation("查询当前组织所参与的任意网络中指定Peer节点的tls/ca.crt")
     public ResourceResult queryPeerTlsCert(@Valid @RequestBody ChannelPeerOperateRequest request) throws Exception {

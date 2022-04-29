@@ -33,7 +33,7 @@ public class NetworkController {
         return networkService.createNetwork(request, adminCertZip);
     }
 
-    @Secured({Authority.ADMIN, Authority.USER})
+    @Secured({Authority.USER, Authority.ADMIN})
     @PostMapping("/queryNetworks")
     @ApiOperation("查询网络信息")
     public PaginationQueryResult<NetworkEntity> queryNetworks(@Valid @RequestBody NetworkQueryRequest request) {
@@ -64,7 +64,7 @@ public class NetworkController {
         return networkService.addOrderer(request);
     }
 
-    @Secured({Authority.ADMIN, Authority.USER})
+    @Secured({Authority.USER})
     @PostMapping("/queryParticipations")
     @ApiOperation("查询加入网络申请")
     public PaginationQueryResult<ParticipationEntity> queryParticipations(@Valid @RequestBody NetworkQueryParticipationRequest request) throws Exception {
@@ -78,7 +78,7 @@ public class NetworkController {
         return networkService.queryGenesisBlock(request);
     }
 
-    @Secured({Authority.USER, Authority.ADMIN})
+    @Secured({Authority.USER})
     @PostMapping("/queryOrdererTlsCert")
     @ApiOperation("查询当前组织所参与的任意网络中指定Orderer节点的tls/ca.crt")
     public ResourceResult queryOrdererTlsCert(@Valid @RequestBody NetworkOrdererOperateRequest request) throws Exception {
@@ -115,7 +115,7 @@ public class NetworkController {
 
     @Secured({Authority.USER, Authority.ADMIN})
     @PostMapping("/queryOrderers")
-    @ApiOperation("查询指定网络中的通道信息")
+    @ApiOperation("查询指定网络中的Orderer信息")
     public ListResult<Orderer> queryOrderers(@Valid @RequestBody BaseNetworkRequest request) throws Exception {
         return networkService.queryOrderers(request);
     }

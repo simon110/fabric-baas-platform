@@ -1,6 +1,7 @@
 package com.anhui.fabricbaasttp.controller;
 
 import com.anhui.fabricbaascommon.constant.Authority;
+import com.anhui.fabricbaascommon.response.UniqueResult;
 import com.anhui.fabricbaasttp.request.SystemInitRequest;
 import com.anhui.fabricbaasttp.service.SystemService;
 import com.anhui.fabricbaascommon.response.EmptyResult;
@@ -28,5 +29,12 @@ public class SystemController {
     public EmptyResult init(@Valid @RequestBody SystemInitRequest request) throws Exception {
         systemService.init(request);
         return new EmptyResult();
+    }
+
+    @Secured({Authority.ADMIN})
+    @PostMapping("/isInitialized")
+    @ApiOperation("系统当前是否已经初始化")
+    public UniqueResult<Boolean> isInitialized() {
+        return new UniqueResult<>(systemService.isInitialized());
     }
 }

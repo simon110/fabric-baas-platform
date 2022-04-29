@@ -19,7 +19,7 @@ import com.anhui.fabricbaascommon.service.CaClientService;
 import com.anhui.fabricbaascommon.service.MinioService;
 import com.anhui.fabricbaascommon.util.*;
 import com.anhui.fabricbaasttp.bean.Orderer;
-import com.anhui.fabricbaasttp.constant.MinIOBucket;
+import com.anhui.fabricbaasttp.constant.MinioBucket;
 import com.anhui.fabricbaasttp.entity.ChannelEntity;
 import com.anhui.fabricbaasttp.entity.NetworkEntity;
 import com.anhui.fabricbaasttp.entity.ParticipationEntity;
@@ -111,7 +111,7 @@ public class NetworkService {
             Orderer endpoint = orderers.get(i);
             if (endpoint.getHost().equals(orderer.getHost()) &&
                     endpoint.getPort() == orderer.getPort()) {
-                return IdentifierGenerator.ofOrderer(network.getName(), i);
+                return IdentifierGenerator.generateOrdererId(network.getName(), i);
             }
         }
         throw new NodeNotFoundException("未找到相应的Orderer");
@@ -146,8 +146,8 @@ public class NetworkService {
         log.info("从网络的系统通道拉取配置：" + oldConfig.toString());
 
         // 从MinIO下载新组织的证书并解压
-        String organizationCertfileId = IdentifierGenerator.ofCertfile(network.getName(), newOrgName);
-        minioService.getAsFile(MinIOBucket.ORGANIZATION_CERTFILE_BUCKET_NAME, organizationCertfileId, newOrgCertfileZip);
+        String organizationCertfileId = IdentifierGenerator.generateCertfileId(network.getName(), newOrgName);
+        minioService.getAsFile(MinioBucket.ADMIN_CERTFILE_BUCKET_NAME, organizationCertfileId, newOrgCertfileZip);
         ZipUtils.unzip(newOrgCertfileZip, newOrgCertfileDir);
         log.info("将组织的管理员证书解压到了临时目录：" + newOrgCertfileDir);
 
@@ -242,7 +242,7 @@ public class NetworkService {
 
         // 为新Orderer注册证书并登记
         int newOrdererNo = network.getOrderers().size();
-        String caUsername = IdentifierGenerator.ofOrderer(network.getName(), newOrdererNo);
+        String caUsername = IdentifierGenerator.generateOrdererId(network.getName(), newOrdererNo);
         String caPassword = PasswordUtils.generate();
         try {
             caClientService.register(caUsername, caPassword, CertfileType.ORDERER);
@@ -301,7 +301,7 @@ public class NetworkService {
                 new File(newOrdererCertfileDir + "/msp"),
                 new File(newOrdererCertfileDir + "/tls")
         );
-        minioService.putFile(MinIOBucket.ORDERER_CERTFILE_BUCKET_NAME, caUsername, ordererCertfileZip);
+        minioService.putFile(MinioBucket.ORDERER_CERTFILE_BUCKET_NAME, caUsername, ordererCertfileZip);
         log.info("正在上传新Orderer的证书到MinIO...");
         File formalCertfileDir = CertfileUtils.getCertfileDir(caUsername, CertfileType.ORDERER);
         ZipUtils.unzip(ordererCertfileZip, formalCertfileDir);
@@ -355,7 +355,7 @@ public class NetworkService {
             // 注册并登记Orderer证书
             // 账户名称例如SampleNetwork-Orderer0
             // 账户密码例如13473cf3bc515bccbb81fa235ed33ff9
-            String caUsername = IdentifierGenerator.ofOrderer(request.getNetworkName(), i);
+            String caUsername = IdentifierGenerator.generateOrdererId(request.getNetworkName(), i);
             String caPassword = PasswordUtils.generate();
             caClientService.register(caUsername, caPassword, CertfileType.ORDERER);
 
@@ -397,9 +397,9 @@ public class NetworkService {
         log.info("生成创世区块：" + sysChannelGenesis.getAbsolutePath());
 
         // 保存组织证书、Orderer证书和创世区块至MinIO
-        String organizationCertfileId = IdentifierGenerator.ofCertfile(request.getNetworkName(), curOrgName);
+        String organizationCertfileId = IdentifierGenerator.generateCertfileId(request.getNetworkName(), curOrgName);
         log.info(String.format("正在将组织%s上传的网络管理员证书保存至MinIO和证书目录", curOrgName));
-        minioService.putBytes(MinIOBucket.ORGANIZATION_CERTFILE_BUCKET_NAME, organizationCertfileId, adminCertZip.getBytes());
+        minioService.putBytes(MinioBucket.ADMIN_CERTFILE_BUCKET_NAME, organizationCertfileId, adminCertZip.getBytes());
         ZipUtils.unzip(organizationCertfileZip, CertfileUtils.getCertfileDir(organizationCertfileId, CertfileType.ADMIN));
 
         for (int i = 0, size = ordererCertfileDirs.size(); i < size; i++) {
@@ -409,13 +409,13 @@ public class NetworkService {
             ZipUtils.zip(ordererCertZip, new File(ordererCertfileDir + "/msp"), new File(ordererCertfileDir + "/tls"));
 
             // 将证书保存到正式的证书目录和MinIO
-            String ordererId = IdentifierGenerator.ofOrderer(request.getNetworkName(), i);
+            String ordererId = IdentifierGenerator.generateOrdererId(request.getNetworkName(), i);
             log.info(String.format("正在将网络的Orderer证书%s保存至MinIO和证书目录：", ordererId));
             ZipUtils.unzip(ordererCertZip, CertfileUtils.getCertfileDir(ordererId, CertfileType.ORDERER));
-            minioService.putFile(MinIOBucket.ORDERER_CERTFILE_BUCKET_NAME, ordererId, ordererCertZip);
+            minioService.putFile(MinioBucket.ORDERER_CERTFILE_BUCKET_NAME, ordererId, ordererCertZip);
         }
         log.info("正在将网络的创世区块保存至MinIO：" + request.getNetworkName());
-        minioService.putFile(MinIOBucket.SYS_CHANNEL_GENESIS_BLOCK_BUCKET_NAME, request.getNetworkName(), sysChannelGenesis);
+        minioService.putFile(MinioBucket.SYS_CHANNEL_GENESIS_BLOCK_BUCKET_NAME, request.getNetworkName(), sysChannelGenesis);
 
         // 保存网络信息到数据库
         NetworkEntity network = new NetworkEntity();
@@ -508,9 +508,9 @@ public class NetworkService {
         // 检查证书格式是否正确
         CertfileUtils.assertCertfileZip(adminCertZip);
         // 保存管理员证书至MinIO
-        String orgCertId = IdentifierGenerator.ofCertfile(request.getNetworkName(), curOrgName);
+        String orgCertId = IdentifierGenerator.generateCertfileId(request.getNetworkName(), curOrgName);
         log.info("正在将证书文件保存至MinIO：" + orgCertId);
-        minioService.putBytes(MinIOBucket.ORGANIZATION_CERTFILE_BUCKET_NAME, orgCertId, adminCertZip.getBytes());
+        minioService.putBytes(MinioBucket.ADMIN_CERTFILE_BUCKET_NAME, orgCertId, adminCertZip.getBytes());
 
         // 将加入网络申请保存到MongoDB
         ParticipationEntity participation = new ParticipationEntity();
@@ -554,8 +554,8 @@ public class NetworkService {
                 participation.setTimestamp(System.currentTimeMillis());
                 // 将证书解压到指定目录
                 File certfileZip = SimpleFileUtils.createTempFile("zip");
-                String certfileId = IdentifierGenerator.ofCertfile(network.getName(), request.getOrganizationName());
-                minioService.getAsFile(MinIOBucket.ORGANIZATION_CERTFILE_BUCKET_NAME, certfileId, certfileZip);
+                String certfileId = IdentifierGenerator.generateCertfileId(network.getName(), request.getOrganizationName());
+                minioService.getAsFile(MinioBucket.ADMIN_CERTFILE_BUCKET_NAME, certfileId, certfileZip);
                 ZipUtils.unzip(certfileZip, CertfileUtils.getCertfileDir(certfileId, CertfileType.ADMIN));
                 // 将组织加入到网络
                 network.getOrganizationNames().add(request.getOrganizationName());

@@ -32,13 +32,13 @@ public class FabricEnvService {
 
     public CoreEnv buildCoreEnvForOrderer(Orderer orderer) throws CaException {
         MspEnv mspEnv = buildMspEnvForOrderer();
-        TlsEnv tlsEnv = buildTlsEnvForOrderer(orderer);
+        TlsEnv tlsEnv = buildOrdererTlsEnv(orderer);
         return buildCoreEnv(mspEnv, tlsEnv);
     }
 
     public CoreEnv buildCoreEnvForPeer(String networkName, String orgName, Peer peer) {
         MspEnv mspEnv = buildMspEnvForOrg(networkName, orgName);
-        TlsEnv tlsEnv = buildTlsEnvForPeer(peer);
+        TlsEnv tlsEnv = buildPeerTlsEnv(peer);
         return buildCoreEnv(mspEnv, tlsEnv);
     }
 
@@ -50,7 +50,7 @@ public class FabricEnvService {
     }
 
     public MspEnv buildMspEnvForOrg(String networkName, String orgName) {
-        String orgCertfileId = IdentifierGenerator.ofCertfile(networkName, orgName);
+        String orgCertfileId = IdentifierGenerator.generateCertfileId(networkName, orgName);
         File dir = CertfileUtils.getCertfileDir(orgCertfileId, CertfileType.ADMIN);
 
         MspEnv mspEnv = new MspEnv();
@@ -59,12 +59,12 @@ public class FabricEnvService {
         return mspEnv;
     }
 
-    public TlsEnv buildTlsEnvForOrderer(Orderer orderer) {
+    public TlsEnv buildOrdererTlsEnv(Orderer orderer) {
         File certfileDir = CertfileUtils.getCertfileDir(orderer.getCaUsername(), CertfileType.ORDERER);
         return buildTlsEnv(orderer, certfileDir);
     }
 
-    public TlsEnv buildTlsEnvForPeer(Peer peer) {
+    public TlsEnv buildPeerTlsEnv(Peer peer) {
         File certfileDir = CertfileUtils.getCertfileDir(peer.getName(), CertfileType.PEER);
         return buildTlsEnv(peer, certfileDir);
     }

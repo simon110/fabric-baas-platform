@@ -16,7 +16,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Slf4j
@@ -82,8 +83,16 @@ public class CaUtils {
         CSRConfig.setCsrCountryCode(ca.getCountryCode());
         CSRConfig.setCsrStateOrProvince(ca.getStateOrProvince());
         CSRConfig.setCsrLocality(ca.getLocality());
-        CSRConfig.setCsrHosts(Arrays.asList("localhost", ca.getDomain()));
+        CSRConfig.setCsrHosts(buildCsrHosts(ca.getDomain()));
         return CSRConfig;
+    }
+
+    public static List<String> buildCsrHosts(String... domains) {
+        List<String> csrHosts = new ArrayList<>(domains.length + 2);
+        csrHosts.add("localhost");
+        csrHosts.add("127.0.0.1");
+        Collections.addAll(csrHosts, domains);
+        return csrHosts;
     }
 }
 

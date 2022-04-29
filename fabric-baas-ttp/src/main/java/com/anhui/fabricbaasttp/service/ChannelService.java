@@ -14,7 +14,7 @@ import com.anhui.fabricbaascommon.service.MinioService;
 import com.anhui.fabricbaascommon.util.*;
 import com.anhui.fabricbaasttp.bean.Orderer;
 import com.anhui.fabricbaasttp.bean.Peer;
-import com.anhui.fabricbaasttp.constant.MinIOBucket;
+import com.anhui.fabricbaasttp.constant.MinioBucket;
 import com.anhui.fabricbaasttp.entity.ChannelEntity;
 import com.anhui.fabricbaasttp.entity.NetworkEntity;
 import com.anhui.fabricbaasttp.repository.ChannelRepo;
@@ -73,7 +73,7 @@ public class ChannelService {
             Peer endpoint = peers.get(i);
             if (endpoint.getHost().equals(peer.getHost()) &&
                     endpoint.getPort() == peer.getPort()) {
-                return IdentifierGenerator.ofPeer(channel.getName(), i);
+                return IdentifierGenerator.generatePeerId(channel.getName(), i);
             }
         }
         throw new NodeException("未找到相应的Peer");
@@ -131,7 +131,7 @@ public class ChannelService {
         }
 
         // 默认配置该网络中当前的所有Orderer作为排序节点
-        String organizationCertfileId = IdentifierGenerator.ofCertfile(request.getNetworkName(), curOrgName);
+        String organizationCertfileId = IdentifierGenerator.generateCertfileId(request.getNetworkName(), curOrgName);
         File organizationCertfileDir = CertfileUtils.getCertfileDir(organizationCertfileId, CertfileType.ADMIN);
         ConfigtxOrganization ordererConfigtxOrg = new ConfigtxOrganization(
                 caClientService.getCaOrganizationName(),
@@ -172,15 +172,15 @@ public class ChannelService {
 
         // 创建通道
         MspEnv organizationMspEnv = fabricEnvService.buildMspEnvForOrg(network.getName(), curOrgName);
-        TlsEnv ordererTlsEnv = fabricEnvService.buildTlsEnvForOrderer(orderer);
+        TlsEnv ordererTlsEnv = fabricEnvService.buildOrdererTlsEnv(orderer);
         log.info("生成组织的MSP环境变量：" + organizationMspEnv);
         log.info("生成Orderer的TLS环境变量：" + ordererTlsEnv);
         File appChannelGenesis = SimpleFileUtils.createTempFile("block");
         ChannelUtils.createChannel(organizationMspEnv, ordererTlsEnv, configtxDir, request.getChannelName(), appChannelGenesis);
 
         // 将通道创世区块保存至MinIO
-        String channelId = IdentifierGenerator.ofChannel(request.getNetworkName(), request.getChannelName());
-        minioService.putFile(MinIOBucket.APP_CHANNEL_GENESIS_BLOCK_BUCKET_NAME, channelId, appChannelGenesis);
+        String channelId = IdentifierGenerator.generateChannelId(request.getNetworkName(), request.getChannelName());
+        minioService.putFile(MinioBucket.APP_CHANNEL_GENESIS_BLOCK_BUCKET_NAME, channelId, appChannelGenesis);
         log.info("将创世区块保存到MinIO：" + appChannelGenesis.getAbsolutePath());
 
         // 将通道信息保存至MongoDB
@@ -231,7 +231,7 @@ public class ChannelService {
         File newOrgConfigtxDir = SimpleFileUtils.createTempDir();
         File newOrgConfigtxYaml = new File(newOrgConfigtxDir + "/configtx.yaml");
         File newOrgConfigtxJson = SimpleFileUtils.createTempFile("json");
-        String newOrgCertfileId = IdentifierGenerator.ofCertfile(channel.getNetworkName(), curOrgName);
+        String newOrgCertfileId = IdentifierGenerator.generateCertfileId(channel.getNetworkName(), curOrgName);
         File newOrgCertfileDir = CertfileUtils.getCertfileDir(newOrgCertfileId, CertfileType.ADMIN);
 
         ConfigtxOrganization configtxOrganization = new ConfigtxOrganization();
@@ -285,7 +285,7 @@ public class ChannelService {
         }
         // 生成新Peer的信息
         int newPeerNo = channel.getPeers().size();
-        String newPeerId = IdentifierGenerator.ofPeer(channel.getName(), newPeerNo);
+        String newPeerId = IdentifierGenerator.generatePeerId(channel.getName(), newPeerNo);
         peer = new Peer();
         peer.setName(newPeerId);
         peer.setHost(request.getPeer().getHost());
@@ -320,7 +320,7 @@ public class ChannelService {
         ChannelUtils.joinChannel(peerCoreEnv, channelGenesisBlock);
 
         // 将Peer证书保存到MinIO和证书目录
-        minioService.putBytes(MinIOBucket.PEER_CERTFILE_BUCKET_NAME, peer.getName(), peerCertZip.getBytes());
+        minioService.putBytes(MinioBucket.PEER_CERTFILE_BUCKET_NAME, peer.getName(), peerCertZip.getBytes());
         log.info("将用户上传的Peer证书保存至MinIO：" + peerCertZip.getOriginalFilename());
         File formalPeerCertfileDir = CertfileUtils.getCertfileDir(peer.getName(), CertfileType.PEER);
         ZipUtils.unzip(peerCertfileZip, formalPeerCertfileDir);
@@ -332,7 +332,7 @@ public class ChannelService {
         log.info("更新通道信息：" + channel);
     }
 
-    public InvitationCodeResult generateInvitationCode(ChannelGenerateInvitationCodeRequest request) throws Exception {
+    public UniqueResult<String> generateInvitationCode(ChannelGenerateInvitationCodeRequest request) throws Exception {
         // 检查组织是否是通道的合法成员
         String curOrgName = SecurityUtils.getUsername();
         ChannelEntity channel = getChannelOrThrowException(request.getChannelName());
@@ -355,7 +355,7 @@ public class ChannelService {
         log.info("生成邀请信息：" + invitation);
         String invitationCode = InvitationUtils.getCode(invitation);
         log.info("生成邀请码：" + invitationCode);
-        return new InvitationCodeResult(invitationCode);
+        return new UniqueResult<>(invitationCode);
     }
 
     public void setAnchorPeer(ChannelPeerOperateRequest request) throws Exception {
