@@ -117,7 +117,7 @@ public class ChannelService {
         }
     }
 
-    public ResourceResult createChannel(ChannelCreateRequest request) throws Exception {
+    public void createChannel(ChannelCreateRequest request) throws Exception {
         // 检查操作的组织是否属于相应的网络
         String curOrgName = SecurityUtils.getUsername();
         NetworkEntity network = networkService.getNetworkOrThrowException(request.getNetworkName());
@@ -191,12 +191,6 @@ public class ChannelService {
         channel.setOrderers(network.getOrderers());
         channelRepo.save(channel);
         log.info("保存通道信息：" + channel);
-
-        String downloadUrl = String.format("/download/block/%s.block", UUID.randomUUID());
-        FileUtils.copyFile(appChannelGenesis, new File("static" + downloadUrl));
-        ResourceResult result = new ResourceResult();
-        result.setDownloadUrl(downloadUrl);
-        return result;
     }
 
     public ResourceResult queryGenesisBlock(ChannelQueryGenesisBlockRequest request) throws Exception {

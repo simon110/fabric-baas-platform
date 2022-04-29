@@ -28,8 +28,9 @@ public class ChannelController {
     @Secured({Authority.USER})
     @PostMapping("/createChannel")
     @ApiOperation("创建通道")
-    public ResourceResult createChannel(@Valid @RequestBody ChannelCreateRequest request) throws Exception {
-        return channelService.createChannel(request);
+    public EmptyResult createChannel(@Valid @RequestBody ChannelCreateRequest request) throws Exception {
+        channelService.createChannel(request);
+        return new EmptyResult();
     }
 
     @Secured({Authority.USER})

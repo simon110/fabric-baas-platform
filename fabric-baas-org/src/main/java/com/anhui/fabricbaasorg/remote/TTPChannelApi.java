@@ -21,15 +21,13 @@ public class TTPChannelApi {
     /**
      * @param networkName 网络名称
      * @param channelName 通道名称
-     * @return 通道的创世区块数据
      * @throws Exception 返回请求中任何code!=200的情况都应该抛出异常
      */
-    public byte[] createChannel(String networkName, String channelName) throws Exception {
+    public void createChannel(String networkName, String channelName) throws Exception {
         JSONObject data = new JSONObject();
         data.set("networkName", networkName);
         data.set("channelName", channelName);
-        JSONObject response = httpClient.request("/api/v1/channel/createChannel", data);
-        return httpClient.download((String) response.get("downloadUrl"));
+        httpClient.request("/api/v1/channel/createChannel", data);
     }
 
     /**
