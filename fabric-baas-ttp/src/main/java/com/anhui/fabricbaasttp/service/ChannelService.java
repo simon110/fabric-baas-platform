@@ -420,16 +420,15 @@ public class ChannelService {
         return result;
     }
 
-    public ListResult<Node> queryPeers(BaseChannelRequest request) throws Exception {
+    public ListResult<Peer> queryPeers(BaseChannelRequest request) throws Exception {
         Optional<ChannelEntity> channelOptional = channelRepo.findById(request.getChannelName());
         if (channelOptional.isPresent()) {
-            List<Node> peers = new ArrayList<>(channelOptional.get().getPeers());
-            return new ListResult<>(peers);
+            return new ListResult<>(channelOptional.get().getPeers());
         } else {
             throw new ChannelException("未找到通道：" + request.getChannelName());
         }
     }
-    
+
     public SingletonResult<ChannelEntity> getChannel(BaseChannelRequest request) throws ChannelException {
         return new SingletonResult<>(getChannelOrThrowException(request.getChannelName()));
     }

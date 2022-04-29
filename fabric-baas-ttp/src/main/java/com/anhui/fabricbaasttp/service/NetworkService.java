@@ -611,7 +611,16 @@ public class NetworkService {
         return new SingletonResult<>(getNetworkOrThrowException(request.getNetworkName()));
     }
 
-    public ListResult<ChannelEntity> queryChannels(BaseNetworkRequest request) {
-        return new ListResult<>(channelRepo.findAllByNetworkName(request.getNetworkName()));
+    public ListResult<String> queryChannels(BaseNetworkRequest request) {
+        List<ChannelEntity> channels = channelRepo.findAllByNetworkName(request.getNetworkName());
+        List<String> channelNames = new ArrayList<>(channels.size());
+        channels.forEach(channel -> channelNames.add(channel.getName()));
+        return new ListResult<>(channelNames);
+    }
+
+    public ListResult<Orderer> queryOrderers(BaseNetworkRequest request) throws NetworkException {
+        NetworkEntity network = getNetworkOrThrowException(request.getNetworkName());
+        List<Orderer> orderers = new ArrayList<>();
+        return new ListResult<>(network.getOrderers());
     }
 }

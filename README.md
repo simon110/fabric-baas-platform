@@ -1,4 +1,4 @@
-# Fabric Trusted Third Party
+# Fabric TTP Service
 
 
 
@@ -460,6 +460,226 @@ token用于身份验证，需要将其设置为Http请求Header的`Authorization
 
 
 
+### 3.7 查询网络详情
+
+通过`/api/v1//api/v1/network/getNetwork`可以查询到指定名称网络的详细信息：
+
+```json
+{
+  "networkName": "TestNetwork"
+}
+```
+
+```json
+{
+  "code": 200,
+  "message": "成功调用服务",
+  "data": {
+    "item": {
+      "name": "TestNetwork",
+      "orderers": [
+        {
+          "host": "orga.example.com",
+          "port": 30500,
+          "organizationName": "TestOrgA",
+          "addr": "orga.example.com:30500"
+        },
+        {
+          "host": "orga.example.com",
+          "port": 30501,
+          "organizationName": "TestOrgA",
+          "addr": "orga.example.com:30501"
+        },
+        {
+          "host": "orgb.example.com",
+          "port": 30503,
+          "organizationName": "TestOrgB",
+          "addr": "orgb.example.com:30503"
+        },
+        {
+          "host": "orgc.example.com",
+          "port": 30506,
+          "organizationName": "TestOrgC",
+          "addr": "orgc.example.com:30506"
+        },
+        {
+          "host": "orgd.example.com",
+          "port": 30509,
+          "organizationName": "TestOrgD",
+          "addr": "orgd.example.com:30509"
+        },
+        {
+          "host": "orgc.example.com",
+          "port": 30507,
+          "organizationName": "TestOrgC",
+          "addr": "orgc.example.com:30507"
+        },
+        {
+          "host": "orgb.example.com",
+          "port": 30504,
+          "organizationName": "TestOrgB",
+          "addr": "orgb.example.com:30504"
+        }
+      ],
+      "organizationNames": [
+        "TestOrgA",
+        "TestOrgB",
+        "TestOrgC",
+        "TestOrgD"
+      ],
+      "consortiumName": "TestConsortium"
+    }
+  }
+}
+```
+
+
+
+### 3.8 查询网络所有通道
+
+通过`/api/v1//api/v1/network/queryNetworkChannels`可以查询到指定网络中的所有通道信息：
+
+```json
+{
+  "networkName": "TestNetwork"
+}
+```
+
+```json
+{
+  "code": 200,
+  "message": "成功调用服务",
+  "data": {
+    "items": [
+      "testchannel",
+      "samplechannel"
+    ]
+  }
+}
+```
+
+
+
+### 3.9 查询Orderer TLS证书
+
+通过`/api/v1/network/queryOrdererTlsCert`可以查询到网络中指定Orderer的TLS证书，即证书tls目录下的`ca.crt`文件：
+
+```json
+{
+  "networkName": "TestNetwork",
+  "orderer": {
+    "host": "orga.example.com",
+    "port": 30500
+  }
+}
+```
+
+```json
+{
+  "code": 200,
+  "message": "成功调用服务",
+  "data": {
+    "downloadUrl": "/download/certfile/2a81ba6b-f1f1-4766-b438-864d169c269e.zip"
+  }
+}
+```
+
+
+
+### 3.10 查询网络所有组织
+
+通过`/api/v1/network/queryOrganizations`可以查询到网络中的所有组织名称：
+
+```json
+{
+  "networkName": "TestNetwork"
+}
+```
+
+```json
+{
+  "code": 200,
+  "message": "成功调用服务",
+  "data": {
+    "items": [
+      "TestOrgA",
+      "TestOrgB",
+      "TestOrgC",
+      "TestOrgD"
+    ]
+  }
+}
+```
+
+
+
+
+
+### 3.11 查询网络所有Orderer
+
+通过`/api/v1/network/queryOrderers`可以查询到网络中的所有Orderer信息：
+
+```json
+{
+  "networkName": "TestNetwork"
+}
+```
+
+```json
+{
+  "code": 200,
+  "message": "成功调用服务",
+  "data": {
+    "items": [
+      {
+        "host": "orga.example.com",
+        "port": 30500,
+        "organizationName": "TestOrgA",
+        "addr": "orga.example.com:30500"
+      },
+      {
+        "host": "orga.example.com",
+        "port": 30501,
+        "organizationName": "TestOrgA",
+        "addr": "orga.example.com:30501"
+      },
+      {
+        "host": "orgb.example.com",
+        "port": 30503,
+        "organizationName": "TestOrgB",
+        "addr": "orgb.example.com:30503"
+      },
+      {
+        "host": "orgc.example.com",
+        "port": 30506,
+        "organizationName": "TestOrgC",
+        "addr": "orgc.example.com:30506"
+      },
+      {
+        "host": "orgd.example.com",
+        "port": 30509,
+        "organizationName": "TestOrgD",
+        "addr": "orgd.example.com:30509"
+      },
+      {
+        "host": "orgc.example.com",
+        "port": 30507,
+        "organizationName": "TestOrgC",
+        "addr": "orgc.example.com:30507"
+      },
+      {
+        "host": "orgb.example.com",
+        "port": 30504,
+        "organizationName": "TestOrgB",
+        "addr": "orgb.example.com:30504"
+      }
+    ]
+  }
+}
+```
+
+
+
 ## 4 通道管理
 
 ### 4.1 创建通道
@@ -544,6 +764,145 @@ token用于身份验证，需要将其设置为Http请求Header的`Authorization
   "peer": {
     "host": "orga.example.com",
     "port": 31000
+  }
+}
+```
+
+
+
+
+
+### 4.6 询通道详细信息
+
+通过`/api/v1//api/v1/channel/getChannel`可以查询到指定名称网络的详细信息：
+
+```json
+{
+  "channelName": "samplechannel"
+}
+```
+
+```json
+{
+  "code": 200,
+  "message": "成功调用服务",
+  "data": {
+    "item": {
+      "name": "samplechannel",
+      "networkName": "TestNetwork",
+      "peers": [
+        {
+          "host": "orga.example.com",
+          "port": 31000,
+          "name": "samplechannel-Peer0",
+          "organizationName": "TestOrgA",
+          "addr": "orga.example.com:31000"
+        },
+        {
+          "host": "orgb.example.com",
+          "port": 31003,
+          "name": "samplechannel-Peer1",
+          "organizationName": "TestOrgB",
+          "addr": "orgb.example.com:31003"
+        },
+        {
+          "host": "orgc.example.com",
+          "port": 31006,
+          "name": "samplechannel-Peer2",
+          "organizationName": "TestOrgC",
+          "addr": "orgc.example.com:31006"
+        },
+        {
+          "host": "orgc.example.com",
+          "port": 31007,
+          "name": "samplechannel-Peer3",
+          "organizationName": "TestOrgC",
+          "addr": "orgc.example.com:31007"
+        }
+      ],
+      "organizationNames": [
+        "TestOrgA",
+        "TestOrgB",
+        "TestOrgC"
+      ]
+    }
+  }
+}
+```
+
+
+
+### 4.7 查询Peer TLS证书
+
+通过`/api/v1/network/queryPeerTlsCert`可以查询到通道中指定Peer的TLS证书，即证书tls目录下的`ca.crt`文件：
+
+```json
+{
+  "channelName": "samplechannel",
+  "peer": {
+    "host": "orga.example.com",
+    "port": 31000
+  }
+}
+```
+
+```json
+{
+  "code": 200,
+  "message": "成功调用服务",
+  "data": {
+    "downloadUrl": "/download/cert/6ddaf058-fc8d-47a4-94a9-38c7916f43b5.crt"
+  }
+}
+```
+
+
+
+### 4.8 查询通道所有Peer
+
+通过`/api/v1/network/queryPeers`可以查询到通道中所有Peer的信息：
+
+```json
+{
+  "channelName": "samplechannel"
+}
+```
+
+```json
+{
+  "code": 200,
+  "message": "成功调用服务",
+  "data": {
+    "items": [
+      {
+        "host": "orga.example.com",
+        "port": 31000,
+        "name": "samplechannel-Peer0",
+        "organizationName": "TestOrgA",
+        "addr": "orga.example.com:31000"
+      },
+      {
+        "host": "orgb.example.com",
+        "port": 31003,
+        "name": "samplechannel-Peer1",
+        "organizationName": "TestOrgB",
+        "addr": "orgb.example.com:31003"
+      },
+      {
+        "host": "orgc.example.com",
+        "port": 31006,
+        "name": "samplechannel-Peer2",
+        "organizationName": "TestOrgC",
+        "addr": "orgc.example.com:31006"
+      },
+      {
+        "host": "orgc.example.com",
+        "port": 31007,
+        "name": "samplechannel-Peer3",
+        "organizationName": "TestOrgC",
+        "addr": "orgc.example.com:31007"
+      }
+    ]
   }
 }
 ```

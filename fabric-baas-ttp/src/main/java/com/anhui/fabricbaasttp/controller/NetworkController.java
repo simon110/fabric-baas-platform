@@ -3,7 +3,7 @@ package com.anhui.fabricbaasttp.controller;
 import com.anhui.fabricbaascommon.constant.Authority;
 import com.anhui.fabricbaascommon.request.BaseNetworkRequest;
 import com.anhui.fabricbaascommon.response.*;
-import com.anhui.fabricbaasttp.entity.ChannelEntity;
+import com.anhui.fabricbaasttp.bean.Orderer;
 import com.anhui.fabricbaasttp.entity.NetworkEntity;
 import com.anhui.fabricbaasttp.entity.ParticipationEntity;
 import com.anhui.fabricbaasttp.request.*;
@@ -100,16 +100,23 @@ public class NetworkController {
     }
 
     @Secured({Authority.USER, Authority.ADMIN})
-    @PostMapping("/qetNetwork")
+    @PostMapping("/getNetwork")
     @ApiOperation("查询指定网络的信息")
     public SingletonResult<NetworkEntity> getNetwork(@Valid @RequestBody BaseNetworkRequest request) throws Exception {
         return networkService.getNetwork(request);
     }
 
     @Secured({Authority.USER, Authority.ADMIN})
-    @PostMapping("/queryChannels")
+    @PostMapping("/queryNetworkChannels")
     @ApiOperation("查询指定网络中的通道信息")
-    public ListResult<ChannelEntity> queryChannels(@Valid @RequestBody BaseNetworkRequest request) throws Exception {
+    public ListResult<String> queryChannels(@Valid @RequestBody BaseNetworkRequest request) throws Exception {
         return networkService.queryChannels(request);
+    }
+
+    @Secured({Authority.USER, Authority.ADMIN})
+    @PostMapping("/queryOrderers")
+    @ApiOperation("查询指定网络中的通道信息")
+    public ListResult<Orderer> queryOrderers(@Valid @RequestBody BaseNetworkRequest request) throws Exception {
+        return networkService.queryOrderers(request);
     }
 }

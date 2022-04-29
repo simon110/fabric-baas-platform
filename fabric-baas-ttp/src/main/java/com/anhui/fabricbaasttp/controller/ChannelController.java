@@ -1,12 +1,12 @@
 package com.anhui.fabricbaasttp.controller;
 
-import com.anhui.fabricbaascommon.bean.Node;
 import com.anhui.fabricbaascommon.constant.Authority;
 import com.anhui.fabricbaascommon.request.BaseChannelRequest;
 import com.anhui.fabricbaascommon.response.EmptyResult;
 import com.anhui.fabricbaascommon.response.ListResult;
 import com.anhui.fabricbaascommon.response.ResourceResult;
 import com.anhui.fabricbaascommon.response.SingletonResult;
+import com.anhui.fabricbaasttp.bean.Peer;
 import com.anhui.fabricbaasttp.entity.ChannelEntity;
 import com.anhui.fabricbaasttp.request.ChannelCreateRequest;
 import com.anhui.fabricbaasttp.request.ChannelGenerateInvitationCodeRequest;
@@ -81,7 +81,7 @@ public class ChannelController {
     @Secured({Authority.USER, Authority.ADMIN})
     @PostMapping("/queryPeers")
     @ApiOperation("查询当前组织所参与的任意网络中所有Peer节点")
-    public ListResult<Node> queryPeers(@Valid @RequestBody BaseChannelRequest request) throws Exception {
+    public ListResult<Peer> queryPeers(@Valid @RequestBody BaseChannelRequest request) throws Exception {
         return channelService.queryPeers(request);
     }
 

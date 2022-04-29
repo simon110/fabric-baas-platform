@@ -8,16 +8,14 @@ import com.anhui.fabricbaascommon.constant.CertfileType;
 import com.anhui.fabricbaascommon.entity.CAEntity;
 import com.anhui.fabricbaascommon.exception.CAException;
 import com.anhui.fabricbaascommon.exception.CertfileException;
-import com.anhui.fabricbaascommon.exception.ChannelException;
 import com.anhui.fabricbaascommon.exception.NodeException;
 import com.anhui.fabricbaascommon.fabric.ChaincodeUtils;
 import com.anhui.fabricbaascommon.service.CAService;
 import com.anhui.fabricbaascommon.util.CertfileUtils;
-import com.anhui.fabricbaascommon.util.RandomUtils;
 import com.anhui.fabricbaascommon.util.ResourceUtils;
-import com.anhui.fabricbaasorg.bean.Network;
-import com.anhui.fabricbaasorg.entity.*;
-import com.anhui.fabricbaasorg.exception.TTPException;
+import com.anhui.fabricbaasorg.entity.CommittedChaincodeEntity;
+import com.anhui.fabricbaasorg.entity.InstalledChaincodeEntity;
+import com.anhui.fabricbaasorg.entity.PeerEntity;
 import com.anhui.fabricbaasorg.remote.TTPChannelApi;
 import com.anhui.fabricbaasorg.remote.TTPNetworkApi;
 import com.anhui.fabricbaasorg.repository.*;
@@ -96,27 +94,7 @@ public class ChaincodeService {
      * 如果存在多个Orderer则会随机选择一个
      */
     private TLSEnv buildChannelOrdererTLSEnv(String channelName) throws Exception {
-        Optional<ChannelEntity> channelOptional = channelRepo.findById(channelName);
-        if (channelOptional.isEmpty()) {
-            throw new ChannelException("未找到相应的通道");
-        }
-        ChannelEntity channel = channelOptional.get();
-
-        List<Network> networks = ttpNetworkApi.queryNetworks(channel.getNetworkName(), caService.getAdminOrganizationName());
-        if (networks.size() != 1) {
-            throw new TTPException("从TTP端查询网络信息异常：" + networks);
-        }
-        OrdererEntity selectedOrderer = RandomUtils.select(networks.get(0).getOrderers());
-
-
-        File ordererTlsCert = ResourceUtils.createTempFile("crt");
-        byte[] ordererTlsCertData = ttpNetworkApi.queryOrdererTlsCert(channelOptional.get().getNetworkName(), selectedOrderer);
-        FileUtils.writeByteArrayToFile(ordererTlsCert, ordererTlsCertData);
-
-        TLSEnv tlsEnv = new TLSEnv();
-        tlsEnv.setAddress(selectedOrderer.getAddr());
-        tlsEnv.setTlsRootCert(ordererTlsCert);
-        return tlsEnv;
+        return null;
     }
 
     private TLSEnv buildEndorsorPeerTLSEnv(String channelName, Node endorsor) throws Exception {
