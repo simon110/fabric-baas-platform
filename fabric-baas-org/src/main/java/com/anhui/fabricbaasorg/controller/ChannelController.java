@@ -61,13 +61,5 @@ public class ChannelController {
         channelService.join(request);
         return new EmptyResult();
     }
-
-    @Secured({Authority.ADMIN})
-    @PostMapping("/addOrderer")
-    @ApiOperation("向通道添加Orderer")
-    public EmptyResult addOrderer(@Valid @RequestBody ChannelAddOrdererRequest request) throws Exception {
-        channelService.addOrderer(request);
-        return new EmptyResult();
-    }
 }
 

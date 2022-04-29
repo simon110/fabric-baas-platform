@@ -1,7 +1,6 @@
 package com.anhui.fabricbaasttp.entity;
 
 
-import com.anhui.fabricbaasttp.bean.Orderer;
 import com.anhui.fabricbaasttp.bean.Peer;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -25,9 +24,6 @@ public class ChannelEntity {
 
     @ApiModelProperty(value = "通道所属网络名称", required = true)
     private String networkName;
-
-    @ApiModelProperty(value = "所有Orderer节点的地址（例如orderer.example.com:7050），通道的Orderer和网络的Orderer并不总是一样的", required = true)
-    private List<Orderer> orderers;
 
     @ApiModelProperty(value = "所有Peer节点的地址（例如peer.org.example.com:7051）", required = true)
     private List<Peer> peers;

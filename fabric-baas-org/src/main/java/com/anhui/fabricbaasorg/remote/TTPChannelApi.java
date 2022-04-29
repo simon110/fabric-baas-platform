@@ -2,7 +2,6 @@ package com.anhui.fabricbaasorg.remote;
 
 import cn.hutool.json.JSONObject;
 import com.anhui.fabricbaascommon.bean.Node;
-import com.anhui.fabricbaasorg.response.ChannelQueryOrdererResult;
 import com.anhui.fabricbaasorg.response.ChannelQueryPeerResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -118,19 +117,5 @@ public class TTPChannelApi {
         data.set("channelName", channelName);
         JSONObject response = httpClient.request("/api/v1/channel/queryPeers", data);
         return response.toBean(ChannelQueryPeerResult.class).getPeers();
-    }
-
-    /**
-     * 获取指定通道内的所有Orderer节点
-     *
-     * @param channelName 通道名称
-     * @return TTP端返回的Peer节点列表
-     * @throws Exception 返回请求中任何code!=200的情况都应该抛出异常
-     */
-    public List<Node> queryOrderers(String channelName) throws Exception {
-        JSONObject data = new JSONObject();
-        data.set("channelName", channelName);
-        JSONObject response = httpClient.request("/api/v1/channel/queryOrderers", data);
-        return response.toBean(ChannelQueryOrdererResult.class).getOrderers();
     }
 }

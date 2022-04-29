@@ -22,9 +22,10 @@ import com.anhui.fabricbaasttp.entity.ParticipationEntity;
 import com.anhui.fabricbaasttp.repository.NetworkRepo;
 import com.anhui.fabricbaasttp.repository.ParticipationRepo;
 import com.anhui.fabricbaasttp.request.*;
+import com.anhui.fabricbaasttp.response.NetworkGetResult;
+import com.anhui.fabricbaasttp.response.NetworkQueryOrganizationResult;
 import com.anhui.fabricbaasttp.util.IdentifierGenerator;
 import com.anhui.fabricbaasweb.util.SecurityUtils;
-import com.spotify.docker.client.exceptions.NetworkNotFoundException;
 import com.spotify.docker.client.exceptions.NodeNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
@@ -87,10 +88,10 @@ public class NetworkService {
     /**
      * 如果网络存在则返回相应的实体，否则抛出异常。
      */
-    public NetworkEntity getNetworkOrThrowException(String networkName) throws NetworkNotFoundException {
+    public NetworkEntity getNetworkOrThrowException(String networkName) throws NetworkException {
         Optional<NetworkEntity> networkOptional = networkRepo.findById(networkName);
         if (networkOptional.isEmpty()) {
-            throw new NetworkNotFoundException("不存在相应名称的网络");
+            throw new NetworkException("不存在相应名称的网络");
         }
         return networkOptional.get();
     }
@@ -170,6 +171,10 @@ public class NetworkService {
         // 将签名后的Envelope提交到Orderer
         log.info("正在将Envelope提交到系统通道：" + fabricConfig.getSystemChannelName());
         ChannelUtils.submitChannelUpdate(ordererCoreEnv.getMSPEnv(), ordererCoreEnv.getTLSEnv(), fabricConfig.getSystemChannelName(), envelope);
+    }
+
+    public List<Orderer> getOrderers(String networkName) throws NetworkException {
+        return getNetworkOrThrowException(networkName).getOrderers();
     }
 
     public ResourceResult queryOrdererTlsCert(NetworkQueryOrdererTlsCertRequest request) throws Exception {
@@ -562,7 +567,7 @@ public class NetworkService {
         networkRepo.save(network);
     }
 
-    public PaginationQueryResult<ParticipationEntity> queryParticipations(ParticipationQueryRequest request) throws NetworkNotFoundException {
+    public PaginationQueryResult<ParticipationEntity> queryParticipations(ParticipationQueryRequest request) throws NetworkException {
         getNetworkOrThrowException(request.getNetworkName());
 
         Sort sort = Sort.by(Sort.Direction.DESC, "timestamp");
@@ -590,5 +595,14 @@ public class NetworkService {
         ResourceResult result = new ResourceResult();
         result.setDownloadUrl(downloadUrl);
         return result;
+    }
+
+    public NetworkQueryOrganizationResult queryOrganizations(NetworkQueryOrganizationRequest request) throws NetworkException {
+        NetworkEntity network = getNetworkOrThrowException(request.getNetworkName());
+        return new NetworkQueryOrganizationResult(network.getOrganizationNames());
+    }
+
+    public NetworkGetResult getNetwork(NetworkGetRequest request) throws NetworkException {
+        return new NetworkGetResult(getNetworkOrThrowException(request.getNetworkName()));
     }
 }

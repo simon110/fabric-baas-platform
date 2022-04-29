@@ -7,6 +7,8 @@ import com.anhui.fabricbaascommon.response.ResourceResult;
 import com.anhui.fabricbaasttp.entity.NetworkEntity;
 import com.anhui.fabricbaasttp.entity.ParticipationEntity;
 import com.anhui.fabricbaasttp.request.*;
+import com.anhui.fabricbaasttp.response.NetworkGetResult;
+import com.anhui.fabricbaasttp.response.NetworkQueryOrganizationResult;
 import com.anhui.fabricbaasttp.service.NetworkService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -90,5 +92,19 @@ public class NetworkController {
     @ApiOperation("查询当前组织所参与的任意网络中指定Orderer节点的证书（包括MSP和TLS，只有所属组织可以下载）")
     public ResourceResult queryOrdererCert(@Valid @RequestBody NetworkQueryOrdererCertRequest request) throws Exception {
         return networkService.queryOrdererCert(request);
+    }
+
+    @Secured({Authority.USER, Authority.ADMIN})
+    @PostMapping("/queryOrganizations")
+    @ApiOperation("查询指定网络中所有的组织")
+    public NetworkQueryOrganizationResult queryOrganizations(@Valid @RequestBody NetworkQueryOrganizationRequest request) throws Exception {
+        return networkService.queryOrganizations(request);
+    }
+
+    @Secured({Authority.USER, Authority.ADMIN})
+    @PostMapping("/qetNetwork")
+    @ApiOperation("查询指定网络的信息")
+    public NetworkGetResult getNetwork(@Valid @RequestBody NetworkGetRequest request) throws Exception {
+        return networkService.getNetwork(request);
     }
 }

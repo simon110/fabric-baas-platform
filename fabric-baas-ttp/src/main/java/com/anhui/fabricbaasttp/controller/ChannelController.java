@@ -4,7 +4,6 @@ import com.anhui.fabricbaascommon.constant.Authority;
 import com.anhui.fabricbaascommon.response.EmptyResult;
 import com.anhui.fabricbaascommon.response.ResourceResult;
 import com.anhui.fabricbaasttp.request.*;
-import com.anhui.fabricbaasttp.response.ChannelQueryOrdererResult;
 import com.anhui.fabricbaasttp.response.ChannelQueryPeerResult;
 import com.anhui.fabricbaasttp.response.InvitationCodeResult;
 import com.anhui.fabricbaasttp.service.ChannelService;
@@ -77,12 +76,5 @@ public class ChannelController {
     @ApiOperation("查询当前组织所参与的任意网络中所有Peer节点")
     public ChannelQueryPeerResult queryPeers(@Valid @RequestBody ChannelQueryPeerRequest request) throws Exception {
         return channelService.queryPeers(request);
-    }
-
-    @Secured({Authority.USER, Authority.ADMIN})
-    @PostMapping("/queryOrderers")
-    @ApiOperation("查询当前组织所参与的任意网络中所有Orderer节点")
-    public ChannelQueryOrdererResult queryOrderers(@Valid @RequestBody ChannelQueryOrdererRequest request) throws Exception {
-        return channelService.queryOrderers(request);
     }
 }

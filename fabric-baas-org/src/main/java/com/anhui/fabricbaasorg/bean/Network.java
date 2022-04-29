@@ -2,9 +2,11 @@ package com.anhui.fabricbaasorg.bean;
 
 import com.anhui.fabricbaasorg.entity.OrdererEntity;
 import io.swagger.annotations.ApiModelProperty;
+import lombok.Data;
 
 import java.util.List;
 
+@Data
 public class Network {
     @ApiModelProperty(value = "网络名称", required = true)
     private String name;

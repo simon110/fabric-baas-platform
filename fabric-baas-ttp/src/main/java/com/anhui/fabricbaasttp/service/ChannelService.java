@@ -16,7 +16,6 @@ import com.anhui.fabricbaasttp.entity.ChannelEntity;
 import com.anhui.fabricbaasttp.entity.NetworkEntity;
 import com.anhui.fabricbaasttp.repository.ChannelRepo;
 import com.anhui.fabricbaasttp.request.*;
-import com.anhui.fabricbaasttp.response.ChannelQueryOrdererResult;
 import com.anhui.fabricbaasttp.response.ChannelQueryPeerResult;
 import com.anhui.fabricbaasttp.response.InvitationCodeResult;
 import com.anhui.fabricbaasttp.util.IdentifierGenerator;
@@ -185,7 +184,6 @@ public class ChannelService {
         channel.setNetworkName(request.getNetworkName());
         channel.setOrganizationNames(Collections.singletonList(curOrgName));
         channel.setPeers(Collections.emptyList());
-        channel.setOrderers(network.getOrderers());
         channelRepo.save(channel);
         log.info("保存通道信息：" + channel);
     }
@@ -194,7 +192,7 @@ public class ChannelService {
         ChannelEntity channel = getChannelOrThrowException(channelName);
         String curOrgName = SecurityUtils.getUsername();
         assertOrganizationInChannel(channel, curOrgName);
-        Orderer orderer = RandomUtils.select(channel.getOrderers());
+        Orderer orderer = RandomUtils.select(networkService.getOrderers(channel.getNetworkName()));
 
         File block = ResourceUtils.createTempFile("block");
 
@@ -214,7 +212,7 @@ public class ChannelService {
         assertInvitationCodes(request.getInvitationCodes(), channel.getOrganizationNames(), curOrgName, channel.getName());
 
         // 从通道中随机选择一个Orderer
-        Orderer orderer = RandomUtils.select(channel.getOrderers());
+        Orderer orderer = RandomUtils.select(networkService.getOrderers(channel.getNetworkName()));
         log.info("随机选择Orderer节点：" + orderer);
 
         // 拉取指定通道的配置
@@ -291,7 +289,7 @@ public class ChannelService {
         log.info("生成新Peer信息：" + peer);
 
         // 随机选择一个Orderer
-        Orderer orderer = RandomUtils.select(channel.getOrderers());
+        Orderer orderer = RandomUtils.select(networkService.getOrderers(channel.getNetworkName()));
         log.info("随机选择Orderer节点：" + orderer);
 
         // 拉取通道的创世区块
@@ -371,7 +369,7 @@ public class ChannelService {
         }
 
         // 从通道中随机选择一个Orderer
-        Orderer orderer = RandomUtils.select(channel.getOrderers());
+        Orderer orderer = RandomUtils.select(networkService.getOrderers(channel.getNetworkName()));
         log.info("随机选择Orderer节点：" + orderer);
 
         // 拉取指定通道的配置
@@ -423,18 +421,6 @@ public class ChannelService {
             ChannelQueryPeerResult result = new ChannelQueryPeerResult();
             List<Node> peers = new ArrayList<>(channelOptional.get().getPeers());
             result.setPeers(peers);
-            return result;
-        } else {
-            throw new ChannelException("未找到通道：" + request.getChannelName());
-        }
-    }
-
-    public ChannelQueryOrdererResult queryOrderers(ChannelQueryOrdererRequest request) throws Exception {
-        Optional<ChannelEntity> channelOptional = channelRepo.findById(request.getChannelName());
-        if (channelOptional.isPresent()) {
-            ChannelQueryOrdererResult result = new ChannelQueryOrdererResult();
-            List<Node> orderers = new ArrayList<>(channelOptional.get().getOrderers());
-            result.setOrderers(orderers);
             return result;
         } else {
             throw new ChannelException("未找到通道：" + request.getChannelName());

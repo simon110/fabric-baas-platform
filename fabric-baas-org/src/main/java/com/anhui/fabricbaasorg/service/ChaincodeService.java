@@ -15,10 +15,9 @@ import com.anhui.fabricbaascommon.service.CAService;
 import com.anhui.fabricbaascommon.util.CertfileUtils;
 import com.anhui.fabricbaascommon.util.RandomUtils;
 import com.anhui.fabricbaascommon.util.ResourceUtils;
-import com.anhui.fabricbaasorg.entity.ChannelEntity;
-import com.anhui.fabricbaasorg.entity.CommittedChaincodeEntity;
-import com.anhui.fabricbaasorg.entity.InstalledChaincodeEntity;
-import com.anhui.fabricbaasorg.entity.PeerEntity;
+import com.anhui.fabricbaasorg.bean.Network;
+import com.anhui.fabricbaasorg.entity.*;
+import com.anhui.fabricbaasorg.exception.TTPException;
 import com.anhui.fabricbaasorg.remote.TTPChannelApi;
 import com.anhui.fabricbaasorg.remote.TTPNetworkApi;
 import com.anhui.fabricbaasorg.repository.*;
@@ -101,9 +100,14 @@ public class ChaincodeService {
         if (channelOptional.isEmpty()) {
             throw new ChannelException("未找到相应的通道");
         }
+        ChannelEntity channel = channelOptional.get();
 
-        List<Node> orderers = ttpChannelApi.queryOrderers(channelName);
-        Node selectedOrderer = RandomUtils.select(orderers);
+        List<Network> networks = ttpNetworkApi.queryNetworks(channel.getNetworkName(), caService.getAdminOrganizationName());
+        if (networks.size() != 1) {
+            throw new TTPException("从TTP端查询网络信息异常：" + networks);
+        }
+        OrdererEntity selectedOrderer = RandomUtils.select(networks.get(0).getOrderers());
+
 
         File ordererTlsCert = ResourceUtils.createTempFile("crt");
         byte[] ordererTlsCertData = ttpNetworkApi.queryOrdererTlsCert(channelOptional.get().getNetworkName(), selectedOrderer);
