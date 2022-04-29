@@ -4,7 +4,7 @@ import com.anhui.fabricbaascommon.bean.ConfigtxOrderer;
 import com.anhui.fabricbaascommon.bean.ConfigtxOrganization;
 import com.anhui.fabricbaascommon.exception.ConfigtxException;
 import com.anhui.fabricbaascommon.util.CommandUtils;
-import com.anhui.fabricbaascommon.util.ResourceUtils;
+import com.anhui.fabricbaascommon.util.SimpleFileUtils;
 import com.anhui.fabricbaascommon.util.YamlUtils;
 
 import java.io.File;
@@ -89,7 +89,7 @@ public class ConfigtxUtils {
             throws IOException, ConfigtxException, InterruptedException {
         assert configtxDir.isDirectory();
         String str = CommandUtils.exec(
-                ResourceUtils.getWorkingDir() + "/shell/fabric-generate-genesis.sh",
+                SimpleFileUtils.getWorkingDir() + "/shell/fabric-generate-genesis.sh",
                 ordererGenesisName,
                 systemChannelName,
                 genesisBlock.getCanonicalPath(),
@@ -143,9 +143,7 @@ public class ConfigtxUtils {
         profiles.remove("TwoOrgsOrdererGenesis");
         profiles.put("OrdererGenesis", genesis);
         Map<String, Object> genesisOrderer = (Map<String, Object>) genesis.get("Orderer");
-        for (Map.Entry<String, Object> entry : orderer.entrySet()) {
-            genesisOrderer.put(entry.getKey(), entry.getValue());
-        }
+        genesisOrderer.putAll(orderer);
         List<Map<String, Object>> ordererOrgs = new ArrayList<>();
         genesisOrderer.put("Organizations", ordererOrgs);
         ordererOrgs.add(organizations.get(0));
@@ -160,7 +158,7 @@ public class ConfigtxUtils {
         consortium.put("Organizations", consortiumOrgs);
         genesisConsortiums.put(consortiumName, consortium);
 
-        YamlUtils.saveWithPrefix(configtx, outputYaml);
+        YamlUtils.saveMultiply(configtx, outputYaml);
     }
 
     @SuppressWarnings("unchecked")
@@ -206,7 +204,7 @@ public class ConfigtxUtils {
             channelOrganizations.add(organizations.get(organizationIndex));
         }
         profiles.put(channelName, channel);
-        YamlUtils.saveWithPrefix(configtx, targetYaml);
+        YamlUtils.saveMultiply(configtx, targetYaml);
     }
 
     @SuppressWarnings("unchecked")
@@ -218,7 +216,7 @@ public class ConfigtxUtils {
         List<Map<String, Object>> organizations = (List<Map<String, Object>>) orgConfig.get("Organizations");
         organizations.clear();
         organizations.add(buildOrg(configtxOrganization));
-        YamlUtils.saveWithPrefix(orgConfig, dstFile);
+        YamlUtils.saveMultiply(orgConfig, dstFile);
     }
 
     public static void convertOrgConfigtxToJson(
@@ -227,7 +225,7 @@ public class ConfigtxUtils {
             String organizationName)
             throws ConfigtxException, IOException, InterruptedException {
         String str = CommandUtils.exec(
-                ResourceUtils.getWorkingDir() + "/shell/fabric-generate-organization-config.sh",
+                SimpleFileUtils.getWorkingDir() + "/shell/fabric-generate-organization-config.sh",
                 organizationName,
                 configtxDir.getCanonicalPath(),
                 outputJson.getCanonicalPath());

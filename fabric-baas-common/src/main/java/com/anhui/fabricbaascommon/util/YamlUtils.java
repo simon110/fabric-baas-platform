@@ -48,7 +48,7 @@ public class YamlUtils {
      * @return 保存到文件的内容
      * @throws IOException 写入Yaml文件的过程中异常
      */
-    public static String saveWithPrefix(Map<String, Object> map, File file) throws IOException {
+    public static String saveMultiply(Map<String, Object> map, File file) throws IOException {
         String yamlContent = "---\n" + YAML.dump(map);
         FileUtils.writeStringToFile(file, yamlContent, StandardCharsets.UTF_8);
         return yamlContent;

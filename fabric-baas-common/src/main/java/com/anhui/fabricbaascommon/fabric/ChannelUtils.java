@@ -5,7 +5,7 @@ import com.anhui.fabricbaascommon.exception.ChannelException;
 import com.anhui.fabricbaascommon.exception.EnvelopeException;
 import com.anhui.fabricbaascommon.util.CommandUtils;
 import com.anhui.fabricbaascommon.util.JsonUtils;
-import com.anhui.fabricbaascommon.util.ResourceUtils;
+import com.anhui.fabricbaascommon.util.SimpleFileUtils;
 import org.apache.commons.io.FileUtils;
 import org.springframework.util.Base64Utils;
 
@@ -19,7 +19,7 @@ public class ChannelUtils {
             File channelGenesisBlock)
             throws IOException, ChannelException, InterruptedException {
         String str = CommandUtils.exec(
-                ResourceUtils.getWorkingDir() + "/shell/fabric-join-channel.sh",
+                SimpleFileUtils.getWorkingDir() + "/shell/fabric-join-channel.sh",
                 coreEnv.getMspId(),
                 coreEnv.getMspConfig().getAbsolutePath(),
                 coreEnv.getAddress(),
@@ -37,7 +37,7 @@ public class ChannelUtils {
             throws ChannelException, IOException, InterruptedException {
         String jsonPath = jsonConfig.getCanonicalPath();
         String str = CommandUtils.exec(
-                ResourceUtils.getWorkingDir() + "/shell/fabric-fetch-config.sh",
+                SimpleFileUtils.getWorkingDir() + "/shell/fabric-fetch-config.sh",
                 coreEnv.getMspId(),
                 coreEnv.getMspConfig().getAbsolutePath(),
                 coreEnv.getAddress(),
@@ -54,7 +54,7 @@ public class ChannelUtils {
             File genesisBlock)
             throws ChannelException, IOException, InterruptedException {
         String blockPath = genesisBlock.getCanonicalPath();
-        String str = CommandUtils.exec(ResourceUtils.getWorkingDir() + "/shell/fabric-fetch-genesis.sh",
+        String str = CommandUtils.exec(SimpleFileUtils.getWorkingDir() + "/shell/fabric-fetch-genesis.sh",
                 coreEnv.getMspId(),
                 coreEnv.getMspConfig().getAbsolutePath(),
                 coreEnv.getAddress(),
@@ -114,7 +114,7 @@ public class ChannelUtils {
             ConfigtxOrderer newOrderer,
             File channelJsonConfig)
             throws IOException, ChannelException {
-        String addr = newOrderer.getAddr();
+        String addr = newOrderer.addr();
         byte[] newOrdererTlsCertBytes = FileUtils.readFileToByteArray(newOrderer.getServerTlsCert());
         String base64TlsCert = Base64Utils.encodeToString(newOrdererTlsCertBytes);
 
@@ -212,7 +212,7 @@ public class ChannelUtils {
             File newConfig)
             throws EnvelopeException, IOException, InterruptedException {
         String str = CommandUtils.exec(
-                ResourceUtils.getWorkingDir() + "/shell/fabric-generate-update-envelope.sh",
+                SimpleFileUtils.getWorkingDir() + "/shell/fabric-generate-update-envelope.sh",
                 channelName,
                 oldConfig.getCanonicalPath(),
                 newConfig.getCanonicalPath(),
@@ -228,7 +228,7 @@ public class ChannelUtils {
             throws IOException, InterruptedException, EnvelopeException {
         byte[] oldBytes = FileUtils.readFileToByteArray(envelope);
         String str = CommandUtils.exec(
-                ResourceUtils.getWorkingDir() + "/shell/fabric-sign-envelope.sh",
+                SimpleFileUtils.getWorkingDir() + "/shell/fabric-sign-envelope.sh",
                 MspEnv.getMspId(),
                 MspEnv.getMspConfig().getAbsolutePath(),
                 envelope.getCanonicalPath());
@@ -246,7 +246,7 @@ public class ChannelUtils {
             File envelope)
             throws IOException, InterruptedException, ChannelException {
         String str = CommandUtils.exec(
-                ResourceUtils.getWorkingDir() + "/shell/fabric-submit-envelope.sh",
+                SimpleFileUtils.getWorkingDir() + "/shell/fabric-submit-envelope.sh",
                 organizationMspEnv.getMspId(),
                 organizationMspEnv.getMspConfig().getAbsolutePath(),
                 ordererTlsEnv.getAddress(),
@@ -264,7 +264,7 @@ public class ChannelUtils {
             String channelName,
             File channelGenesis)
             throws ChannelException, IOException, InterruptedException {
-        String str = CommandUtils.exec(ResourceUtils.getWorkingDir() + "/shell/fabric-create-channel.sh",
+        String str = CommandUtils.exec(SimpleFileUtils.getWorkingDir() + "/shell/fabric-create-channel.sh",
                 organizationMspEnv.getMspId(),
                 organizationMspEnv.getMspConfig().getAbsolutePath(),
                 ordererTlsEnv.getAddress(),

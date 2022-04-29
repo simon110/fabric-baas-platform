@@ -4,15 +4,15 @@ package com.anhui.fabricbaasorg.service;
 import cn.hutool.core.util.ZipUtil;
 import com.anhui.fabricbaascommon.bean.Node;
 import com.anhui.fabricbaascommon.constant.CertfileType;
-import com.anhui.fabricbaascommon.entity.CAEntity;
+import com.anhui.fabricbaascommon.entity.CaEntity;
 import com.anhui.fabricbaascommon.entity.CertfileEntity;
-import com.anhui.fabricbaascommon.exception.CAException;
+import com.anhui.fabricbaascommon.exception.CaException;
 import com.anhui.fabricbaascommon.repository.CertfileRepo;
 import com.anhui.fabricbaascommon.response.PaginationQueryResult;
-import com.anhui.fabricbaascommon.service.CAService;
+import com.anhui.fabricbaascommon.service.CaClientService;
 import com.anhui.fabricbaascommon.util.CertfileUtils;
 import com.anhui.fabricbaascommon.util.PasswordUtils;
-import com.anhui.fabricbaascommon.util.ResourceUtils;
+import com.anhui.fabricbaascommon.util.SimpleFileUtils;
 import com.anhui.fabricbaasorg.bean.Participation;
 import com.anhui.fabricbaasorg.entity.OrdererEntity;
 import com.anhui.fabricbaasorg.entity.PeerEntity;
@@ -38,7 +38,7 @@ public class NetworkService {
     @Autowired
     private KubernetesService kubernetesService;
     @Autowired
-    private CAService caService;
+    private CaClientService caClientService;
     @Autowired
     private CertfileRepo certfileRepo;
     @Autowired
@@ -48,8 +48,8 @@ public class NetworkService {
     @Autowired
     private TTPService ttpService;
 
-    private List<Node> getOrderers(List<Integer> ordererPorts) throws CAException {
-        String domain = caService.getAdminOrganizationDomain();
+    private List<Node> getOrderers(List<Integer> ordererPorts) throws CaException {
+        String domain = caClientService.getCaOrganizationDomain();
         List<Node> orderers = new ArrayList<>();
         for (Integer ordererPort : ordererPorts) {
             Node orderer = new Node();
@@ -70,8 +70,8 @@ public class NetworkService {
         List<Node> orderers = getOrderers(request.getOrdererPorts());
 
         // 将CA管理员的证书打包成zip
-        File adminCertfileZip = ResourceUtils.createTempFile("zip");
-        caService.getAdminCertfileZip(adminCertfileZip);
+        File adminCertfileZip = SimpleFileUtils.createTempFile("zip");
+        caClientService.getRootCertfileZip(adminCertfileZip);
 
         // 调用TTP端的接口生成网络
         ttpNetworkApi.createNetwork(request.getNetworkName(), request.getConsortiumName(), orderers, adminCertfileZip);
@@ -82,7 +82,7 @@ public class NetworkService {
 
     public void addOrderer(NetworkAddOrdererRequest request) throws Exception {
         // 获取集群域名
-        String domain = caService.getAdminOrganizationDomain();
+        String domain = caClientService.getCaOrganizationDomain();
 
         Node orderer = new Node();
         orderer.setHost(domain);
@@ -92,8 +92,8 @@ public class NetworkService {
 
     public void applyParticipation(ParticipationApplyRequest request) throws Exception {
         List<Node> orderers = getOrderers(request.getOrdererPorts());
-        File adminCertfileZip = ResourceUtils.createTempFile("zip");
-        caService.getAdminCertfileZip(adminCertfileZip);
+        File adminCertfileZip = SimpleFileUtils.createTempFile("zip");
+        caClientService.getRootCertfileZip(adminCertfileZip);
         // 调用TTP端的接口发送加入网络申请
         ttpNetworkApi.applyParticipation(request.getNetworkName(), orderers, request.getDescription(), adminCertfileZip);
         FileUtils.deleteQuietly(adminCertfileZip);
@@ -109,11 +109,11 @@ public class NetworkService {
 
     public void startOrderer(OrdererStartRequest request) throws Exception {
         // 获取集群域名
-        String domain = caService.getAdminOrganizationDomain();
+        String domain = caClientService.getCaOrganizationDomain();
 
         // 获取网络的创世区块
         byte[] genesisBlockData = ttpNetworkApi.queryGenesisBlock(request.getNetworkName());
-        File genesisBlock = ResourceUtils.createTempFile("block");
+        File genesisBlock = SimpleFileUtils.createTempFile("block");
         FileUtils.writeByteArrayToFile(genesisBlock, genesisBlockData);
 
         // 获取Orderer的证书并解压
@@ -121,7 +121,7 @@ public class NetworkService {
         node.setHost(domain);
         node.setPort(request.getKubeNodePort());
         byte[] ordererCertfileZipData = ttpNetworkApi.queryOrdererCert(request.getNetworkName(), node);
-        File ordererCertfileZip = ResourceUtils.createTempFile("zip");
+        File ordererCertfileZip = SimpleFileUtils.createTempFile("zip");
         FileUtils.writeByteArrayToFile(ordererCertfileZip, ordererCertfileZipData);
         File certfileDir = CertfileUtils.getCertfileDir(request.getName(), CertfileType.ORDERER);
         boolean mkdirs = certfileDir.mkdirs();
@@ -142,22 +142,22 @@ public class NetworkService {
 
     public void startPeer(PeerStartRequest request) throws Exception {
         // 获取集群域名
-        CAEntity caEntity = caService.getCAEntity();
+        CaEntity caEntity = caClientService.findCaEntity();
         String domain = caEntity.getDomain();
 
         // 生成Peer证书
         File peerCertfileDir = CertfileUtils.getCertfileDir(request.getName(), CertfileType.PEER);
         boolean mkdirs = peerCertfileDir.mkdirs();
         String caUsername = request.getName();
-        String caPassword = PasswordUtils.generatePassword();
+        String caPassword = PasswordUtils.generate();
         try {
             // 尝试注册证书
-            caService.register(caUsername, caPassword, CertfileType.PEER);
+            caClientService.register(caUsername, caPassword, CertfileType.PEER);
         } catch (Exception e) {
             log.info("证书已注册：" + caUsername);
         }
         List<String> csrHosts = Arrays.asList("localhost", domain);
-        caService.enroll(peerCertfileDir, caUsername, csrHosts);
+        caClientService.enroll(peerCertfileDir, caUsername, csrHosts);
 
         // 启动Peer节点
         Optional<CertfileEntity> certificateInfo = certfileRepo.findById(caUsername);
@@ -171,7 +171,7 @@ public class NetworkService {
         peer.setCaUsername(caUsername);
         peer.setCaPassword(caPassword);
         peer.setCouchDBUsername("admin");
-        peer.setCouchDBPassword(PasswordUtils.generatePassword());
+        peer.setCouchDBPassword(PasswordUtils.generate());
         peer.setOrganizationName(caEntity.getOrganizationName());
         try {
             kubernetesService.startPeer(peer, domain, peerCertfileDir);

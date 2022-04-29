@@ -8,9 +8,9 @@ import com.anhui.fabricbaascommon.fabric.ConfigtxUtils;
 import com.anhui.fabricbaascommon.request.BaseChannelRequest;
 import com.anhui.fabricbaascommon.response.ListResult;
 import com.anhui.fabricbaascommon.response.ResourceResult;
-import com.anhui.fabricbaascommon.response.SingleResult;
-import com.anhui.fabricbaascommon.service.CAService;
-import com.anhui.fabricbaascommon.service.MinIOService;
+import com.anhui.fabricbaascommon.response.UniqueResult;
+import com.anhui.fabricbaascommon.service.CaClientService;
+import com.anhui.fabricbaascommon.service.MinioService;
 import com.anhui.fabricbaascommon.util.*;
 import com.anhui.fabricbaasttp.bean.Orderer;
 import com.anhui.fabricbaasttp.bean.Peer;
@@ -47,9 +47,9 @@ public class ChannelService {
     @Autowired
     private ChannelRepo channelRepo;
     @Autowired
-    private MinIOService minioService;
+    private MinioService minioService;
     @Autowired
-    private CAService caService;
+    private CaClientService caClientService;
     @Autowired
     private FabricEnvService fabricEnvService;
 
@@ -134,9 +134,9 @@ public class ChannelService {
         String organizationCertfileId = IdentifierGenerator.ofCertfile(request.getNetworkName(), curOrgName);
         File organizationCertfileDir = CertfileUtils.getCertfileDir(organizationCertfileId, CertfileType.ADMIN);
         ConfigtxOrganization ordererConfigtxOrg = new ConfigtxOrganization(
-                caService.getAdminOrganizationName(),
-                caService.getAdminOrganizationName(),
-                new File(caService.getAdminCertfileDir() + "/msp")
+                caClientService.getCaOrganizationName(),
+                caClientService.getCaOrganizationName(),
+                new File(caClientService.getRootCertfileDir() + "/msp")
         );
         log.info("生成Orderer组织的配置：" + ordererConfigtxOrg);
 
@@ -158,7 +158,7 @@ public class ChannelService {
         log.info("生成通道的Orderer节点配置：" + configtxOrderers);
 
         // 生成configtx.yaml配置文件
-        File configtxDir = ResourceUtils.createTempDir();
+        File configtxDir = SimpleFileUtils.createTempDir();
         File configtxYaml = new File(configtxDir + "/configtx.yaml");
         ConfigtxUtils.generateConfigtx(configtxYaml, network.getConsortiumName(), configtxOrderers, ordererConfigtxOrg, configtxOrganizations);
         log.info(String.format("生成基本configtx.yaml文件：%s", configtxYaml.getAbsolutePath()));
@@ -175,7 +175,7 @@ public class ChannelService {
         TlsEnv ordererTlsEnv = fabricEnvService.buildTlsEnvForOrderer(orderer);
         log.info("生成组织的MSP环境变量：" + organizationMspEnv);
         log.info("生成Orderer的TLS环境变量：" + ordererTlsEnv);
-        File appChannelGenesis = ResourceUtils.createTempFile("block");
+        File appChannelGenesis = SimpleFileUtils.createTempFile("block");
         ChannelUtils.createChannel(organizationMspEnv, ordererTlsEnv, configtxDir, request.getChannelName(), appChannelGenesis);
 
         // 将通道创世区块保存至MinIO
@@ -199,7 +199,7 @@ public class ChannelService {
         assertOrganizationInChannel(channel, curOrgName);
         Orderer orderer = RandomUtils.select(networkService.getOrderers(channel.getNetworkName()));
 
-        File block = ResourceUtils.createTempFile("block");
+        File block = SimpleFileUtils.createTempFile("block");
 
         CoreEnv ordererCoreEnv = fabricEnvService.buildCoreEnvForOrderer(orderer);
         ChannelUtils.fetchGenesisBlock(ordererCoreEnv, channelName, block);
@@ -223,14 +223,14 @@ public class ChannelService {
         // 拉取指定通道的配置
         CoreEnv ordererCoreEnv = fabricEnvService.buildCoreEnvForOrderer(orderer);
         log.info("生成Orderer环境变量：" + ordererCoreEnv);
-        File oldChannelConfig = ResourceUtils.createTempFile("json");
+        File oldChannelConfig = SimpleFileUtils.createTempFile("json");
         ChannelUtils.fetchConfig(ordererCoreEnv, channel.getName(), oldChannelConfig);
         log.info(String.format("拉取通道配置：%s", channel.getName()));
 
         // 生成新组织的配置
-        File newOrgConfigtxDir = ResourceUtils.createTempDir();
+        File newOrgConfigtxDir = SimpleFileUtils.createTempDir();
         File newOrgConfigtxYaml = new File(newOrgConfigtxDir + "/configtx.yaml");
-        File newOrgConfigtxJson = ResourceUtils.createTempFile("json");
+        File newOrgConfigtxJson = SimpleFileUtils.createTempFile("json");
         String newOrgCertfileId = IdentifierGenerator.ofCertfile(channel.getNetworkName(), curOrgName);
         File newOrgCertfileDir = CertfileUtils.getCertfileDir(newOrgCertfileId, CertfileType.ADMIN);
 
@@ -244,11 +244,11 @@ public class ChannelService {
         log.info("将新组织的configtx.yaml转换为json格式：" + newOrgConfigtxJson.getAbsolutePath());
 
         // 对通道配置文件进行更新并生成Envelope
-        File newChannelConfig = ResourceUtils.createTempFile("json");
+        File newChannelConfig = SimpleFileUtils.createTempFile("json");
         FileUtils.copyFile(oldChannelConfig, newChannelConfig);
         ChannelUtils.appendOrganizationToAppChannelConfig(curOrgName, newOrgConfigtxJson, newChannelConfig);
         log.info("将新组织添加到现有的通道配置中：" + newChannelConfig.getAbsolutePath());
-        File envelope = ResourceUtils.createTempFile("pb");
+        File envelope = SimpleFileUtils.createTempFile("pb");
         ChannelUtils.generateEnvelope(channel.getName(), envelope, oldChannelConfig, newChannelConfig);
         log.info("生成向通道添加组织的Envelope：" + envelope.getAbsolutePath());
 
@@ -300,15 +300,15 @@ public class ChannelService {
         // 拉取通道的创世区块
         CoreEnv ordererCoreEnv = fabricEnvService.buildCoreEnvForOrderer(orderer);
         log.info("生成Orderer的环境变量参数：" + ordererCoreEnv);
-        File channelGenesisBlock = ResourceUtils.createTempFile("block");
+        File channelGenesisBlock = SimpleFileUtils.createTempFile("block");
         ChannelUtils.fetchGenesisBlock(ordererCoreEnv, channel.getName(), channelGenesisBlock);
         log.info(String.format("拉取通道%s的启动区块：", channel.getName()) + channelGenesisBlock.getAbsolutePath());
 
         // 解压Peer证书到临时目录
-        File peerCertfileZip = ResourceUtils.createTempFile("zip");
+        File peerCertfileZip = SimpleFileUtils.createTempFile("zip");
         FileUtils.writeByteArrayToFile(peerCertfileZip, peerCertZip.getBytes());
         log.info("将用户上传的Peer证书保存至：" + peerCertfileZip.getAbsolutePath());
-        File peerCertTempCertfileDir = ResourceUtils.createTempDir();
+        File peerCertTempCertfileDir = SimpleFileUtils.createTempDir();
         ZipUtils.unzip(peerCertfileZip, peerCertTempCertfileDir);
         log.info("将Peer证书解压到：" + peerCertTempCertfileDir.getAbsolutePath());
         CertfileUtils.assertCertfile(peerCertTempCertfileDir);
@@ -380,16 +380,16 @@ public class ChannelService {
         // 拉取指定通道的配置
         CoreEnv ordererCoreEnv = fabricEnvService.buildCoreEnvForOrderer(orderer);
         log.info("生成Orderer环境变量：" + ordererCoreEnv);
-        File oldChannelConfig = ResourceUtils.createTempFile("json");
+        File oldChannelConfig = SimpleFileUtils.createTempFile("json");
         ChannelUtils.fetchConfig(ordererCoreEnv, channel.getName(), oldChannelConfig);
         log.info("通道配置文件：" + oldChannelConfig.getAbsolutePath());
 
         // 对通道配置文件进行更新并生成Envelope
-        File newChannelConfig = ResourceUtils.createTempFile("json");
+        File newChannelConfig = SimpleFileUtils.createTempFile("json");
         FileUtils.copyFile(oldChannelConfig, newChannelConfig);
         ChannelUtils.appendAnchorPeerToChannelConfig(request.getPeer(), curOrgName, oldChannelConfig);
         log.info("将锚节点添加到通道配置中：" + newChannelConfig.getAbsolutePath());
-        File envelope = ResourceUtils.createTempFile("pb");
+        File envelope = SimpleFileUtils.createTempFile("pb");
         ChannelUtils.generateEnvelope(channel.getName(), envelope, oldChannelConfig, newChannelConfig);
         log.info("生成更新锚节点的Envelope：" + envelope.getAbsolutePath());
 
@@ -429,7 +429,7 @@ public class ChannelService {
         }
     }
 
-    public SingleResult<ChannelEntity> getChannel(BaseChannelRequest request) throws ChannelException {
-        return new SingleResult<>(getChannelOrThrowException(request.getChannelName()));
+    public UniqueResult<ChannelEntity> getChannel(BaseChannelRequest request) throws ChannelException {
+        return new UniqueResult<>(getChannelOrThrowException(request.getChannelName()));
     }
 }

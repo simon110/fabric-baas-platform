@@ -16,7 +16,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @ApiModel("CA服务的CSR配置")
-public class CSRConfig {
+public class CsrConfig {
     @ApiModelProperty(value = "CA名称（例如WikimediaFoundationCA，对应CA配置ca.name）", required = true)
     private String caName;
 

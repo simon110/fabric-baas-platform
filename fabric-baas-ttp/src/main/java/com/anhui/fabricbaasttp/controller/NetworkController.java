@@ -102,7 +102,7 @@ public class NetworkController {
     @Secured({Authority.USER, Authority.ADMIN})
     @PostMapping("/getNetwork")
     @ApiOperation("查询指定网络的信息")
-    public SingleResult<NetworkEntity> getNetwork(@Valid @RequestBody BaseNetworkRequest request) throws Exception {
+    public UniqueResult<NetworkEntity> getNetwork(@Valid @RequestBody BaseNetworkRequest request) throws Exception {
         return networkService.getNetwork(request);
     }
 

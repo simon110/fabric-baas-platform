@@ -1,17 +1,17 @@
 package com.anhui.fabricbaasorg.service;
 
-import com.anhui.fabricbaascommon.bean.CSRConfig;
+import com.anhui.fabricbaascommon.bean.CsrConfig;
 import com.anhui.fabricbaascommon.configuration.AdminConfiguration;
 import com.anhui.fabricbaascommon.configuration.FabricConfiguration;
-import com.anhui.fabricbaascommon.entity.CAEntity;
+import com.anhui.fabricbaascommon.entity.CaEntity;
 import com.anhui.fabricbaascommon.entity.UserEntity;
 import com.anhui.fabricbaascommon.exception.DuplicatedOperationException;
-import com.anhui.fabricbaascommon.fabric.CAUtils;
-import com.anhui.fabricbaascommon.repository.CARepo;
+import com.anhui.fabricbaascommon.fabric.CaUtils;
+import com.anhui.fabricbaascommon.repository.CaRepo;
 import com.anhui.fabricbaascommon.repository.UserRepo;
-import com.anhui.fabricbaascommon.service.CAService;
-import com.anhui.fabricbaascommon.service.DockerService;
-import com.anhui.fabricbaascommon.util.ResourceUtils;
+import com.anhui.fabricbaascommon.service.CaClientService;
+import com.anhui.fabricbaascommon.service.CaContainerService;
+import com.anhui.fabricbaascommon.util.SimpleFileUtils;
 import com.anhui.fabricbaasorg.request.SystemInitRequest;
 import com.anhui.fabricbaasorg.response.ClusterNodeQueryResult;
 import lombok.extern.slf4j.Slf4j;
@@ -39,11 +39,11 @@ public class SystemService {
     @Autowired
     private PasswordEncoder passwordEncoder;
     @Autowired
-    private CAService caService;
+    private CaClientService caClientService;
     @Autowired
-    private DockerService dockerService;
+    private CaContainerService caContainerService;
     @Autowired
-    private CARepo caRepo;
+    private CaRepo caRepo;
 
 
     /**
@@ -53,28 +53,28 @@ public class SystemService {
      */
     public void init(SystemInitRequest req, MultipartFile clusterConfig) throws Exception {
         // 将证书导入到KubernetesService中
-        File tempClusterConfig = ResourceUtils.createTempFile("yaml");
+        File tempClusterConfig = SimpleFileUtils.createTempFile("yaml");
         FileUtils.writeByteArrayToFile(tempClusterConfig, clusterConfig.getBytes());
         kubernetesService.importAdminConfig(tempClusterConfig);
 
         // 启动CA服务
-        if (caRepo.count() != 0 || dockerService.checkCAServer()) {
+        if (caRepo.count() != 0 || caContainerService.checkCaContainer()) {
             throw new DuplicatedOperationException("CA服务已进入运行状态，请勿重复初始化系统");
         }
-        CAEntity org = req.getOrg();
+        CaEntity org = req.getOrg();
         log.info("可信第三方信息：" + org);
-        CSRConfig CSRConfig = CAUtils.buildCsrConfig(org);
+        CsrConfig CSRConfig = CaUtils.buildCsrConfig(org);
         log.info("生成CA服务信息：" + CSRConfig);
 
 
         // 启动CA容器并尝试初始化管理员证书
-        dockerService.startCAServer(CSRConfig,
-                fabricConfiguration.getCaAdminUsername(),
-                fabricConfiguration.getCaAdminPassword()
+        caContainerService.startCaContainer(CSRConfig,
+                fabricConfiguration.getRootCaUsername(),
+                fabricConfiguration.getRootCaPassword()
         );
         caRepo.save(org);
         log.info("正在初始化CA服务管理员证书");
-        caService.initAdminCertfile(CSRConfig);
+        caClientService.initRootCertfile(CSRConfig);
 
         // 更新系统管理员密码
         if (req.getAdminPassword() != null && !StringUtils.isBlank(req.getAdminPassword())) {

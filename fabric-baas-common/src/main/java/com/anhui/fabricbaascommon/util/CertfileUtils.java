@@ -37,14 +37,13 @@ public class CertfileUtils {
         }
     }
 
-    public static File getCertfileMSPDir(File dir) {
+    public static File getCertfileMspDir(File dir) {
         return new File(dir + "/msp");
     }
 
-    public static File getCertfileTLSDir(File dir) {
+    public static File getCertfileTlsDir(File dir) {
         return new File(dir + "/tls");
     }
-
 
     /**
      * 注意该方法不检查对应路径的内容是否存在以及是否正确
@@ -58,15 +57,15 @@ public class CertfileUtils {
                 type.equals(CertfileType.ADMIN) ||
                 type.equals(CertfileType.CLIENT) ||
                 type.equals(CertfileType.PEER);
-        return new File(String.format("%s/fabric/certfile/%s/%s", ResourceUtils.getWorkingDir(), type, name));
+        return new File(String.format("%s/fabric/certfile/%s/%s", SimpleFileUtils.getWorkingDir(), type, name));
     }
     /**
      * 检查完成后返回压缩包的随机路径，如果检查不通过则抛出异常。
      */
     public static void assertCertfileZip(MultipartFile zip) throws IOException, CertfileException {
         // 创建临时文件
-        File tempDir = ResourceUtils.createTempDir();
-        File certfileZip = ResourceUtils.createTempFile("zip");
+        File tempDir = SimpleFileUtils.createTempDir();
+        File certfileZip = SimpleFileUtils.createTempFile("zip");
 
         // 将文件写入临时目录并解压
         log.info("正在将证书文件写入：" + certfileZip.getAbsoluteFile());

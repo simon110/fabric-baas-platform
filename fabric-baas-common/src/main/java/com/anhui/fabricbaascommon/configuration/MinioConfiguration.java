@@ -11,7 +11,7 @@ import org.springframework.context.annotation.PropertySource;
 @Configuration
 @ConfigurationProperties(prefix = "minio")
 @Data
-public class MinIOConfiguration {
+public class MinioConfiguration {
     private String username;
     private String password;
     private String host;

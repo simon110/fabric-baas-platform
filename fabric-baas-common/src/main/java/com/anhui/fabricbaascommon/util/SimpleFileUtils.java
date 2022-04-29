@@ -4,14 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.UUID;
 
-public class ResourceUtils {
-    private static final String WORKING_DIR;
-
-    static {
-        WORKING_DIR = System.getProperty("user.dir");
-        assert !WORKING_DIR.endsWith("/");
-    }
-
+public class SimpleFileUtils {
     public static void assertFileExists(File file) throws IOException {
         if (!file.exists() || !file.isFile()) {
             throw new IOException("文件不存在：" + file.getAbsolutePath());
@@ -28,7 +21,7 @@ public class ResourceUtils {
      * @return 当前程序运行的目录
      */
     public static String getWorkingDir() {
-        return WORKING_DIR;
+        return System.getProperty("user.dir");
     }
 
     /**
@@ -49,7 +42,7 @@ public class ResourceUtils {
      * @return 在临时文件目录下的空文件夹，文件夹名称为UUID
      */
     public static File createTempDir() throws IOException {
-        return createDir(getWorkingDir() + "/temp/" + UUID.randomUUID());
+        return createDir(String.format("%s/temp/%s", getWorkingDir(), UUID.randomUUID()));
     }
 
     /**

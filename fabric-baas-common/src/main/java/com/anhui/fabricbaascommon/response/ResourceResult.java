@@ -14,4 +14,3 @@ public class ResourceResult {
     @ApiModelProperty(value = "资源下载路径")
     private String downloadUrl;
 }
-

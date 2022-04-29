@@ -1,6 +1,6 @@
 package com.anhui.fabricbaasorg.request;
 
-import com.anhui.fabricbaascommon.entity.CAEntity;
+import com.anhui.fabricbaascommon.entity.CaEntity;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -13,7 +13,7 @@ import javax.validation.constraints.Size;
 public class SystemInitRequest {
     @NotNull
     @ApiModelProperty(value = "组织信息", required = true)
-    private CAEntity org;
+    private CaEntity org;
 
     @Size(min = 8, message = "密码最小长度为8")
     @ApiModelProperty(value = "管理员密码", required = true)

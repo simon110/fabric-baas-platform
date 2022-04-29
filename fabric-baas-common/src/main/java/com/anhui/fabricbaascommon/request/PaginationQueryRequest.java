@@ -7,7 +7,7 @@ import lombok.Data;
 import javax.validation.constraints.Min;
 
 @Data
-@ApiModel(value = "分类查询请求基类")
+@ApiModel(value = "分页查询请求基类")
 public class PaginationQueryRequest {
     @ApiModelProperty(value = "分页查询的页号（从1开始计算）", required = true)
     @Min(1)

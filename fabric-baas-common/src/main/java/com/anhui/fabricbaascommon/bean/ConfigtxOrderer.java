@@ -15,7 +15,7 @@ public class ConfigtxOrderer {
     private File serverTlsCert;
     private File clientTlsCert;
 
-    public String getAddr() {
+    public String addr() {
         return host + ":" + port;
     }
 }

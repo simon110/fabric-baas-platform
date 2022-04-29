@@ -17,7 +17,7 @@ import javax.validation.constraints.Pattern;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class CAEntity {
+public class CaEntity {
     @Pattern(regexp = ParamPattern.ORGANIZATION_NAME_REGEX, message = ParamPattern.ORGANIZATION_NAME_MSG)
     @ApiModelProperty(value = "组织名称", required = true)
     @Id

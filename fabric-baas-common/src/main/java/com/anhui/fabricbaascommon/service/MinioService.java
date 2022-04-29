@@ -15,11 +15,11 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 
 @Service
-public class MinIOService {
+public class MinioService {
     @Autowired
     private MinioClient minioClient;
 
-    private void createBucketIfNotPresent(String bucketName) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidResponseException, XmlParserException, InternalException, InvalidKeyException {
+    private void createBucket(String bucketName) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidResponseException, XmlParserException, InternalException, InvalidKeyException {
         if (!minioClient.bucketExists(BucketExistsArgs.builder().bucket(bucketName).build())) {
             minioClient.makeBucket(MakeBucketArgs.builder().bucket(bucketName).build());
         }
@@ -31,7 +31,7 @@ public class MinIOService {
      * @param file       文件，例如"/home/user/Photos/asiaphotos.zip"
      */
     public void putFile(String bucketName, String objectName, File file) throws MinioException, IOException, NoSuchAlgorithmException, InvalidKeyException {
-        createBucketIfNotPresent(bucketName);
+        createBucket(bucketName);
         minioClient.uploadObject(
                 UploadObjectArgs.builder()
                         .bucket(bucketName)
@@ -41,7 +41,7 @@ public class MinIOService {
     }
 
     public void putBytes(String bucketName, String objectName, byte[] bytes) throws MinioException, IOException, NoSuchAlgorithmException, InvalidKeyException {
-        createBucketIfNotPresent(bucketName);
+        createBucket(bucketName);
         ByteArrayInputStream inputStream = new ByteArrayInputStream(bytes);
         minioClient.putObject(
                 PutObjectArgs.builder()

@@ -7,6 +7,6 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class SingleResult<T> {
+public class UniqueResult<T> {
     private T result;
 }

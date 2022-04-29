@@ -3,7 +3,7 @@ package com.anhui.fabricbaascommon.util;
 import java.security.*;
 import java.security.spec.ECGenParameterSpec;
 
-public class ECDSAUtils {
+public class EcdsaUtils {
     public static boolean verify(PublicKey publicKey, byte[] sig, byte[] data) throws Exception {
         Signature signature = Signature.getInstance("SHA256withECDSA");
         signature.initVerify(publicKey);

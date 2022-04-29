@@ -18,7 +18,7 @@ public class TlsEnv {
         this.tlsRootCert = tlsRootCert;
     }
 
-    public void selfAssert() throws CertfileException {
+    public void assertRootCert() throws CertfileException {
         if (!tlsRootCert.isFile()) {
             throw new CertfileException("非法的TLS证书路径：" + tlsRootCert);
         }

@@ -6,6 +6,7 @@ import org.springframework.util.Base64Utils;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
+import java.util.UUID;
 
 public class InvitationUtils {
     private static SecretKeySpec AES_SECRET_KEY_SPEC;
@@ -13,8 +14,8 @@ public class InvitationUtils {
     static {
         try {
             // TODO: 在项目中添加token相关的配置
-            String token = PasswordUtils.generatePassword();
-            AES_SECRET_KEY_SPEC = AESUtils.generateSecretKey(token);
+            String token = UUID.randomUUID().toString();
+            AES_SECRET_KEY_SPEC = AesUtils.generateSecretKey(token);
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
@@ -26,13 +27,13 @@ public class InvitationUtils {
                 invitation.getInviteeOrgName(),
                 invitation.getChannelName(),
                 invitation.getTimestamp().toString());
-        byte[] encryptedStr = AESUtils.encrypt(str.getBytes(StandardCharsets.UTF_8), AES_SECRET_KEY_SPEC);
+        byte[] encryptedStr = AesUtils.encrypt(str.getBytes(StandardCharsets.UTF_8), AES_SECRET_KEY_SPEC);
         return Base64Utils.encodeToString(encryptedStr);
     }
 
     public static Invitation parseCode(String code) throws Exception {
         byte[] encryptedData = Base64Utils.decodeFromString(code);
-        byte[] decryptedData = AESUtils.decrypt(encryptedData, AES_SECRET_KEY_SPEC);
+        byte[] decryptedData = AesUtils.decrypt(encryptedData, AES_SECRET_KEY_SPEC);
         String str = new String(decryptedData, StandardCharsets.UTF_8);
         String[] properties = str.split("---");
         assert properties.length == 4;

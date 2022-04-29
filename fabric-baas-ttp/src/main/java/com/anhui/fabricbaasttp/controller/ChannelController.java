@@ -5,7 +5,7 @@ import com.anhui.fabricbaascommon.request.BaseChannelRequest;
 import com.anhui.fabricbaascommon.response.EmptyResult;
 import com.anhui.fabricbaascommon.response.ListResult;
 import com.anhui.fabricbaascommon.response.ResourceResult;
-import com.anhui.fabricbaascommon.response.SingleResult;
+import com.anhui.fabricbaascommon.response.UniqueResult;
 import com.anhui.fabricbaasttp.bean.Peer;
 import com.anhui.fabricbaasttp.entity.ChannelEntity;
 import com.anhui.fabricbaasttp.request.ChannelCreateRequest;
@@ -88,7 +88,7 @@ public class ChannelController {
     @Secured({Authority.USER, Authority.ADMIN})
     @PostMapping("/getChannel")
     @ApiOperation("查询指定通道的详细信息")
-    public SingleResult<ChannelEntity> getChannel(@Valid @RequestBody BaseChannelRequest request) throws Exception {
+    public UniqueResult<ChannelEntity> getChannel(@Valid @RequestBody BaseChannelRequest request) throws Exception {
         return channelService.getChannel(request);
     }
 }

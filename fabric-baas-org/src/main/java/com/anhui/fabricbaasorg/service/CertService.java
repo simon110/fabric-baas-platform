@@ -3,7 +3,7 @@ package com.anhui.fabricbaasorg.service;
 import com.anhui.fabricbaascommon.entity.CertfileEntity;
 import com.anhui.fabricbaascommon.repository.CertfileRepo;
 import com.anhui.fabricbaascommon.response.PaginationQueryResult;
-import com.anhui.fabricbaascommon.service.CAService;
+import com.anhui.fabricbaascommon.service.CaClientService;
 import com.anhui.fabricbaasorg.request.CertGenerateRequest;
 import com.anhui.fabricbaasorg.request.CertQueryRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class CertService {
     @Autowired
-    private CAService caClientService;
+    private CaClientService caClientService;
     @Autowired
     private CertfileRepo certfileRepo;
 

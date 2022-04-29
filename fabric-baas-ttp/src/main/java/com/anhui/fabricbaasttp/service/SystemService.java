@@ -1,17 +1,17 @@
 package com.anhui.fabricbaasttp.service;
 
 
-import com.anhui.fabricbaascommon.bean.CSRConfig;
+import com.anhui.fabricbaascommon.bean.CsrConfig;
 import com.anhui.fabricbaascommon.exception.DuplicatedOperationException;
-import com.anhui.fabricbaascommon.fabric.CAUtils;
-import com.anhui.fabricbaascommon.response.SingleResult;
-import com.anhui.fabricbaascommon.service.CAService;
-import com.anhui.fabricbaascommon.service.DockerService;
+import com.anhui.fabricbaascommon.fabric.CaUtils;
+import com.anhui.fabricbaascommon.response.UniqueResult;
+import com.anhui.fabricbaascommon.service.CaClientService;
+import com.anhui.fabricbaascommon.service.CaContainerService;
 import com.anhui.fabricbaascommon.configuration.AdminConfiguration;
 import com.anhui.fabricbaascommon.configuration.FabricConfiguration;
-import com.anhui.fabricbaascommon.entity.CAEntity;
+import com.anhui.fabricbaascommon.entity.CaEntity;
 import com.anhui.fabricbaascommon.entity.UserEntity;
-import com.anhui.fabricbaascommon.repository.CARepo;
+import com.anhui.fabricbaascommon.repository.CaRepo;
 import com.anhui.fabricbaascommon.repository.UserRepo;
 import com.anhui.fabricbaasttp.request.SystemInitRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -32,13 +32,13 @@ public class SystemService {
     @Autowired
     private UserRepo userRepo;
     @Autowired
-    private DockerService dockerService;
+    private CaContainerService caContainerService;
     @Autowired
-    private CAService caService;
+    private CaClientService caClientService;
     @Autowired
     private PasswordEncoder passwordEncoder;
     @Autowired
-    private CARepo caRepo;
+    private CaRepo caRepo;
 
     /**
      * 初始化主要包括两个任务：
@@ -47,22 +47,22 @@ public class SystemService {
      * 3. 登记管理员证书
      */
     public void init(SystemInitRequest req) throws Exception {
-        if (dockerService.checkCAServer()) {
+        if (caContainerService.checkCaContainer()) {
             throw new DuplicatedOperationException("CA服务已进入运行状态，请勿重复初始化系统");
         }
         if (caRepo.count() != 0) {
             throw new DuplicatedOperationException("系统中已存在TTP信息，请勿重复初始化系统");
         }
-        CAEntity ttp = req.getTtp();
+        CaEntity ttp = req.getTtp();
         log.info("可信第三方信息：" + ttp);
-        CSRConfig CSRConfig = CAUtils.buildCsrConfig(ttp);
+        CsrConfig CSRConfig = CaUtils.buildCsrConfig(ttp);
         log.info("生成CA服务信息：" + CSRConfig);
         // 启动CA容器并尝试初始化管理员证书
-        dockerService.startCAServer(CSRConfig, fabricConfiguration.getCaAdminUsername(), fabricConfiguration.getCaAdminPassword());
+        caContainerService.startCaContainer(CSRConfig, fabricConfiguration.getRootCaUsername(), fabricConfiguration.getRootCaPassword());
         caRepo.save(ttp);
 
         log.info("正在初始化CA服务管理员证书...");
-        caService.initAdminCertfile(CSRConfig);
+        caClientService.initRootCertfile(CSRConfig);
 
         Optional<UserEntity> adminOptional = userRepo.findById(adminConfiguration.getDefaultUsername());
         adminOptional.ifPresent(admin -> {
@@ -76,8 +76,8 @@ public class SystemService {
         });
     }
 
-    public SingleResult<Boolean> isInitialized() {
-        return new SingleResult<>(caRepo.count() == 0);
+    public UniqueResult<Boolean> isInitialized() {
+        return new UniqueResult<>(caRepo.count() == 0);
     }
 }
 

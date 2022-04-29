@@ -5,14 +5,14 @@ import com.anhui.fabricbaascommon.bean.CoreEnv;
 import com.anhui.fabricbaascommon.bean.Node;
 import com.anhui.fabricbaascommon.bean.TlsEnv;
 import com.anhui.fabricbaascommon.constant.CertfileType;
-import com.anhui.fabricbaascommon.entity.CAEntity;
-import com.anhui.fabricbaascommon.exception.CAException;
+import com.anhui.fabricbaascommon.entity.CaEntity;
+import com.anhui.fabricbaascommon.exception.CaException;
 import com.anhui.fabricbaascommon.exception.CertfileException;
 import com.anhui.fabricbaascommon.exception.NodeException;
 import com.anhui.fabricbaascommon.fabric.ChaincodeUtils;
-import com.anhui.fabricbaascommon.service.CAService;
+import com.anhui.fabricbaascommon.service.CaClientService;
 import com.anhui.fabricbaascommon.util.CertfileUtils;
-import com.anhui.fabricbaascommon.util.ResourceUtils;
+import com.anhui.fabricbaascommon.util.SimpleFileUtils;
 import com.anhui.fabricbaasorg.entity.CommittedChaincodeEntity;
 import com.anhui.fabricbaasorg.entity.InstalledChaincodeEntity;
 import com.anhui.fabricbaasorg.entity.PeerEntity;
@@ -48,7 +48,7 @@ public class ChaincodeService {
     @Autowired
     private OrdererRepo ordererRepo;
     @Autowired
-    private CAService caService;
+    private CaClientService caClientService;
     @Autowired
     private TTPChannelApi ttpChannelApi;
     @Autowired
@@ -56,7 +56,7 @@ public class ChaincodeService {
     @Autowired
     private ChannelRepo channelRepo;
 
-    private CoreEnv buildCoreEnvForPeer(String peerName) throws IOException, NodeException, CertfileException, CAException {
+    private CoreEnv buildCoreEnvForPeer(String peerName) throws IOException, NodeException, CertfileException, CaException {
         Optional<PeerEntity> peerOptional = peerRepo.findById(peerName);
         if (peerOptional.isEmpty()) {
             throw new NodeException("Peer不存在：" + peerName);
@@ -68,9 +68,9 @@ public class ChaincodeService {
         CertfileUtils.assertCertfile(certfileDir);
 
         CoreEnv coreEnv = new CoreEnv();
-        CAEntity caEntity = caService.getCAEntity();
+        CaEntity caEntity = caClientService.findCaEntity();
         coreEnv.setAddress(caEntity.getDomain() + ":" + peer.getKubeNodePort());
-        coreEnv.setMspConfig(CertfileUtils.getCertfileMSPDir(certfileDir));
+        coreEnv.setMspConfig(CertfileUtils.getCertfileMspDir(certfileDir));
         coreEnv.setMspId(caEntity.getOrganizationName());
         coreEnv.setTlsRootCert(new File(certfileDir + "/tls/ca.crt"));
         return coreEnv;
@@ -78,7 +78,7 @@ public class ChaincodeService {
 
     public void install(ChaincodeInstallRequest request, MultipartFile chaincodePackage) throws Exception {
         // 将链码压缩包写入临时目录
-        File tempChaincodePackage = ResourceUtils.createTempFile("tar.gz");
+        File tempChaincodePackage = SimpleFileUtils.createTempFile("tar.gz");
         FileUtils.writeByteArrayToFile(tempChaincodePackage, chaincodePackage.getBytes());
 
         // 执行链码安装
@@ -98,7 +98,7 @@ public class ChaincodeService {
     }
 
     private TlsEnv buildEndorsorPeerTlsEnv(String channelName, Node endorsor) throws Exception {
-        File endorsorTlsCert = ResourceUtils.createTempFile("crt");
+        File endorsorTlsCert = SimpleFileUtils.createTempFile("crt");
         byte[] endorsorTlsCertData = ttpChannelApi.queryPeerTlsCert(channelName, endorsor);
         FileUtils.writeByteArrayToFile(endorsorTlsCert, endorsorTlsCertData);
 

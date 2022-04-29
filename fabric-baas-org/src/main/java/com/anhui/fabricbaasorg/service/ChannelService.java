@@ -2,9 +2,9 @@ package com.anhui.fabricbaasorg.service;
 
 import com.anhui.fabricbaascommon.bean.Node;
 import com.anhui.fabricbaascommon.constant.CertfileType;
-import com.anhui.fabricbaascommon.service.CAService;
+import com.anhui.fabricbaascommon.service.CaClientService;
 import com.anhui.fabricbaascommon.util.CertfileUtils;
-import com.anhui.fabricbaascommon.util.ResourceUtils;
+import com.anhui.fabricbaascommon.util.SimpleFileUtils;
 import com.anhui.fabricbaascommon.util.ZipUtils;
 import com.anhui.fabricbaasorg.entity.ChannelEntity;
 import com.anhui.fabricbaasorg.entity.PeerEntity;
@@ -27,7 +27,7 @@ public class ChannelService {
     @Autowired
     private TTPChannelApi ttpChannelApi;
     @Autowired
-    private CAService caService;
+    private CaClientService caClientService;
     @Autowired
     private PeerRepo peerRepo;
     @Autowired
@@ -44,7 +44,7 @@ public class ChannelService {
 
     public void updateAnchor(AnchorPeerUpdateRequest request) throws Exception {
         // 获取集群域名
-        String domain = caService.getAdminOrganizationDomain();
+        String domain = caClientService.getCaOrganizationDomain();
 
         // 查询相应的Peer的端口
         Optional<PeerEntity> peerOptional = peerRepo.findById(request.getPeerName());
@@ -72,8 +72,8 @@ public class ChannelService {
         // 如果Peer节点已经启动必然存在证书
         File certfileDir = CertfileUtils.getCertfileDir(request.getPeerName(), CertfileType.PEER);
         CertfileUtils.assertCertfile(certfileDir);
-        File peerCertfileZip = ResourceUtils.createTempFile("zip");
-        ZipUtils.zip(peerCertfileZip, CertfileUtils.getCertfileMSPDir(certfileDir), CertfileUtils.getCertfileTLSDir(certfileDir));
+        File peerCertfileZip = SimpleFileUtils.createTempFile("zip");
+        ZipUtils.zip(peerCertfileZip, CertfileUtils.getCertfileMspDir(certfileDir), CertfileUtils.getCertfileTlsDir(certfileDir));
 
         // 获取Peer连接信息
         Optional<PeerEntity> peerOptional = peerRepo.findById(request.getPeerName());
@@ -81,7 +81,7 @@ public class ChannelService {
             throw new NodeNotFoundException("未找到相应的Peer节点");
         }
         Node peer = new Node();
-        peer.setHost(caService.getAdminOrganizationDomain());
+        peer.setHost(caClientService.getCaOrganizationDomain());
         peer.setPort(peerOptional.get().getKubeNodePort());
 
         // 调用远程接口

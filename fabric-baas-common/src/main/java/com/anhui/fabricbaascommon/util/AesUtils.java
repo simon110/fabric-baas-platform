@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 
-public class AESUtils {
+public class AesUtils {
     public static SecretKeySpec readSecretKey(File file) throws IOException {
         byte[] encoded = FileUtils.readFileToByteArray(file);
         return new SecretKeySpec(encoded, "AES");
