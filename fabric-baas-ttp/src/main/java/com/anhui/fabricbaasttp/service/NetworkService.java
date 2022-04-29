@@ -165,7 +165,7 @@ public class NetworkService {
         // 对比新旧配置文件生成Envelope，并对Envelope进行签名
         log.info("正在生成提交到通道的Envelope并签名：" + envelope.getAbsolutePath());
         ChannelUtils.generateEnvelope(fabricConfig.getSystemChannelName(), envelope, oldConfig, newConfig);
-        ChannelUtils.signEnvelope(ordererCoreEnv.getMSPEnv(), envelope);
+        // ChannelUtils.signEnvelope(ordererCoreEnv.getMSPEnv(), envelope);
 
         // 将签名后的Envelope提交到Orderer
         log.info("正在将Envelope提交到系统通道：" + fabricConfig.getSystemChannelName());
@@ -274,7 +274,7 @@ public class NetworkService {
         // 计算新旧JSON配置文件之间的差异得到Envelope，并对其进行签名
         File envelope = ResourceUtils.createTempFile("pb");
         ChannelUtils.generateEnvelope(fabricConfig.getSystemChannelName(), envelope, oldChannelConfig, newChannelConfig);
-        ChannelUtils.signEnvelope(selectedOrdererCoreEnv.getMSPEnv(), envelope);
+        // ChannelUtils.signEnvelope(selectedOrdererCoreEnv.getMSPEnv(), envelope);
         log.info("生成并使用Orderer身份对Envelope文件进行签名：" + envelope.getAbsolutePath());
 
         // 将Envelope提交到现有的Orderer节点

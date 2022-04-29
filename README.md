@@ -550,6 +550,3 @@ token用于身份验证，需要将其设置为Http请求Header的`Authorization
 
 
 
-### 4.6 通道新增Orderer
-
-默认通道在创建时会使用

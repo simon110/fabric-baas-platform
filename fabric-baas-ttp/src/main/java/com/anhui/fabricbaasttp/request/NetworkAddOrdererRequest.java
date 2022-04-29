@@ -10,7 +10,7 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
 @Data
-@ApiModel(value = "Orderer添加请求")
+@ApiModel(value = "网络Orderer添加请求")
 public class NetworkAddOrdererRequest {
     @Pattern(regexp = ParamPattern.NETWORK_NAME_REGEX, message = ParamPattern.NETWORK_NAME_MSG)
     @ApiModelProperty(value = "网络名称", required = true)

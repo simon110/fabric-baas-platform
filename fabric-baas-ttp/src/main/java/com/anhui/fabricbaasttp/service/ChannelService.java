@@ -21,7 +21,6 @@ import com.anhui.fabricbaasttp.response.ChannelQueryPeerResult;
 import com.anhui.fabricbaasttp.response.InvitationCodeResult;
 import com.anhui.fabricbaasttp.util.IdentifierGenerator;
 import com.anhui.fabricbaasweb.util.SecurityUtils;
-import com.spotify.docker.client.exceptions.NodeNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,7 +79,7 @@ public class ChannelService {
         String target = node.getAddr();
         for (Node item : nodes) {
             if (item.getAddr().equals(target)) {
-                return node;
+                return item;
             }
         }
         return null;
@@ -191,71 +190,17 @@ public class ChannelService {
         log.info("保存通道信息：" + channel);
     }
 
-    public ResourceResult queryGenesisBlock(ChannelQueryGenesisBlockRequest request) throws Exception {
-        ChannelEntity channel = getChannelOrThrowException(request.getChannelName());
+    public byte[] queryGenesisBlock(String channelName) throws Exception {
+        ChannelEntity channel = getChannelOrThrowException(channelName);
         String curOrgName = SecurityUtils.getUsername();
         assertOrganizationInChannel(channel, curOrgName);
         Orderer orderer = RandomUtils.select(channel.getOrderers());
 
-        String downloadUrl = "/download/block/" + UUID.randomUUID() + ".block";
-        File block = new File("static" + downloadUrl);
+        File block = ResourceUtils.createTempFile("block");
 
         CoreEnv ordererCoreEnv = fabricEnvService.buildCoreEnvForOrderer(orderer);
-        ChannelUtils.fetchGenesisBlock(ordererCoreEnv, request.getChannelName(), block);
-
-        ResourceResult result = new ResourceResult();
-        result.setDownloadUrl(downloadUrl);
-        return result;
-    }
-
-    public void addOrderer(ChannelAddOrdererRequest request) throws Exception {
-        // 检查通道是否存在
-        ChannelEntity channel = getChannelOrThrowException(request.getChannelName());
-        NetworkEntity network = networkService.getNetworkOrThrowException(channel.getNetworkName());
-
-        // 检查当前组织是否位于通道中
-        String curOrgName = SecurityUtils.getUsername();
-        assertOrganizationInChannel(channel, curOrgName);
-
-        // 保证Orderer已经在网络中
-        Orderer newOrderer = (Orderer) findNodeByAddress(request.getOrderer(), network.getOrderers());
-        if (newOrderer == null) {
-            throw new NodeNotFoundException("Orderer不在网络中");
-        }
-        if (findNodeByAddress(request.getOrderer(), channel.getOrderers()) != null) {
-            throw new NodeException("Orderer已经加入通道中");
-        }
-
-        // 从现有的通道中随机选择一个Orderer节点
-        Orderer selectedOrderer = RandomUtils.select(channel.getOrderers());
-        File selectedOrdererCertfileDir = CertfileUtils.getCertfileDir(selectedOrderer.getCaUsername(), CertfileType.ORDERER);
-
-        // 拉取通道的配置文件（以Orderer组织管理员的身份）
-        CoreEnv ordererCoreEnv = fabricEnvService.buildCoreEnvForOrderer(selectedOrderer);
-        File oldChannelConfig = ResourceUtils.createTempFile("json");
-        ChannelUtils.fetchConfig(ordererCoreEnv, request.getChannelName(), oldChannelConfig);
-
-        // 向通道配置文件中添加新Orderer的定义
-        File tlsServerCrt = new File(selectedOrdererCertfileDir + "/tls/server.crt");
-        ConfigtxOrderer configtxOrderer = new ConfigtxOrderer();
-        configtxOrderer.setHost(request.getOrderer().getHost());
-        configtxOrderer.setPort(request.getOrderer().getPort());
-        configtxOrderer.setClientTlsCert(tlsServerCrt);
-        configtxOrderer.setServerTlsCert(tlsServerCrt);
-        File newChannelConfig = ResourceUtils.createTempFile("json");
-        ChannelUtils.appendOrdererToChannelConfig(configtxOrderer, newChannelConfig);
-
-        // 计算新旧JSON配置文件之间的差异得到Envelope，并对其进行签名
-        File envelope = ResourceUtils.createTempFile("pb");
-        ChannelUtils.generateEnvelope(request.getChannelName(), envelope, oldChannelConfig, newChannelConfig);
-        ChannelUtils.signEnvelope(ordererCoreEnv.getMSPEnv(), envelope);
-
-        // 将Envelope提交到现有的Orderer节点
-        ChannelUtils.submitChannelUpdate(ordererCoreEnv.getMSPEnv(), ordererCoreEnv.getTLSEnv(), request.getChannelName(), envelope);
-
-        // 将更新后的信息保存到数据库
-        channel.getOrderers().add(newOrderer);
-        channelRepo.save(channel);
+        ChannelUtils.fetchGenesisBlock(ordererCoreEnv, channelName, block);
+        return FileUtils.readFileToByteArray(block);
     }
 
     public void submitInvitationCodes(ChannelSubmitInvitationCodesRequest request) throws Exception {

@@ -34,14 +34,6 @@ public class ChannelController {
     }
 
     @Secured({Authority.USER})
-    @PostMapping("/addOrderer")
-    @ApiOperation("向通道中添加Orderer（必须是已经存在于网络中的Orderer）")
-    public EmptyResult addOrderer(@Valid @RequestBody ChannelAddOrdererRequest request) throws Exception {
-        channelService.addOrderer(request);
-        return new EmptyResult();
-    }
-
-    @Secured({Authority.USER})
     @PostMapping("/joinChannel")
     @ApiOperation("将组织的Peer节点加入到通道中")
     public EmptyResult joinChannel(@Valid @RequestPart ChannelJoinRequest request,
