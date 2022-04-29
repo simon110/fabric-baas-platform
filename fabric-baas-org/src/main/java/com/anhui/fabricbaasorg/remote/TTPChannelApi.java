@@ -32,18 +32,6 @@ public class TTPChannelApi {
 
     /**
      * @param channelName 通道名称
-     * @param orderer     要添加到通道的Orderer地址信息（必须已经加人网络）
-     * @throws Exception 返回请求中任何code!=200的情况都应该抛出异常
-     */
-    public void addOrderer(String channelName, Node orderer) throws Exception {
-        JSONObject data = new JSONObject();
-        data.set("channelName", channelName);
-        data.set("orderer", orderer);
-        httpClient.request("/api/v1/channel/addOrderer", data);
-    }
-
-    /**
-     * @param channelName 通道名称
      * @param peer        Peer节点的地址信息
      * @param peerCertZip Peer节点的所有证书
      * @throws Exception 返回请求中任何code!=200的情况都应该抛出异常

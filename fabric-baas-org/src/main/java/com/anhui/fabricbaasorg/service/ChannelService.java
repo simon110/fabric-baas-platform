@@ -87,12 +87,4 @@ public class ChannelService {
         // 调用远程接口
         ttpChannelApi.joinChannel(request.getChannelName(), peer, peerCertfileZip);
     }
-
-    public void addOrderer(ChannelAddOrdererRequest request) throws Exception {
-        Node orderer = new Node();
-        orderer.setHost(caService.getAdminOrganizationDomain());
-        orderer.setPort(request.getOrdererPort());
-
-        ttpChannelApi.addOrderer(request.getChannelName(), orderer);
-    }
 }
