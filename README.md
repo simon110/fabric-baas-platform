@@ -475,11 +475,52 @@ token用于身份验证，需要将其设置为Http请求Header的`Authorization
 
 
 
-### 4.2 加入通道
+### 4.2 Peer加入通道
 
-创建通道完成后，组织端需要用自己的证书来先启动一个Peer。例如此处启动一个地址为**orga.example.com:31000**的Peer，然后通过`/api/v1/channel/joinChannel`将Peer加入到通道**samplechannel**中，要求上传Peer的证书压缩包：
+创建通道完成后，组织端需要用自己的证书来先启动一个Peer。例如此处启动了一个地址为**orga.example.com:31000**的Peer，然后通过`/api/v1/channel/joinChannel`将Peer加入到通道**samplechannel**中，注意要求同时上传Peer的证书压缩包：
 
 ```json
+{
+  "channelName": "samplechannel",
+  "peer": {
+    "host": "orga.example.com",
+    "port": 31000
+  }
+}
+```
+
+
+
+### 4.3 生成邀请码
+
+通道中的组织可以通过`/api/v1/channel/generateInvitationCode`生成邀请码来邀请网络中的其他组织加入，例如组织TestOrgA要邀请TestOrgB加入**samplechannel**：
+
+```json
+{
+  "channelName": "samplechannel",
+  "organizationName": "TestOrgB"
+}
+```
+
+```json
+{
+  "code": 200,
+  "message": "成功调用服务",
+  "data": {
+    "invitationCode": "9ajLhC0nl7FQteTkLCZ7Sl4WoMVl/HN6SeY5KeNnYMQ7kqfwIwbp/b9oficgB7CYH7nLjY9jo8OSXkY0IGGW8A=="
+  }
+}
+```
+
+然后将该邀请码发送给TestOrgB相关人员即可。
+
+
+
+### 4.4 提交邀请码
+
+在收集到当前通道中所有组织的邀请码后，可以通过`/api/v1/channel/submitInvitationCodes`来提交所有的邀请码以加入通道：
+
+```
 
 ```
 

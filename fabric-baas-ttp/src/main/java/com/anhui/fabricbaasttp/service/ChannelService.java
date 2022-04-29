@@ -94,7 +94,7 @@ public class ChannelService {
     private void signEnvelopeWithOrganizations(String networkName, List<String> organizationNames, File envelope) throws IOException, InterruptedException, EnvelopeException {
         for (String orgName : organizationNames) {
             MSPEnv organizationMspDir = fabricEnvService.buildMSPEnvForOrg(networkName, orgName);
-            log.info(String.format("正在使用%s在%s网络的证书对Envelope进行签名：", orgName, networkName) + envelope.getAbsolutePath());
+            log.info(String.format("正在使用%s在%s网络的管理员证书对Envelope进行签名：", orgName, networkName) + envelope.getAbsolutePath());
             ChannelUtils.signEnvelope(organizationMspDir, envelope);
         }
     }
@@ -102,6 +102,7 @@ public class ChannelService {
     private void assertInvitationCodes(List<String> invitationCodes, List<String> invitorOrgNames, String inviteeOrgName, String channelName) throws Exception {
         Set<String> actualInvitorSet = new HashSet<>();
         Set<String> givenInvitorSet = new HashSet<>(invitorOrgNames);
+        log.info("邀请码应包含组织：" + givenInvitorSet);
         for (String invitationCode : invitationCodes) {
             Invitation invitation = InvitationUtils.parseCode(invitationCode);
             if (!invitation.getChannelName().equals(channelName)) {
@@ -110,8 +111,10 @@ public class ChannelService {
             if (!invitation.getInviteeOrgName().equals(inviteeOrgName)) {
                 throw new InvitationException("邀请码所包含的受邀组织错误");
             }
+            // TODO: 增加时间检查
             actualInvitorSet.add(invitation.getInvitorOrgName());
         }
+        log.info("邀请码实际包含的组织：" + actualInvitorSet);
         if (!actualInvitorSet.equals(givenInvitorSet)) {
             throw new InvitationException("必须包含所有通道中的组织的邀请码");
         }
@@ -272,42 +275,55 @@ public class ChannelService {
 
         // 从通道中随机选择一个Orderer
         Orderer orderer = RandomUtils.select(channel.getOrderers());
+        log.info("随机选择Orderer节点：" + orderer);
 
         // 拉取指定通道的配置
-        CoreEnv ordererEnvVars = fabricEnvService.buildCoreEnvForOrderer(orderer);
+        CoreEnv ordererCoreEnv = fabricEnvService.buildCoreEnvForOrderer(orderer);
+        log.info("生成Orderer环境变量：" + ordererCoreEnv);
         File oldChannelConfig = ResourceUtils.createTempFile("json");
-        ChannelUtils.fetchConfig(ordererEnvVars, channel.getName(), oldChannelConfig);
+        ChannelUtils.fetchConfig(ordererCoreEnv, channel.getName(), oldChannelConfig);
+        log.info(String.format("拉取通道配置%s：", channel.getName()) + FileUtils.readFileToString(oldChannelConfig, StandardCharsets.UTF_8));
 
         // 生成新组织的配置
         File newOrgConfigtxDir = ResourceUtils.createTempDir();
-        File newOrgConfigtxYaml = new File(newOrgConfigtxDir + "configtx.yaml");
+        File newOrgConfigtxYaml = new File(newOrgConfigtxDir + "/configtx.yaml");
         File newOrgConfigtxJson = ResourceUtils.createTempFile("json");
-        File newOrgCertfileDir = CertfileUtils.getCertfileDir(curOrgName, CertfileType.ADMIN);
+        String newOrgCertfileId = IdentifierGenerator.ofCertfile(channel.getNetworkName(), curOrgName);
+        File newOrgCertfileDir = CertfileUtils.getCertfileDir(newOrgCertfileId, CertfileType.ADMIN);
+
         ConfigtxOrganization configtxOrganization = new ConfigtxOrganization();
         configtxOrganization.setId(curOrgName);
         configtxOrganization.setName(curOrgName);
         configtxOrganization.setMspDir(new File(newOrgCertfileDir + "/msp"));
         ConfigtxUtils.generateOrgConfigtx(newOrgConfigtxYaml, configtxOrganization);
+        log.info("生成新组织的configtx.yaml配置：" + FileUtils.readFileToString(newOrgConfigtxYaml, StandardCharsets.UTF_8));
         ConfigtxUtils.convertOrgConfigtxToJson(newOrgConfigtxJson, newOrgConfigtxDir, curOrgName);
+        log.info("将新组织的configtx.yaml转换为json格式：" + FileUtils.readFileToString(newOrgConfigtxJson, StandardCharsets.UTF_8));
 
         // 对通道配置文件进行更新并生成Envelope
         File newChannelConfig = ResourceUtils.createTempFile("json");
         FileUtils.copyFile(oldChannelConfig, newChannelConfig);
         ChannelUtils.appendOrganizationToAppChannelConfig(curOrgName, newOrgConfigtxJson, newChannelConfig);
+        log.info("将新组织添加到现有的通道配置中：" + FileUtils.readFileToString(newChannelConfig, StandardCharsets.UTF_8));
         File envelope = ResourceUtils.createTempFile("pb");
         ChannelUtils.generateEnvelope(channel.getName(), envelope, oldChannelConfig, newChannelConfig);
+        log.info("生成向通道添加组织的Envelope：" + envelope.getAbsolutePath());
 
         // 使用该通道中所有组织的身份对Envelope进行签名（包括未加入的组织）
-        List<String> signerOrgNames = new ArrayList<>(channel.getOrganizationNames());
-        signerOrgNames.add(curOrgName);
+        List<String> channelOrganizationNames = channel.getOrganizationNames();
+        List<String> signerOrgNames = channelOrganizationNames.subList(0, channelOrganizationNames.size() - 1);
         signEnvelopeWithOrganizations(channel.getNetworkName(), signerOrgNames, envelope);
 
         // 将Envelope提交到Orderer
-        MSPEnv organizationMspEnv = fabricEnvService.buildMSPEnvForOrg(channel.getNetworkName(), curOrgName);
-        ChannelUtils.submitChannelUpdate(organizationMspEnv, ordererEnvVars.getTLSEnv(), channel.getName(), envelope);
+        // 注意不能用未在通道中的组织的身份来提交通道更新，即使通道中的组织全都签名了也依然会报错
+        String lastChannelOrgName = channelOrganizationNames.get(channelOrganizationNames.size() - 1);
+        MSPEnv organizationMspEnv = fabricEnvService.buildMSPEnvForOrg(channel.getNetworkName(), lastChannelOrgName);
+        log.info("生成提交Envelope的当前组织的MSP环境变量：" + organizationMspEnv);
+        ChannelUtils.submitChannelUpdate(organizationMspEnv, ordererCoreEnv.getTLSEnv(), channel.getName(), envelope);
 
         // 将组织保存至MongoDB
         channel.getOrganizationNames().add(curOrgName);
+        log.info("更新通道信息：" + channel);
         channelRepo.save(channel);
     }
 
@@ -392,7 +408,9 @@ public class ChannelService {
         invitation.setInviteeOrgName(request.getOrganizationName());
         invitation.setChannelName(request.getChannelName());
         invitation.setTimestamp(System.currentTimeMillis());
+        log.info("生成邀请信息：" + invitation);
         String invitationCode = InvitationUtils.getCode(invitation);
+        log.info("生成邀请码：" + invitationCode);
         return new InvitationCodeResult(invitationCode);
     }
 

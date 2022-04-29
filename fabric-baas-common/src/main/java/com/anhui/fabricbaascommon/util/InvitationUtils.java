@@ -6,14 +6,14 @@ import org.springframework.util.Base64Utils;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
-import java.util.UUID;
 
 public class InvitationUtils {
     private static SecretKeySpec AES_SECRET_KEY_SPEC;
 
     static {
         try {
-            String token = UUID.randomUUID().toString();
+            // TODO: 在项目中添加token相关的配置
+            String token = PasswordUtils.generatePassword();
             AES_SECRET_KEY_SPEC = AESUtils.generateSecretKey(token);
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
