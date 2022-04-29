@@ -60,7 +60,7 @@ class KubernetesClientTest {
         kubernetesClient.deleteYaml(busyboxYaml);
     }
 
-    // @Test
+    @Test
     public void deployOrderers() throws IOException, InterruptedException {
         File adminConfig = new File("example/kubernetes/admin.conf");
         KubernetesClient kubernetesClient = new KubernetesClient(adminConfig);
@@ -69,6 +69,7 @@ class KubernetesClientTest {
         // pairs.add(new Pair<>("TestOrgA", "orderer1"));
         // pairs.add(new Pair<>("TestOrgB", "orderer0"));
         // pairs.add(new Pair<>("TestOrgC", "orderer0"));
+        pairs.add(new Pair<>("TestOrgC", "orderer1"));
         // pairs.add(new Pair<>("TestOrgD", "orderer0"));
 
         for (Pair<String, String> pair : pairs) {
@@ -100,7 +101,7 @@ class KubernetesClientTest {
         }
     }
 
-    @Test
+    // @Test
     public void deployPeers() throws IOException, InterruptedException {
         File adminConfig = new File("example/kubernetes/admin.conf");
         KubernetesClient kubernetesClient = new KubernetesClient(adminConfig);

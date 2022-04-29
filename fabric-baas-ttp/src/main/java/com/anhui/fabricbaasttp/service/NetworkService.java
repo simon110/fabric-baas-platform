@@ -1,6 +1,9 @@
 package com.anhui.fabricbaasttp.service;
 
-import com.anhui.fabricbaascommon.bean.*;
+import com.anhui.fabricbaascommon.bean.ConfigtxOrderer;
+import com.anhui.fabricbaascommon.bean.ConfigtxOrganization;
+import com.anhui.fabricbaascommon.bean.CoreEnv;
+import com.anhui.fabricbaascommon.bean.Node;
 import com.anhui.fabricbaascommon.configuration.FabricConfiguration;
 import com.anhui.fabricbaascommon.constant.ApplStatus;
 import com.anhui.fabricbaascommon.constant.CertfileType;
@@ -35,7 +38,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 @Service
@@ -135,7 +137,7 @@ public class NetworkService {
         CoreEnv ordererCoreEnv = fabricEnvService.buildCoreEnvForOrderer(orderer);
         log.info("生成Orderer的环境变量：" + ordererCoreEnv);
         ChannelUtils.fetchConfig(ordererCoreEnv, fabricConfig.getSystemChannelName(), oldConfig);
-        log.info("从网络的系统通道拉取配置：" + FileUtils.readFileToString(oldConfig, StandardCharsets.UTF_8));
+        log.info("从网络的系统通道拉取配置：" + oldConfig.toString());
 
         // 从MinIO下载新组织的证书并解压
         String organizationCertfileId = IdentifierGenerator.ofCertfile(network.getName(), newOrgName);
@@ -151,14 +153,14 @@ public class NetworkService {
         File orgConfigtxDir = ResourceUtils.createTempDir();
         File orgConfigtxYaml = new File(orgConfigtxDir + "/configtx.yaml");
         ConfigtxUtils.generateOrgConfigtx(orgConfigtxYaml, newConfigtxOrganization);
-        log.info("生成组织的configtx.yaml配置文件：" + FileUtils.readFileToString(orgConfigtxYaml, StandardCharsets.UTF_8));
+        log.info("生成组织的configtx.yaml配置文件：" + orgConfigtxYaml.getAbsolutePath());
         ConfigtxUtils.convertOrgConfigtxToJson(orgConfig, orgConfigtxDir, newOrgName);
-        log.info("将组织的configtx.yaml配置文件转换为json：" + FileUtils.readFileToString(orgConfig, StandardCharsets.UTF_8));
+        log.info("将组织的configtx.yaml配置文件转换为json：" + orgConfig.getAbsolutePath());
 
         // 将新组织信息写入拉取下来的通道配置中
         FileUtils.copyFile(oldConfig, newConfig);
         ChannelUtils.appendOrganizationToSysChannelConfig(newOrgName, orgConfig, newConfig);
-        log.info("将组织的configtx.yaml配置文件合并到原来的configtx.yaml中：" + FileUtils.readFileToString(newConfig, StandardCharsets.UTF_8));
+        log.info("将组织的configtx.yaml配置文件合并到原来的configtx.yaml中：" + newConfig.getAbsolutePath());
 
         // 对比新旧配置文件生成Envelope，并对Envelope进行签名
         log.info("正在生成提交到通道的Envelope并签名：" + envelope.getAbsolutePath());
@@ -253,7 +255,7 @@ public class NetworkService {
         log.info("生成Orderer的环境变量：" + selectedOrdererCoreEnv);
         File oldChannelConfig = ResourceUtils.createTempFile("json");
         ChannelUtils.fetchConfig(selectedOrdererCoreEnv, fabricConfig.getSystemChannelName(), oldChannelConfig);
-        log.info("拉取系统通道的配置：" + FileUtils.readFileToString(oldChannelConfig, StandardCharsets.UTF_8));
+        log.info("拉取系统通道的配置：" + oldChannelConfig.getAbsolutePath());
 
 
         // 向通道配置文件中添加新Orderer的定义
@@ -267,7 +269,7 @@ public class NetworkService {
         File newChannelConfig = ResourceUtils.createTempFile("json");
         FileUtils.copyFile(oldChannelConfig, newChannelConfig);
         ChannelUtils.appendOrdererToChannelConfig(configtxOrderer, newChannelConfig);
-        log.info("将新的Orderer信息添加到通道配置：" + FileUtils.readFileToString(newChannelConfig, StandardCharsets.UTF_8));
+        log.info("将新的Orderer信息添加到通道配置：" + newChannelConfig.getAbsolutePath());
 
         // 计算新旧JSON配置文件之间的差异得到Envelope，并对其进行签名
         File envelope = ResourceUtils.createTempFile("pb");
@@ -378,7 +380,7 @@ public class NetworkService {
         File configtxDir = ResourceUtils.createTempDir();
         File configtxYaml = new File(configtxDir + "/configtx.yaml");
         ConfigtxUtils.generateConfigtx(configtxYaml, request.getConsortiumName(), configtxOrderers, ordererConfigtxOrg, configtxOrganizations);
-        log.info(String.format("生成配置文件%s：", configtxYaml.getAbsoluteFile()) + FileUtils.readFileToString(configtxYaml, StandardCharsets.UTF_8));
+        log.info(String.format("生成配置文件%s：", configtxYaml.getAbsoluteFile()) + configtxYaml.getAbsolutePath());
 
         File sysChannelGenesis = ResourceUtils.createTempFile("block");
         ConfigtxUtils.generateGenesisBlock("OrdererGenesis", fabricConfig.getSystemChannelName(), sysChannelGenesis, configtxDir);

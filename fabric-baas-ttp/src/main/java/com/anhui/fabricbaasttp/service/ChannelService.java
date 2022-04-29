@@ -8,10 +8,7 @@ import com.anhui.fabricbaascommon.fabric.ConfigtxUtils;
 import com.anhui.fabricbaascommon.response.ResourceResult;
 import com.anhui.fabricbaascommon.service.CAService;
 import com.anhui.fabricbaascommon.service.MinIOService;
-import com.anhui.fabricbaascommon.util.CertfileUtils;
-import com.anhui.fabricbaascommon.util.RandomUtils;
-import com.anhui.fabricbaascommon.util.ResourceUtils;
-import com.anhui.fabricbaascommon.util.ZipUtils;
+import com.anhui.fabricbaascommon.util.*;
 import com.anhui.fabricbaasttp.bean.Orderer;
 import com.anhui.fabricbaasttp.bean.Peer;
 import com.anhui.fabricbaasttp.constant.MinIOBucket;
@@ -23,7 +20,6 @@ import com.anhui.fabricbaasttp.response.ChannelQueryOrdererResult;
 import com.anhui.fabricbaasttp.response.ChannelQueryPeerResult;
 import com.anhui.fabricbaasttp.response.InvitationCodeResult;
 import com.anhui.fabricbaasttp.util.IdentifierGenerator;
-import com.anhui.fabricbaascommon.util.InvitationUtils;
 import com.anhui.fabricbaasweb.util.SecurityUtils;
 import com.spotify.docker.client.exceptions.NodeNotFoundException;
 import lombok.extern.slf4j.Slf4j;
@@ -34,7 +30,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /**
@@ -163,9 +158,9 @@ public class ChannelService {
         File configtxDir = ResourceUtils.createTempDir();
         File configtxYaml = new File(configtxDir + "/configtx.yaml");
         ConfigtxUtils.generateConfigtx(configtxYaml, network.getConsortiumName(), configtxOrderers, ordererConfigtxOrg, configtxOrganizations);
-        log.info(String.format("生成基本configtx.yaml文件%s：", configtxYaml) + FileUtils.readFileToString(configtxYaml, StandardCharsets.UTF_8));
+        log.info(String.format("生成基本configtx.yaml文件：%s", configtxYaml.getAbsolutePath()));
         ConfigtxUtils.appendChannelToConfigtx(configtxYaml, request.getChannelName(), Collections.singletonList(curOrgName));
-        log.info(String.format("将通道配置加入configtx.yaml文件%s：", configtxYaml) + FileUtils.readFileToString(configtxYaml, StandardCharsets.UTF_8));
+        log.info(String.format("将通道配置加入configtx.yaml文件：%s", configtxYaml.getAbsolutePath()));
 
         // 默认选择第一个Orderer
         // TODO: 选择后面动态加入的Orderer可会引发报错 Error: got unexpected status: SERVICE_UNAVAILABLE -- channel syschannel is not serviced by me
@@ -282,7 +277,7 @@ public class ChannelService {
         log.info("生成Orderer环境变量：" + ordererCoreEnv);
         File oldChannelConfig = ResourceUtils.createTempFile("json");
         ChannelUtils.fetchConfig(ordererCoreEnv, channel.getName(), oldChannelConfig);
-        log.info(String.format("拉取通道配置%s：", channel.getName()) + FileUtils.readFileToString(oldChannelConfig, StandardCharsets.UTF_8));
+        log.info(String.format("拉取通道配置：%s", channel.getName()));
 
         // 生成新组织的配置
         File newOrgConfigtxDir = ResourceUtils.createTempDir();
@@ -296,15 +291,15 @@ public class ChannelService {
         configtxOrganization.setName(curOrgName);
         configtxOrganization.setMspDir(new File(newOrgCertfileDir + "/msp"));
         ConfigtxUtils.generateOrgConfigtx(newOrgConfigtxYaml, configtxOrganization);
-        log.info("生成新组织的configtx.yaml配置：" + FileUtils.readFileToString(newOrgConfigtxYaml, StandardCharsets.UTF_8));
+        log.info("生成新组织的configtx.yaml配置：" + newOrgConfigtxYaml.getAbsolutePath());
         ConfigtxUtils.convertOrgConfigtxToJson(newOrgConfigtxJson, newOrgConfigtxDir, curOrgName);
-        log.info("将新组织的configtx.yaml转换为json格式：" + FileUtils.readFileToString(newOrgConfigtxJson, StandardCharsets.UTF_8));
+        log.info("将新组织的configtx.yaml转换为json格式：" + newOrgConfigtxJson.getAbsolutePath());
 
         // 对通道配置文件进行更新并生成Envelope
         File newChannelConfig = ResourceUtils.createTempFile("json");
         FileUtils.copyFile(oldChannelConfig, newChannelConfig);
         ChannelUtils.appendOrganizationToAppChannelConfig(curOrgName, newOrgConfigtxJson, newChannelConfig);
-        log.info("将新组织添加到现有的通道配置中：" + FileUtils.readFileToString(newChannelConfig, StandardCharsets.UTF_8));
+        log.info("将新组织添加到现有的通道配置中：" + newChannelConfig.getAbsolutePath());
         File envelope = ResourceUtils.createTempFile("pb");
         ChannelUtils.generateEnvelope(channel.getName(), envelope, oldChannelConfig, newChannelConfig);
         log.info("生成向通道添加组织的Envelope：" + envelope.getAbsolutePath());
@@ -439,13 +434,13 @@ public class ChannelService {
         log.info("生成Orderer环境变量：" + ordererCoreEnv);
         File oldChannelConfig = ResourceUtils.createTempFile("json");
         ChannelUtils.fetchConfig(ordererCoreEnv, channel.getName(), oldChannelConfig);
-        log.info("通道配置文件：" + FileUtils.readFileToString(oldChannelConfig, StandardCharsets.UTF_8));
+        log.info("通道配置文件：" + oldChannelConfig.getAbsolutePath());
 
         // 对通道配置文件进行更新并生成Envelope
         File newChannelConfig = ResourceUtils.createTempFile("json");
         FileUtils.copyFile(oldChannelConfig, newChannelConfig);
         ChannelUtils.appendAnchorPeerToChannelConfig(request.getPeer(), curOrgName, oldChannelConfig);
-        log.info("将锚节点添加到通道配置中：" + FileUtils.readFileToString(newChannelConfig, StandardCharsets.UTF_8));
+        log.info("将锚节点添加到通道配置中：" + newChannelConfig.getAbsolutePath());
         File envelope = ResourceUtils.createTempFile("pb");
         ChannelUtils.generateEnvelope(channel.getName(), envelope, oldChannelConfig, newChannelConfig);
         log.info("生成更新锚节点的Envelope：" + envelope.getAbsolutePath());

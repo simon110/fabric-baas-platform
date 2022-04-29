@@ -23,7 +23,7 @@ public class CommandUtils {
             }
         }
         String str = builder.toString();
-        log.info("命令输出：" + str);
+        log.info("命令输出：\n" + str);
         return str;
     }
 }
