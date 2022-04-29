@@ -120,19 +120,6 @@ public class ChannelService {
         }
     }
 
-    private void assertPeerInChannel(ChannelEntity channel, String peerAddr, String peerOrgName) throws NodeNotFoundException {
-        boolean isPeerInChannel = false;
-        for (Peer peer : channel.getPeers()) {
-            if (peer.getOrganizationName().equals(peerOrgName) && peer.getAddr().equals(peerAddr)) {
-                isPeerInChannel = true;
-                break;
-            }
-        }
-        if (!isPeerInChannel) {
-            throw new NodeNotFoundException("未找到相应的Peer节点（请先将其加入通道）");
-        }
-    }
-
     public void createChannel(ChannelCreateRequest request) throws Exception {
         // 检查操作的组织是否属于相应的网络
         String curOrgName = SecurityUtils.getUsername();
@@ -436,7 +423,12 @@ public class ChannelService {
         }
 
         // 检查Peer是否在通道中且为该组织的节点
-        assertPeerInChannel(channel, request.getPeer().getAddr(), curOrgName);
+        Peer peer = (Peer) findNodeByAddress(request.getPeer(), channel.getPeers());
+        if (peer == null) {
+            throw new NodeException("不存在相应的Peer：" + request.getPeer().getAddr());
+        } else if (!peer.getOrganizationName().equals(curOrgName)) {
+            throw new OrganizationException("Peer不属于当前组织：" + curOrgName);
+        }
 
         // 从通道中随机选择一个Orderer
         Orderer orderer = RandomUtils.select(channel.getOrderers());
@@ -457,7 +449,7 @@ public class ChannelService {
         File envelope = ResourceUtils.createTempFile("pb");
         ChannelUtils.generateEnvelope(channel.getName(), envelope, oldChannelConfig, newChannelConfig);
         log.info("生成更新锚节点的Envelope：" + envelope.getAbsolutePath());
-        
+
         // 将Envelope提交到Orderer
         MSPEnv organizationMspEnv = fabricEnvService.buildMSPEnvForOrg(channel.getNetworkName(), curOrgName);
         ChannelUtils.submitChannelUpdate(organizationMspEnv, ordererCoreEnv.getTLSEnv(), channel.getName(), envelope);

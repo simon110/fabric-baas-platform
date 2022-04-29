@@ -518,9 +518,38 @@ token用于身份验证，需要将其设置为Http请求Header的`Authorization
 
 ### 4.4 提交邀请码
 
-在收集到当前通道中所有组织的邀请码后，可以通过`/api/v1/channel/submitInvitationCodes`来提交所有的邀请码以加入通道：
+在收集到当前通道中所有组织的邀请码后，可以通过`/api/v1/channel/submitInvitationCodes`来提交所有的邀请码以加入通道，如果TestOrgC拿到TestOrgA和TestOrgB发给他的邀请码，则发送请求：
 
+```json
+{
+  "channelName": "samplechannel",
+  "invitationCodes": [
+    "+B7dyt9lgp1lo/RaYWGSfkaTbxdd000MrUiY8bJc/wIjBBxu77S3C+5UIr/tf8Mf0HJQWAM4cnujOGVxkkn7Mg==",
+    "sCJvEFrFCfjghMVCrPJDQUaTbxdd000MrUiY8bJc/wJbh1OsuaD1jgOE7YOROyy5fym8kjl/dhF9nhJdjOCCXg=="
+  ]
+}
 ```
 
+提交了邀请码之后组织就是该通道的组织了，可以将他们的节点加入到通道中。
+
+
+
+### 4.5 设置锚节点
+
+在将Peer加入通道之后，可以通过`/api/v1/channel/setAnchorPeer`将其设置为锚节点：
+
+```json
+{
+  "channelName": "samplechannel",
+  "peer": {
+    "host": "orga.example.com",
+    "port": 31000
+  }
+}
 ```
 
+
+
+### 4.6 通道新增Orderer
+
+默认通道在创建时会使用
