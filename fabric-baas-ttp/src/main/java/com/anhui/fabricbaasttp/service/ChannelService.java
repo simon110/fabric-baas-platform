@@ -120,6 +120,19 @@ public class ChannelService {
         }
     }
 
+    private void assertPeerInChannel(ChannelEntity channel, String peerAddr, String peerOrgName) throws NodeNotFoundException {
+        boolean isPeerInChannel = false;
+        for (Peer peer : channel.getPeers()) {
+            if (peer.getOrganizationName().equals(peerOrgName) && peer.getAddr().equals(peerAddr)) {
+                isPeerInChannel = true;
+                break;
+            }
+        }
+        if (!isPeerInChannel) {
+            throw new NodeNotFoundException("未找到相应的Peer节点（请先将其加入通道）");
+        }
+    }
+
     public void createChannel(ChannelCreateRequest request) throws Exception {
         // 检查操作的组织是否属于相应的网络
         String curOrgName = SecurityUtils.getUsername();
@@ -316,6 +329,7 @@ public class ChannelService {
 
         // 将Envelope提交到Orderer
         // 注意不能用未在通道中的组织的身份来提交通道更新，即使通道中的组织全都签名了也依然会报错
+        // 提交更新的组织会同时进行签名，所以提交更新的组织不用参与签名的签名过程
         String lastChannelOrgName = channelOrganizationNames.get(channelOrganizationNames.size() - 1);
         MSPEnv organizationMspEnv = fabricEnvService.buildMSPEnvForOrg(channel.getNetworkName(), lastChannelOrgName);
         log.info("生成提交Envelope的当前组织的MSP环境变量：" + organizationMspEnv);
@@ -422,31 +436,28 @@ public class ChannelService {
         }
 
         // 检查Peer是否在通道中且为该组织的节点
-        Peer peer = new Peer();
-        peer.setHost(request.getPeer().getHost());
-        peer.setPort(request.getPeer().getPort());
-        peer.setOrganizationName(curOrgName);
-        if (!channel.getPeers().contains(peer)) {
-            throw new NodeNotFoundException("未找到相应的Peer节点（请先将其加入通道）");
-        }
+        assertPeerInChannel(channel, request.getPeer().getAddr(), curOrgName);
 
         // 从通道中随机选择一个Orderer
         Orderer orderer = RandomUtils.select(channel.getOrderers());
+        log.info("随机选择Orderer节点：" + orderer);
+
         // 拉取指定通道的配置
         CoreEnv ordererCoreEnv = fabricEnvService.buildCoreEnvForOrderer(orderer);
+        log.info("生成Orderer环境变量：" + ordererCoreEnv);
         File oldChannelConfig = ResourceUtils.createTempFile("json");
         ChannelUtils.fetchConfig(ordererCoreEnv, channel.getName(), oldChannelConfig);
+        log.info("通道配置文件：" + FileUtils.readFileToString(oldChannelConfig, StandardCharsets.UTF_8));
 
         // 对通道配置文件进行更新并生成Envelope
         File newChannelConfig = ResourceUtils.createTempFile("json");
         FileUtils.copyFile(oldChannelConfig, newChannelConfig);
         ChannelUtils.appendAnchorPeerToChannelConfig(request.getPeer(), curOrgName, oldChannelConfig);
+        log.info("将锚节点添加到通道配置中：" + FileUtils.readFileToString(newChannelConfig, StandardCharsets.UTF_8));
         File envelope = ResourceUtils.createTempFile("pb");
         ChannelUtils.generateEnvelope(channel.getName(), envelope, oldChannelConfig, newChannelConfig);
-
-        // 使用该通道中所有组织的身份对Envelope进行签名
-        signEnvelopeWithOrganizations(channel.getNetworkName(), channel.getOrganizationNames(), envelope);
-
+        log.info("生成更新锚节点的Envelope：" + envelope.getAbsolutePath());
+        
         // 将Envelope提交到Orderer
         MSPEnv organizationMspEnv = fabricEnvService.buildMSPEnvForOrg(channel.getNetworkName(), curOrgName);
         ChannelUtils.submitChannelUpdate(organizationMspEnv, ordererCoreEnv.getTLSEnv(), channel.getName(), envelope);

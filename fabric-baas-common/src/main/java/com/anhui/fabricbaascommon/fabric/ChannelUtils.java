@@ -11,10 +11,7 @@ import org.springframework.util.Base64Utils;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 public class ChannelUtils {
     public static void joinChannel(
@@ -176,20 +173,34 @@ public class ChannelUtils {
         }
         Map<String, Object> orgConfig = (Map<String, Object>) groups.get(organizationName);
         Map<String, Object> orgConfigValues = (Map<String, Object>) orgConfig.get("values");
-        Map<String, Object> anchorPeerConfig = (Map<String, Object>) orgConfigValues.get("AnchorPeers");
-        Map<String, Object> anchorPeerValue = (Map<String, Object>) anchorPeerConfig.get("value");
-        List<Map<String, Object>> anchorPeers = (List<Map<String, Object>>) anchorPeerValue.get("anchor_peers");
-        for (Map<String, Object> anchorPeer : anchorPeers) {
-            String anchorPeerHost = (String) anchorPeer.get("host");
-            int anchorPeerPort = (Integer) anchorPeer.get("port");
-            if (newAnchorPeer.getHost().equals(anchorPeerHost) && newAnchorPeer.getPort() == anchorPeerPort) {
-                throw new ChannelException("已存在相同地址的锚节点" + newAnchorPeer.getAddr());
+        if (orgConfigValues.containsKey("AnchorPeers")) {
+            Map<String, Object> anchorPeerConfig = (Map<String, Object>) orgConfigValues.get("AnchorPeers");
+            Map<String, Object> anchorPeerValue = (Map<String, Object>) anchorPeerConfig.get("value");
+            List<Map<String, Object>> anchorPeers = (List<Map<String, Object>>) anchorPeerValue.get("anchor_peers");
+            for (Map<String, Object> anchorPeer : anchorPeers) {
+                String anchorPeerHost = (String) anchorPeer.get("host");
+                int anchorPeerPort = (Integer) anchorPeer.get("port");
+                if (newAnchorPeer.getHost().equals(anchorPeerHost) && newAnchorPeer.getPort() == anchorPeerPort) {
+                    throw new ChannelException("已存在相同地址的锚节点" + newAnchorPeer.getAddr());
+                }
             }
+            Map<String, Object> newAnchorPeerObj = new TreeMap<>();
+            newAnchorPeerObj.put("host", newAnchorPeer.getHost());
+            newAnchorPeerObj.put("port", newAnchorPeer.getPort());
+            anchorPeers.add(newAnchorPeerObj);
+        } else {
+            Map<String, Object> anchorPeer = new HashMap<>();
+            anchorPeer.put("host", newAnchorPeer.getHost());
+            anchorPeer.put("port", newAnchorPeer.getPort());
+            List<Map<String, Object>> anchorPeers = Collections.singletonList(anchorPeer);
+            Map<String, Object> anchorPeerValue = new HashMap<>();
+            anchorPeerValue.put("anchor_peers", anchorPeers);
+            Map<String, Object> anchorPeerConfig = new HashMap<>();
+            anchorPeerConfig.put("mod_policy", "Admins");
+            anchorPeerConfig.put("version", "0");
+            anchorPeerConfig.put("value", anchorPeerValue);
+            orgConfigValues.put("AnchorPeers", anchorPeerConfig);
         }
-        Map<String, Object> newAnchorPeerObj = new TreeMap<>();
-        newAnchorPeerObj.put("host", newAnchorPeer.getHost());
-        newAnchorPeerObj.put("port", newAnchorPeer.getPort());
-        anchorPeers.add(newAnchorPeerObj);
 
         JsonUtils.save(channelJsonConfig, channelConfig);
     }
