@@ -1,6 +1,6 @@
 package com.anhui.fabricbaasttp.configuration;
 
-import com.anhui.fabricbaasweb.bean.AntMatcherCollection;
+import com.anhui.fabricbaasweb.bean.AntMatchers;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -8,12 +8,12 @@ import org.springframework.context.annotation.Configuration;
 public class AntMatcherConfiguration {
 
     @Bean
-    public AntMatcherCollection antMatcherCollection() {
+    public AntMatchers antMatcherCollection() {
         String[] matchers = {
                 "/api/v1/organization/login",
                 "/api/v1/organization/applyRegistration",
                 "/download/**",
         };
-        return new AntMatcherCollection(matchers);
+        return new AntMatchers(matchers);
     }
 }

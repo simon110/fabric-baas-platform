@@ -14,17 +14,17 @@ import javax.validation.constraints.Pattern;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@ApiModel(value = "区块链节点基本信息")
+@ApiModel(value = "节点信息")
 public class Node {
     @Pattern(regexp = ParamPattern.HOST_REGEX, message = ParamPattern.HOST_MSG)
     @ApiModelProperty(value = "域名", required = true)
     private String host;
 
-    @Range(min = ParamRange.MIN_KUBE_PORT, max = ParamRange.MAX_KUBE_PORT, message = ParamRange.KUBE_PORT_MSG)
+    @Range(min = ParamRange.MIN_KUBERNETES_PORT, max = ParamRange.MAX_KUBERNETES_PORT, message = ParamRange.KUBERNETES_PORT_MSG)
     @ApiModelProperty(value = "端口", required = true)
     private int port;
 
-    public String getAddr() {
-        return host + ":" + port;
+    public String addr() {
+        return String.format("%s:%d", host, port);
     }
 }

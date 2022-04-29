@@ -5,6 +5,5 @@ import lombok.Data;
 @Data
 public class ChaincodeApproval {
     private String organizationName;
-
-    private boolean approved;
+    private boolean isApproved;
 }

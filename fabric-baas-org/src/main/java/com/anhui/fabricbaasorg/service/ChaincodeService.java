@@ -3,7 +3,7 @@ package com.anhui.fabricbaasorg.service;
 import com.anhui.fabricbaascommon.bean.BasicChaincodeProperties;
 import com.anhui.fabricbaascommon.bean.CoreEnv;
 import com.anhui.fabricbaascommon.bean.Node;
-import com.anhui.fabricbaascommon.bean.TLSEnv;
+import com.anhui.fabricbaascommon.bean.TlsEnv;
 import com.anhui.fabricbaascommon.constant.CertfileType;
 import com.anhui.fabricbaascommon.entity.CAEntity;
 import com.anhui.fabricbaascommon.exception.CAException;
@@ -93,17 +93,17 @@ public class ChaincodeService {
     /**
      * 如果存在多个Orderer则会随机选择一个
      */
-    private TLSEnv buildChannelOrdererTLSEnv(String channelName) throws Exception {
+    private TlsEnv buildChannelOrdererTlsEnv(String channelName) throws Exception {
         return null;
     }
 
-    private TLSEnv buildEndorsorPeerTLSEnv(String channelName, Node endorsor) throws Exception {
+    private TlsEnv buildEndorsorPeerTlsEnv(String channelName, Node endorsor) throws Exception {
         File endorsorTlsCert = ResourceUtils.createTempFile("crt");
         byte[] endorsorTlsCertData = ttpChannelApi.queryPeerTlsCert(channelName, endorsor);
         FileUtils.writeByteArrayToFile(endorsorTlsCert, endorsorTlsCertData);
 
-        TLSEnv tlsEnv = new TLSEnv();
-        tlsEnv.setAddress(endorsor.getAddr());
+        TlsEnv tlsEnv = new TlsEnv();
+        tlsEnv.setAddress(endorsor.addr());
         tlsEnv.setTlsRootCert(endorsorTlsCert);
         return tlsEnv;
     }
@@ -113,7 +113,7 @@ public class ChaincodeService {
         CoreEnv peerCoreEnv = buildCoreEnvForPeer(request.getPeerName());
 
         // 生成Orderer的环境变量
-        TLSEnv ordererTlsEnv = buildChannelOrdererTLSEnv(request.getChannelName());
+        TlsEnv ordererTlsEnv = buildChannelOrdererTlsEnv(request.getChannelName());
 
         BasicChaincodeProperties chaincodeProperties = new BasicChaincodeProperties();
         chaincodeProperties.setName(request.getName());
@@ -127,12 +127,12 @@ public class ChaincodeService {
         CoreEnv peerCoreEnv = buildCoreEnvForPeer(request.getPeerName());
 
         // 生成Orderer的环境变量
-        TLSEnv ordererTlsEnv = buildChannelOrdererTLSEnv(request.getChannelName());
+        TlsEnv ordererTlsEnv = buildChannelOrdererTlsEnv(request.getChannelName());
 
         // 生成背书Peer的环境变量
-        List<TLSEnv> endorsorPeerTlsEnvs = new ArrayList<>();
+        List<TlsEnv> endorsorPeerTlsEnvs = new ArrayList<>();
         for (Node node : request.getEndorsorPeers()) {
-            endorsorPeerTlsEnvs.add(buildEndorsorPeerTLSEnv(request.getChannelName(), node));
+            endorsorPeerTlsEnvs.add(buildEndorsorPeerTlsEnv(request.getChannelName(), node));
         }
 
         BasicChaincodeProperties chaincodeProperties = new BasicChaincodeProperties();

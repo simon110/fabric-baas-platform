@@ -181,7 +181,7 @@ public class ChannelUtils {
                 String anchorPeerHost = (String) anchorPeer.get("host");
                 int anchorPeerPort = (Integer) anchorPeer.get("port");
                 if (newAnchorPeer.getHost().equals(anchorPeerHost) && newAnchorPeer.getPort() == anchorPeerPort) {
-                    throw new ChannelException("已存在相同地址的锚节点" + newAnchorPeer.getAddr());
+                    throw new ChannelException("已存在相同地址的锚节点" + newAnchorPeer.addr());
                 }
             }
             Map<String, Object> newAnchorPeerObj = new TreeMap<>();
@@ -223,14 +223,14 @@ public class ChannelUtils {
     }
 
     public static void signEnvelope(
-            MSPEnv MSPEnv,
+            MspEnv MspEnv,
             File envelope)
             throws IOException, InterruptedException, EnvelopeException {
         byte[] oldBytes = FileUtils.readFileToByteArray(envelope);
         String str = CommandUtils.exec(
                 ResourceUtils.getWorkingDir() + "/shell/fabric-sign-envelope.sh",
-                MSPEnv.getMspId(),
-                MSPEnv.getMspConfig().getAbsolutePath(),
+                MspEnv.getMspId(),
+                MspEnv.getMspConfig().getAbsolutePath(),
                 envelope.getCanonicalPath());
         byte[] newBytes = FileUtils.readFileToByteArray(envelope);
         // 通过对比签名前后的文件内容来确定签名是否成功
@@ -240,17 +240,17 @@ public class ChannelUtils {
     }
 
     public static void submitChannelUpdate(
-            MSPEnv organizationMSPEnv,
-            TLSEnv ordererTLSEnv,
+            MspEnv organizationMspEnv,
+            TlsEnv ordererTlsEnv,
             String channelName,
             File envelope)
             throws IOException, InterruptedException, ChannelException {
         String str = CommandUtils.exec(
                 ResourceUtils.getWorkingDir() + "/shell/fabric-submit-envelope.sh",
-                organizationMSPEnv.getMspId(),
-                organizationMSPEnv.getMspConfig().getAbsolutePath(),
-                ordererTLSEnv.getAddress(),
-                ordererTLSEnv.getTlsRootCert().getAbsolutePath(),
+                organizationMspEnv.getMspId(),
+                organizationMspEnv.getMspConfig().getAbsolutePath(),
+                ordererTlsEnv.getAddress(),
+                ordererTlsEnv.getTlsRootCert().getAbsolutePath(),
                 channelName, envelope.getCanonicalPath());
         if (!str.toLowerCase().contains("successfully submitted channel update")) {
             throw new ChannelException("更新通道失败：" + str);
@@ -258,17 +258,17 @@ public class ChannelUtils {
     }
 
     public static void createChannel(
-            MSPEnv organizationMSPEnv,
-            TLSEnv ordererTLSEnv,
+            MspEnv organizationMspEnv,
+            TlsEnv ordererTlsEnv,
             File configtxDir,
             String channelName,
             File channelGenesis)
             throws ChannelException, IOException, InterruptedException {
         String str = CommandUtils.exec(ResourceUtils.getWorkingDir() + "/shell/fabric-create-channel.sh",
-                organizationMSPEnv.getMspId(),
-                organizationMSPEnv.getMspConfig().getAbsolutePath(),
-                ordererTLSEnv.getAddress(),
-                ordererTLSEnv.getTlsRootCert().getAbsolutePath(),
+                organizationMspEnv.getMspId(),
+                organizationMspEnv.getMspConfig().getAbsolutePath(),
+                ordererTlsEnv.getAddress(),
+                ordererTlsEnv.getTlsRootCert().getAbsolutePath(),
                 configtxDir.getCanonicalPath(),
                 channelName, channelGenesis.getCanonicalPath());
         if (!channelGenesis.exists()) {

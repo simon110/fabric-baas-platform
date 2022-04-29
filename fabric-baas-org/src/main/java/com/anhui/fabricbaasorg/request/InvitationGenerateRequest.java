@@ -14,7 +14,7 @@ public class InvitationGenerateRequest {
     @ApiModelProperty(value = "通道名称", required = true)
     private String channelName;
 
-    @Pattern(regexp = ParamPattern.ORG_NAME_REGEX, message = ParamPattern.ORG_NAME_MSG)
+    @Pattern(regexp = ParamPattern.ORGANIZATION_NAME_REGEX, message = ParamPattern.ORGANIZATION_NAME_MSG)
     @ApiModelProperty(value = "允许加入的组织名称", required = true)
     private String invitedOrganizationName;
 }

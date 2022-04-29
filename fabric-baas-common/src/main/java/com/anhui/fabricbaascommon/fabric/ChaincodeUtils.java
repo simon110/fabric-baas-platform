@@ -163,7 +163,7 @@ public class ChaincodeUtils {
      * @throws ChaincodeException 执行完成后如果checkReadiness的结果没有发生变化都应该抛出异常
      */
     public static void approveChaincode(
-            TLSEnv ordererTlsEnv,
+            TlsEnv ordererTlsEnv,
             CoreEnv peerCoreEnv,
             String channelName,
             String packageId,
@@ -200,7 +200,7 @@ public class ChaincodeUtils {
      * @throws ChaincodeException 查询不到时抛出异常
      */
     public static List<ChaincodeApproval> checkCommittedReadiness(
-            TLSEnv ordererTlsEnv,
+            TlsEnv ordererTlsEnv,
             CoreEnv peerCoreEnv,
             String channelName,
             BasicChaincodeProperties chaincodeProperties)
@@ -252,9 +252,9 @@ public class ChaincodeUtils {
      * @throws ChaincodeException 执行完成后如果queryCommitted的结果没有发生变化都应该抛出异常
      */
     public static void commitChaincode(
-            TLSEnv ordererTlsEnv,
+            TlsEnv ordererTlsEnv,
             CoreEnv committerPeerCoreEnv,
-            List<TLSEnv> endorsorPeerTlsEnvs,
+            List<TlsEnv> endorsorPeerTlsEnvs,
             String channelName,
             BasicChaincodeProperties chaincodeProperties)
             throws IOException, InterruptedException, CertfileException, ChaincodeException {
@@ -273,7 +273,7 @@ public class ChaincodeUtils {
                 committerPeerCoreEnv.getAddress(),
                 committerPeerCoreEnv.getTlsRootCert().getAbsolutePath()
         );
-        for (TLSEnv otherPeerTlsEnv : endorsorPeerTlsEnvs) {
+        for (TlsEnv otherPeerTlsEnv : endorsorPeerTlsEnvs) {
             commandList.add(otherPeerTlsEnv.getAddress());
             commandList.add(otherPeerTlsEnv.getTlsRootCert().getAbsolutePath());
         }

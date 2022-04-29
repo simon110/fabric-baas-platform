@@ -16,7 +16,7 @@ public class NetworkAddOrdererRequest {
     @ApiModelProperty(value = "网络名称", required = true)
     private String networkName;
 
-    @Range(min = ParamRange.MIN_KUBE_PORT, max = ParamRange.MAX_KUBE_PORT, message = ParamRange.KUBE_PORT_MSG)
+    @Range(min = ParamRange.MIN_KUBERNETES_PORT, max = ParamRange.MAX_KUBERNETES_PORT, message = ParamRange.KUBERNETES_PORT_MSG)
     @ApiModelProperty(value = "Orderer节点端口", required = true)
     private int ordererPort;
 }

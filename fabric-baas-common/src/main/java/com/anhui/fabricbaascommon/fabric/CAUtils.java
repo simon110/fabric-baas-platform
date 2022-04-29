@@ -1,7 +1,7 @@
 package com.anhui.fabricbaascommon.fabric;
 
 
-import com.anhui.fabricbaascommon.bean.CAConfig;
+import com.anhui.fabricbaascommon.bean.CSRConfig;
 import com.anhui.fabricbaascommon.bean.Certfile;
 import com.anhui.fabricbaascommon.constant.CertfileType;
 import com.anhui.fabricbaascommon.entity.CAEntity;
@@ -73,17 +73,17 @@ public class CAUtils {
         }
     }
 
-    public static CAConfig buildCAConfig(CAEntity ca) {
-        CAConfig caConfig = new CAConfig();
-        caConfig.setCaName(ca.getOrganizationName() + "CA");
-        caConfig.setCsrCommonName("ca." + ca.getDomain());
-        caConfig.setCsrOrganizationName(ca.getOrganizationName());
-        caConfig.setCsrOrganizationUnit("");
-        caConfig.setCsrCountryCode(ca.getCountryCode());
-        caConfig.setCsrStateOrProvince(ca.getStateOrProvince());
-        caConfig.setCsrLocality(ca.getLocality());
-        caConfig.setCsrHosts(Arrays.asList("localhost", ca.getDomain()));
-        return caConfig;
+    public static CSRConfig buildCsrConfig(CAEntity ca) {
+        CSRConfig CSRConfig = new CSRConfig();
+        CSRConfig.setCaName(ca.getOrganizationName() + "CA");
+        CSRConfig.setCsrCommonName("ca." + ca.getDomain());
+        CSRConfig.setCsrOrganizationName(ca.getOrganizationName());
+        CSRConfig.setCsrOrganizationUnit("");
+        CSRConfig.setCsrCountryCode(ca.getCountryCode());
+        CSRConfig.setCsrStateOrProvince(ca.getStateOrProvince());
+        CSRConfig.setCsrLocality(ca.getLocality());
+        CSRConfig.setCsrHosts(Arrays.asList("localhost", ca.getDomain()));
+        return CSRConfig;
     }
 }
 

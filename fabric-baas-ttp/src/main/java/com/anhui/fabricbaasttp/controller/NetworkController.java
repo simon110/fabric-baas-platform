@@ -60,7 +60,7 @@ public class NetworkController {
     @Secured({Authority.USER})
     @PostMapping("/addOrderer")
     @ApiOperation("向网络中添加Orderer")
-    public ResourceResult addOrderer(@Valid @RequestBody NetworkOrdererOptRequest request) throws Exception {
+    public ResourceResult addOrderer(@Valid @RequestBody NetworkOrdererOperateRequest request) throws Exception {
         return networkService.addOrderer(request);
     }
 
@@ -81,14 +81,14 @@ public class NetworkController {
     @Secured({Authority.USER, Authority.ADMIN})
     @PostMapping("/queryOrdererTlsCert")
     @ApiOperation("查询当前组织所参与的任意网络中指定Orderer节点的tls/ca.crt")
-    public ResourceResult queryOrdererTlsCert(@Valid @RequestBody NetworkOrdererOptRequest request) throws Exception {
+    public ResourceResult queryOrdererTlsCert(@Valid @RequestBody NetworkOrdererOperateRequest request) throws Exception {
         return networkService.queryOrdererTlsCert(request);
     }
 
     @Secured({Authority.USER, Authority.ADMIN})
     @PostMapping("/queryOrdererCert")
     @ApiOperation("查询当前组织所参与的任意网络中指定Orderer节点的证书（包括MSP和TLS，只有所属组织可以下载）")
-    public ResourceResult queryOrdererCert(@Valid @RequestBody NetworkOrdererOptRequest request) throws Exception {
+    public ResourceResult queryOrdererCert(@Valid @RequestBody NetworkOrdererOperateRequest request) throws Exception {
         return networkService.queryOrdererCert(request);
     }
 
@@ -102,7 +102,7 @@ public class NetworkController {
     @Secured({Authority.USER, Authority.ADMIN})
     @PostMapping("/getNetwork")
     @ApiOperation("查询指定网络的信息")
-    public SingletonResult<NetworkEntity> getNetwork(@Valid @RequestBody BaseNetworkRequest request) throws Exception {
+    public SingleResult<NetworkEntity> getNetwork(@Valid @RequestBody BaseNetworkRequest request) throws Exception {
         return networkService.getNetwork(request);
     }
 

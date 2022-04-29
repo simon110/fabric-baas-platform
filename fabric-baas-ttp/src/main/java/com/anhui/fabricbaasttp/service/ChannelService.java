@@ -8,7 +8,7 @@ import com.anhui.fabricbaascommon.fabric.ConfigtxUtils;
 import com.anhui.fabricbaascommon.request.BaseChannelRequest;
 import com.anhui.fabricbaascommon.response.ListResult;
 import com.anhui.fabricbaascommon.response.ResourceResult;
-import com.anhui.fabricbaascommon.response.SingletonResult;
+import com.anhui.fabricbaascommon.response.SingleResult;
 import com.anhui.fabricbaascommon.service.CAService;
 import com.anhui.fabricbaascommon.service.MinIOService;
 import com.anhui.fabricbaascommon.util.*;
@@ -20,7 +20,7 @@ import com.anhui.fabricbaasttp.entity.NetworkEntity;
 import com.anhui.fabricbaasttp.repository.ChannelRepo;
 import com.anhui.fabricbaasttp.request.ChannelCreateRequest;
 import com.anhui.fabricbaasttp.request.ChannelGenerateInvitationCodeRequest;
-import com.anhui.fabricbaasttp.request.ChannelPeerOptRequest;
+import com.anhui.fabricbaasttp.request.ChannelPeerOperateRequest;
 import com.anhui.fabricbaasttp.request.ChannelSubmitInvitationCodesRequest;
 import com.anhui.fabricbaasttp.response.InvitationCodeResult;
 import com.anhui.fabricbaasttp.util.IdentifierGenerator;
@@ -80,9 +80,9 @@ public class ChannelService {
     }
 
     private static Node findNodeByAddress(Node node, List<? extends Node> nodes) {
-        String target = node.getAddr();
+        String target = node.addr();
         for (Node item : nodes) {
-            if (item.getAddr().equals(target)) {
+            if (item.addr().equals(target)) {
                 return item;
             }
         }
@@ -91,7 +91,7 @@ public class ChannelService {
 
     private void signEnvelopeWithOrganizations(String networkName, List<String> organizationNames, File envelope) throws IOException, InterruptedException, EnvelopeException {
         for (String orgName : organizationNames) {
-            MSPEnv organizationMspDir = fabricEnvService.buildMSPEnvForOrg(networkName, orgName);
+            MspEnv organizationMspDir = fabricEnvService.buildMspEnvForOrg(networkName, orgName);
             log.info(String.format("正在使用%s在%s网络的管理员证书对Envelope进行签名：", orgName, networkName) + envelope.getAbsolutePath());
             ChannelUtils.signEnvelope(organizationMspDir, envelope);
         }
@@ -171,8 +171,8 @@ public class ChannelService {
         log.info("随机从网络中选择Orderer：" + orderer);
 
         // 创建通道
-        MSPEnv organizationMspEnv = fabricEnvService.buildMSPEnvForOrg(network.getName(), curOrgName);
-        TLSEnv ordererTlsEnv = fabricEnvService.buildTLSEnvForOrderer(orderer);
+        MspEnv organizationMspEnv = fabricEnvService.buildMspEnvForOrg(network.getName(), curOrgName);
+        TlsEnv ordererTlsEnv = fabricEnvService.buildTlsEnvForOrderer(orderer);
         log.info("生成组织的MSP环境变量：" + organizationMspEnv);
         log.info("生成Orderer的TLS环境变量：" + ordererTlsEnv);
         File appChannelGenesis = ResourceUtils.createTempFile("block");
@@ -261,9 +261,9 @@ public class ChannelService {
         // 注意不能用未在通道中的组织的身份来提交通道更新，即使通道中的组织全都签名了也依然会报错
         // 提交更新的组织会同时进行签名，所以提交更新的组织不用参与签名的签名过程
         String lastChannelOrgName = channelOrganizationNames.get(channelOrganizationNames.size() - 1);
-        MSPEnv organizationMspEnv = fabricEnvService.buildMSPEnvForOrg(channel.getNetworkName(), lastChannelOrgName);
+        MspEnv organizationMspEnv = fabricEnvService.buildMspEnvForOrg(channel.getNetworkName(), lastChannelOrgName);
         log.info("生成提交Envelope的当前组织的MSP环境变量：" + organizationMspEnv);
-        ChannelUtils.submitChannelUpdate(organizationMspEnv, ordererCoreEnv.getTLSEnv(), channel.getName(), envelope);
+        ChannelUtils.submitChannelUpdate(organizationMspEnv, ordererCoreEnv.getTlsEnv(), channel.getName(), envelope);
 
         // 将组织保存至MongoDB
         channel.getOrganizationNames().add(curOrgName);
@@ -271,7 +271,7 @@ public class ChannelService {
         channelRepo.save(channel);
     }
 
-    public void joinChannel(ChannelPeerOptRequest request, MultipartFile peerCertZip) throws Exception {
+    public void joinChannel(ChannelPeerOperateRequest request, MultipartFile peerCertZip) throws Exception {
         String curOrgName = SecurityUtils.getUsername();
         ChannelEntity channel = getChannelOrThrowException(request.getChannelName());
 
@@ -358,7 +358,7 @@ public class ChannelService {
         return new InvitationCodeResult(invitationCode);
     }
 
-    public void setAnchorPeer(ChannelPeerOptRequest request) throws Exception {
+    public void setAnchorPeer(ChannelPeerOperateRequest request) throws Exception {
         String curOrgName = SecurityUtils.getUsername();
         ChannelEntity channel = getChannelOrThrowException(request.getChannelName());
         if (!channel.getOrganizationNames().contains(curOrgName)) {
@@ -368,7 +368,7 @@ public class ChannelService {
         // 检查Peer是否在通道中且为该组织的节点
         Peer peer = (Peer) findNodeByAddress(request.getPeer(), channel.getPeers());
         if (peer == null) {
-            throw new NodeException("不存在相应的Peer：" + request.getPeer().getAddr());
+            throw new NodeException("不存在相应的Peer：" + request.getPeer().addr());
         } else if (!peer.getOrganizationName().equals(curOrgName)) {
             throw new OrganizationException("Peer不属于当前组织：" + curOrgName);
         }
@@ -394,11 +394,11 @@ public class ChannelService {
         log.info("生成更新锚节点的Envelope：" + envelope.getAbsolutePath());
 
         // 将Envelope提交到Orderer
-        MSPEnv organizationMspEnv = fabricEnvService.buildMSPEnvForOrg(channel.getNetworkName(), curOrgName);
-        ChannelUtils.submitChannelUpdate(organizationMspEnv, ordererCoreEnv.getTLSEnv(), channel.getName(), envelope);
+        MspEnv organizationMspEnv = fabricEnvService.buildMspEnvForOrg(channel.getNetworkName(), curOrgName);
+        ChannelUtils.submitChannelUpdate(organizationMspEnv, ordererCoreEnv.getTlsEnv(), channel.getName(), envelope);
     }
 
-    public ResourceResult queryPeerTlsCert(ChannelPeerOptRequest request) throws Exception {
+    public ResourceResult queryPeerTlsCert(ChannelPeerOperateRequest request) throws Exception {
         // 检查网络是否存在
         Optional<ChannelEntity> channelOptional = channelRepo.findById(request.getChannelName());
         if (channelOptional.isEmpty()) {
@@ -429,7 +429,7 @@ public class ChannelService {
         }
     }
 
-    public SingletonResult<ChannelEntity> getChannel(BaseChannelRequest request) throws ChannelException {
-        return new SingletonResult<>(getChannelOrThrowException(request.getChannelName()));
+    public SingleResult<ChannelEntity> getChannel(BaseChannelRequest request) throws ChannelException {
+        return new SingleResult<>(getChannelOrThrowException(request.getChannelName()));
     }
 }

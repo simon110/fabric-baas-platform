@@ -1,6 +1,6 @@
 package com.anhui.fabricbaascommon.service;
 
-import com.anhui.fabricbaascommon.bean.CAConfig;
+import com.anhui.fabricbaascommon.bean.CSRConfig;
 import com.anhui.fabricbaascommon.util.CommandUtils;
 import com.anhui.fabricbaascommon.util.ResourceUtils;
 import com.anhui.fabricbaascommon.util.YamlUtils;
@@ -71,10 +71,10 @@ public class DockerService {
     /**
      * 根据传入的CAServer在当前机器上部署一个CA服务容器
      *
-     * @param caConfig 部署的CA服务的参数
+     * @param CSRConfig 部署的CA服务的参数
      */
     @SuppressWarnings("unchecked")
-    public void startCAServer(CAConfig caConfig, String adminUsername, String adminPassword) throws IOException, InterruptedException, DockerException {
+    public void startCAServer(CSRConfig CSRConfig, String adminUsername, String adminPassword) throws IOException, InterruptedException, DockerException {
         File dockerComposeFile = new File(FABRIC_CA_SERVER_DOCKER_COMPOSE);
         File caConfigFile = new File(FABRIC_CA_SERVER_CONFIG);
         // 修改Docker Compose配置文件
@@ -86,7 +86,7 @@ public class DockerService {
         for (int i = 0; i < environmentVars.size(); i++) {
             String var = environmentVars.get(i);
             if (var.startsWith("FABRIC_CA_SERVER_CA_NAME=")) {
-                environmentVars.set(i, "FABRIC_CA_SERVER_CA_NAME=" + caConfig.getCaName());
+                environmentVars.set(i, "FABRIC_CA_SERVER_CA_NAME=" + CSRConfig.getCaName());
             }
         }
         String dockerCommand = String.format("sh -c 'fabric-ca-server start -b %s:%s -d'", adminUsername, adminPassword);
@@ -97,20 +97,20 @@ public class DockerService {
         // 修改Fabric CA Server配置文件
         Map<String, Object> caServerConfigYaml = YamlUtils.load(caConfigFile);
         Map<String, Object> caOption = (Map<String, Object>) caServerConfigYaml.get("ca");
-        caOption.put("name", caConfig.getCaName());
+        caOption.put("name", CSRConfig.getCaName());
         Map<String, Object> registryOption = (Map<String, Object>) caServerConfigYaml.get("registry");
         Map<String, Object> identitiesOption = ((List<Map<String, Object>>) registryOption.get("identities")).get(0);
         identitiesOption.put("name", adminUsername);
         identitiesOption.put("pass", adminPassword);
         Map<String, Object> csrOption = (Map<String, Object>) caServerConfigYaml.get("csr");
-        csrOption.put("cn", caConfig.getCsrCommonName());
-        csrOption.put("hosts", caConfig.getCsrHosts());
+        csrOption.put("cn", CSRConfig.getCsrCommonName());
+        csrOption.put("hosts", CSRConfig.getCsrHosts());
         Map<String, Object> csrNameOption = ((List<Map<String, Object>>) csrOption.get("names")).get(0);
-        csrNameOption.put("C", caConfig.getCsrCountryCode());
-        csrNameOption.put("ST", caConfig.getCsrStateOrProvince());
-        csrNameOption.put("OU", caConfig.getCsrOrganizationUnit());
-        csrNameOption.put("L", caConfig.getCsrLocality());
-        csrNameOption.put("O", caConfig.getCsrOrganizationName());
+        csrNameOption.put("C", CSRConfig.getCsrCountryCode());
+        csrNameOption.put("ST", CSRConfig.getCsrStateOrProvince());
+        csrNameOption.put("OU", CSRConfig.getCsrOrganizationUnit());
+        csrNameOption.put("L", CSRConfig.getCsrLocality());
+        csrNameOption.put("O", CSRConfig.getCsrOrganizationName());
         String fabricCaConfigContent = YamlUtils.save(caServerConfigYaml, caConfigFile);
         log.info("生成fabric-ca-server-config.yaml：\n" + fabricCaConfigContent);
 

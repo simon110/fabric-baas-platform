@@ -1,6 +1,6 @@
 package com.anhui.fabricbaascommon.fabric;
 
-import com.anhui.fabricbaascommon.bean.CAConfig;
+import com.anhui.fabricbaascommon.bean.CSRConfig;
 import com.anhui.fabricbaascommon.bean.Certfile;
 import com.anhui.fabricbaascommon.configuration.DockerClientConfiguration;
 import com.anhui.fabricbaascommon.constant.CertfileType;
@@ -57,8 +57,8 @@ class CAUtilsTest {
             ca.setStateOrProvince(ORGANIZATION_STATES_OR_PROVINCES[i]);
             ca.setLocality(ORGANIZATION_LOCALITIES[i]);
             ca.setDomain(ORGANIZATION_DOMAINS[i]);
-            CAConfig caConfig = CAUtils.buildCAConfig(ca);
-            dockerService.startCAServer(caConfig, adminUsername, commonPassword);
+            CSRConfig CSRConfig = CAUtils.buildCsrConfig(ca);
+            dockerService.startCAServer(CSRConfig, adminUsername, commonPassword);
             TimeUnit.SECONDS.sleep(15);
             File caTlsCert = new File("docker/fabric-ca/tls-cert.pem");
             Assertions.assertTrue(caTlsCert.exists());
@@ -66,7 +66,7 @@ class CAUtilsTest {
             // 注册管理员证书
             File adminCertfileDir = ResourceUtils.createTempDir();
             Certfile adminCertfile = new Certfile(adminUsername, commonPassword, CertfileType.ADMIN);
-            CAUtils.enroll(adminCertfileDir, caTlsCert, caConfig.getCaName(), address, adminCertfile, csrHosts);
+            CAUtils.enroll(adminCertfileDir, caTlsCert, CSRConfig.getCaName(), address, adminCertfile, csrHosts);
             File adminCertfileZip = new File(String.format("%s/%s/root.zip", BASE_DIR_PATH, ca.getOrganizationName()));
             ZipUtils.zip(adminCertfileZip, CertfileUtils.getCertfileMSPDir(adminCertfileDir), CertfileUtils.getCertfileTLSDir(adminCertfileDir));
             Assertions.assertTrue(adminCertfileZip.exists());
@@ -78,10 +78,10 @@ class CAUtilsTest {
                     certfile.setCaPassword(commonPassword);
                     certfile.setCaUsertype(type);
                     certfile.setCaUsername(String.format("%s-%s%d", ca.getOrganizationName(), type, j));
-                    CAUtils.register(adminCertfileDir, caTlsCert, caConfig.getCaName(), certfile);
+                    CAUtils.register(adminCertfileDir, caTlsCert, CSRConfig.getCaName(), certfile);
 
                     File certfileDir = ResourceUtils.createTempDir();
-                    CAUtils.enroll(certfileDir, caTlsCert, caConfig.getCaName(), address, certfile, csrHosts);
+                    CAUtils.enroll(certfileDir, caTlsCert, CSRConfig.getCaName(), address, certfile, csrHosts);
                     File certfileZip = new File(String.format("%s/%s/%s%d.zip", BASE_DIR_PATH, ca.getOrganizationName(), type, j));
                     ZipUtils.zip(certfileZip, CertfileUtils.getCertfileMSPDir(certfileDir), CertfileUtils.getCertfileTLSDir(certfileDir));
                     Assertions.assertTrue(certfileZip.exists());

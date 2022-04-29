@@ -475,7 +475,7 @@ token用于身份验证，需要将其设置为Http请求Header的`Authorization
   "code": 200,
   "message": "成功调用服务",
   "data": {
-    "item": {
+    "result": {
       "name": "TestNetwork",
       "orderers": [
         {
@@ -787,7 +787,7 @@ token用于身份验证，需要将其设置为Http请求Header的`Authorization
   "code": 200,
   "message": "成功调用服务",
   "data": {
-    "item": {
+    "result": {
       "name": "samplechannel",
       "networkName": "TestNetwork",
       "peers": [

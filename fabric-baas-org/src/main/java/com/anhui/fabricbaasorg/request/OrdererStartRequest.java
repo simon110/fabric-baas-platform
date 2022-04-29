@@ -25,7 +25,7 @@ public class OrdererStartRequest {
     @ApiModelProperty(value = "物理节点名称", required = true)
     private String kubeNodeName;
 
-    @Range(min = ParamRange.MIN_KUBE_PORT, max = ParamRange.MAX_KUBE_PORT, message = ParamRange.KUBE_PORT_MSG)
+    @Range(min = ParamRange.MIN_KUBERNETES_PORT, max = ParamRange.MAX_KUBERNETES_PORT, message = ParamRange.KUBERNETES_PORT_MSG)
     @ApiModelProperty(value = "主端口（对应7050）", required = true)
     private int kubeNodePort;
 }

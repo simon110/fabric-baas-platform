@@ -1,6 +1,6 @@
 package com.anhui.fabricbaasorg.service;
 
-import com.anhui.fabricbaascommon.bean.CAConfig;
+import com.anhui.fabricbaascommon.bean.CSRConfig;
 import com.anhui.fabricbaascommon.configuration.AdminConfiguration;
 import com.anhui.fabricbaascommon.configuration.FabricConfiguration;
 import com.anhui.fabricbaascommon.entity.CAEntity;
@@ -63,18 +63,18 @@ public class SystemService {
         }
         CAEntity org = req.getOrg();
         log.info("可信第三方信息：" + org);
-        CAConfig caConfig = CAUtils.buildCAConfig(org);
-        log.info("生成CA服务信息：" + caConfig);
+        CSRConfig CSRConfig = CAUtils.buildCsrConfig(org);
+        log.info("生成CA服务信息：" + CSRConfig);
 
 
         // 启动CA容器并尝试初始化管理员证书
-        dockerService.startCAServer(caConfig,
+        dockerService.startCAServer(CSRConfig,
                 fabricConfiguration.getCaAdminUsername(),
                 fabricConfiguration.getCaAdminPassword()
         );
         caRepo.save(org);
         log.info("正在初始化CA服务管理员证书");
-        caService.initAdminCertfile(caConfig);
+        caService.initAdminCertfile(CSRConfig);
 
         // 更新系统管理员密码
         if (req.getAdminPassword() != null && !StringUtils.isBlank(req.getAdminPassword())) {

@@ -1,9 +1,10 @@
 package com.anhui.fabricbaasttp.service;
 
 
-import com.anhui.fabricbaascommon.bean.CAConfig;
+import com.anhui.fabricbaascommon.bean.CSRConfig;
 import com.anhui.fabricbaascommon.exception.DuplicatedOperationException;
 import com.anhui.fabricbaascommon.fabric.CAUtils;
+import com.anhui.fabricbaascommon.response.SingleResult;
 import com.anhui.fabricbaascommon.service.CAService;
 import com.anhui.fabricbaascommon.service.DockerService;
 import com.anhui.fabricbaascommon.configuration.AdminConfiguration;
@@ -54,14 +55,14 @@ public class SystemService {
         }
         CAEntity ttp = req.getTtp();
         log.info("可信第三方信息：" + ttp);
-        CAConfig caConfig = CAUtils.buildCAConfig(ttp);
-        log.info("生成CA服务信息：" + caConfig);
+        CSRConfig CSRConfig = CAUtils.buildCsrConfig(ttp);
+        log.info("生成CA服务信息：" + CSRConfig);
         // 启动CA容器并尝试初始化管理员证书
-        dockerService.startCAServer(caConfig, fabricConfiguration.getCaAdminUsername(), fabricConfiguration.getCaAdminPassword());
+        dockerService.startCAServer(CSRConfig, fabricConfiguration.getCaAdminUsername(), fabricConfiguration.getCaAdminPassword());
         caRepo.save(ttp);
 
         log.info("正在初始化CA服务管理员证书...");
-        caService.initAdminCertfile(caConfig);
+        caService.initAdminCertfile(CSRConfig);
 
         Optional<UserEntity> adminOptional = userRepo.findById(adminConfiguration.getDefaultUsername());
         adminOptional.ifPresent(admin -> {
@@ -73,6 +74,10 @@ public class SystemService {
             }
             log.info("正在保存TTP信息...");
         });
+    }
+
+    public SingleResult<Boolean> isInitialized() {
+        return new SingleResult<>(caRepo.count() == 0);
     }
 }
 

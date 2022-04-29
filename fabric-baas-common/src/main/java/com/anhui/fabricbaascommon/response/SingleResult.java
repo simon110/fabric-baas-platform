@@ -7,6 +7,6 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class SingletonResult<T> {
-    private T item;
+public class SingleResult<T> {
+    private T result;
 }

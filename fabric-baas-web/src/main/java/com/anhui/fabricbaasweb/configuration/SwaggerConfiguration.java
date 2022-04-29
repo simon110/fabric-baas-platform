@@ -33,7 +33,7 @@ public class SwaggerConfiguration {
 
     private ApiInfo apiInfo() {
         return new ApiInfoBuilder()
-                .title("Hyperledger Fabric BaaS Platform")
+                .title("Fabric BaaS Platform")
                 .description("Restful API Doc")
                 .version("1.0")
                 .build();

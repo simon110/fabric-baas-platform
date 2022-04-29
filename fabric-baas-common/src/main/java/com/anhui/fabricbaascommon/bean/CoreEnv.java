@@ -17,16 +17,16 @@ public class CoreEnv {
     private String address;
     private File tlsRootCert;
 
-    public MSPEnv getMSPEnv() {
-        return new MSPEnv(mspId, mspConfig);
+    public MspEnv getMspEnv() {
+        return new MspEnv(mspId, mspConfig);
     }
 
-    public TLSEnv getTLSEnv() {
-        return new TLSEnv(address, tlsRootCert);
+    public TlsEnv getTlsEnv() {
+        return new TlsEnv(address, tlsRootCert);
     }
 
     public void selfAssert() throws CertfileException {
-        getMSPEnv().selfAssert();
-        getTLSEnv().selfAssert();
+        getMspEnv().selfAssert();
+        getTlsEnv().selfAssert();
     }
 }

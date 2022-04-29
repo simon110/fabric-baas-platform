@@ -1,9 +1,9 @@
 package com.anhui.fabricbaasttp.service;
 
 import com.anhui.fabricbaascommon.bean.CoreEnv;
-import com.anhui.fabricbaascommon.bean.MSPEnv;
+import com.anhui.fabricbaascommon.bean.MspEnv;
 import com.anhui.fabricbaascommon.bean.Node;
-import com.anhui.fabricbaascommon.bean.TLSEnv;
+import com.anhui.fabricbaascommon.bean.TlsEnv;
 import com.anhui.fabricbaascommon.constant.CertfileType;
 import com.anhui.fabricbaascommon.exception.CAException;
 import com.anhui.fabricbaascommon.service.CAService;
@@ -21,7 +21,7 @@ public class FabricEnvService {
     @Autowired
     private CAService caService;
 
-    public CoreEnv buildCoreEnv(MSPEnv mspEnv, TLSEnv tlsEnv) {
+    public CoreEnv buildCoreEnv(MspEnv mspEnv, TlsEnv tlsEnv) {
         return new CoreEnv(
                 mspEnv.getMspId(),
                 mspEnv.getMspConfig(),
@@ -31,47 +31,47 @@ public class FabricEnvService {
     }
 
     public CoreEnv buildCoreEnvForOrderer(Orderer orderer) throws CAException {
-        MSPEnv mspEnv = buildMSPEnvForOrderer();
-        TLSEnv tlsEnv = buildTLSEnvForOrderer(orderer);
+        MspEnv mspEnv = buildMspEnvForOrderer();
+        TlsEnv tlsEnv = buildTlsEnvForOrderer(orderer);
         return buildCoreEnv(mspEnv, tlsEnv);
     }
 
     public CoreEnv buildCoreEnvForPeer(String networkName, String orgName, Peer peer) {
-        MSPEnv mspEnv = buildMSPEnvForOrg(networkName, orgName);
-        TLSEnv tlsEnv = buildTLSEnvForPeer(peer);
+        MspEnv mspEnv = buildMspEnvForOrg(networkName, orgName);
+        TlsEnv tlsEnv = buildTlsEnvForPeer(peer);
         return buildCoreEnv(mspEnv, tlsEnv);
     }
 
-    public MSPEnv buildMSPEnvForOrderer() throws CAException {
-        MSPEnv mspEnv = new MSPEnv();
+    public MspEnv buildMspEnvForOrderer() throws CAException {
+        MspEnv mspEnv = new MspEnv();
         mspEnv.setMspId(caService.getAdminOrganizationName());
         mspEnv.setMspConfig(new File(caService.getAdminCertfileDir() + "/msp"));
         return mspEnv;
     }
 
-    public MSPEnv buildMSPEnvForOrg(String networkName, String orgName) {
+    public MspEnv buildMspEnvForOrg(String networkName, String orgName) {
         String orgCertfileId = IdentifierGenerator.ofCertfile(networkName, orgName);
         File dir = CertfileUtils.getCertfileDir(orgCertfileId, CertfileType.ADMIN);
 
-        MSPEnv mspEnv = new MSPEnv();
+        MspEnv mspEnv = new MspEnv();
         mspEnv.setMspId(orgName);
         mspEnv.setMspConfig(new File(dir.getAbsolutePath() + "/msp"));
         return mspEnv;
     }
 
-    public TLSEnv buildTLSEnvForOrderer(Orderer orderer) {
+    public TlsEnv buildTlsEnvForOrderer(Orderer orderer) {
         File certfileDir = CertfileUtils.getCertfileDir(orderer.getCaUsername(), CertfileType.ORDERER);
-        return buildTLSEnv(orderer, certfileDir);
+        return buildTlsEnv(orderer, certfileDir);
     }
 
-    public TLSEnv buildTLSEnvForPeer(Peer peer) {
+    public TlsEnv buildTlsEnvForPeer(Peer peer) {
         File certfileDir = CertfileUtils.getCertfileDir(peer.getName(), CertfileType.PEER);
-        return buildTLSEnv(peer, certfileDir);
+        return buildTlsEnv(peer, certfileDir);
     }
 
-    private static TLSEnv buildTLSEnv(Node node, File certfileDir) {
-        TLSEnv tlsEnv = new TLSEnv();
-        tlsEnv.setAddress(node.getAddr());
+    private static TlsEnv buildTlsEnv(Node node, File certfileDir) {
+        TlsEnv tlsEnv = new TlsEnv();
+        tlsEnv.setAddress(node.addr());
         tlsEnv.setTlsRootCert(new File(certfileDir.getAbsolutePath() + "/tls/ca.crt"));
         return tlsEnv;
     }

@@ -1,6 +1,6 @@
 package com.anhui.fabricbaascommon.service;
 
-import com.anhui.fabricbaascommon.bean.CAConfig;
+import com.anhui.fabricbaascommon.bean.CSRConfig;
 import com.anhui.fabricbaascommon.bean.Certfile;
 import com.anhui.fabricbaascommon.configuration.FabricConfiguration;
 import com.anhui.fabricbaascommon.entity.CAEntity;
@@ -82,10 +82,10 @@ public class CAService {
         return getAdminOrganizationName() + "CA";
     }
 
-    public void initAdminCertfile(CAConfig caConfig) throws IOException, InterruptedException, CertfileException, CAException {
+    public void initAdminCertfile(CSRConfig CSRConfig) throws IOException, InterruptedException, CertfileException, CAException {
         enroll(FABRIC_CA_ADMIN_CERTFILE_DIR,
                 fabricConfig.getCaAdminUsername(),
-                caConfig.getCsrHosts());
+                CSRConfig.getCsrHosts());
         log.info("CA服务管理员证书初始化成功");
     }
 

@@ -14,7 +14,7 @@ import com.anhui.fabricbaascommon.request.BaseNetworkRequest;
 import com.anhui.fabricbaascommon.response.ListResult;
 import com.anhui.fabricbaascommon.response.PaginationQueryResult;
 import com.anhui.fabricbaascommon.response.ResourceResult;
-import com.anhui.fabricbaascommon.response.SingletonResult;
+import com.anhui.fabricbaascommon.response.SingleResult;
 import com.anhui.fabricbaascommon.service.CAService;
 import com.anhui.fabricbaascommon.service.MinIOService;
 import com.anhui.fabricbaascommon.util.*;
@@ -70,9 +70,9 @@ public class NetworkService {
 
     private static void assertOrderersNotInNetwork(List<Node> orderers, NetworkEntity network) throws NodeException {
         Set<String> set = new TreeSet<>();
-        network.getOrderers().forEach(node -> set.add(node.getAddr()));
+        network.getOrderers().forEach(node -> set.add(node.addr()));
         for (Node orderer : orderers) {
-            String addr = orderer.getAddr();
+            String addr = orderer.addr();
             if (set.contains(addr)) {
                 throw new NodeException("该网络中已存在Orderer：" + addr);
             }
@@ -82,7 +82,7 @@ public class NetworkService {
     private static void assertOrderersNotDuplicated(List<Node> orderers) throws NodeException {
         Set<String> set = new TreeSet<>();
         for (Node node : orderers) {
-            String addr = node.getAddr();
+            String addr = node.addr();
             if (set.contains(addr)) {
                 throw new NodeException("存在重复的Orderer地址");
             }
@@ -139,7 +139,7 @@ public class NetworkService {
 
         // 随机选择一个Orderer并拉取配置文件
         Orderer orderer = RandomUtils.select(network.getOrderers());
-        log.info("随机从网络中选择了Orderer：" + orderer.getAddr());
+        log.info("随机从网络中选择了Orderer：" + orderer.addr());
         CoreEnv ordererCoreEnv = fabricEnvService.buildCoreEnvForOrderer(orderer);
         log.info("生成Orderer的环境变量：" + ordererCoreEnv);
         ChannelUtils.fetchConfig(ordererCoreEnv, fabricConfig.getSystemChannelName(), oldConfig);
@@ -171,18 +171,18 @@ public class NetworkService {
         // 对比新旧配置文件生成Envelope，并对Envelope进行签名
         log.info("正在生成提交到通道的Envelope并签名：" + envelope.getAbsolutePath());
         ChannelUtils.generateEnvelope(fabricConfig.getSystemChannelName(), envelope, oldConfig, newConfig);
-        // ChannelUtils.signEnvelope(ordererCoreEnv.getMSPEnv(), envelope);
+        // ChannelUtils.signEnvelope(ordererCoreEnv.getMspEnv(), envelope);
 
         // 将签名后的Envelope提交到Orderer
         log.info("正在将Envelope提交到系统通道：" + fabricConfig.getSystemChannelName());
-        ChannelUtils.submitChannelUpdate(ordererCoreEnv.getMSPEnv(), ordererCoreEnv.getTLSEnv(), fabricConfig.getSystemChannelName(), envelope);
+        ChannelUtils.submitChannelUpdate(ordererCoreEnv.getMspEnv(), ordererCoreEnv.getTlsEnv(), fabricConfig.getSystemChannelName(), envelope);
     }
 
     public List<Orderer> getOrderers(String networkName) throws NetworkException {
         return getNetworkOrThrowException(networkName).getOrderers();
     }
 
-    public ResourceResult queryOrdererTlsCert(NetworkOrdererOptRequest request) throws Exception {
+    public ResourceResult queryOrdererTlsCert(NetworkOrdererOperateRequest request) throws Exception {
         // 检查网络是否存在
         NetworkEntity network = getNetworkOrThrowException(request.getNetworkName());
         // 检查当前组织是否位于该网络中
@@ -201,7 +201,7 @@ public class NetworkService {
         return result;
     }
 
-    public ResourceResult queryOrdererCert(NetworkOrdererOptRequest request) throws Exception {
+    public ResourceResult queryOrdererCert(NetworkOrdererOperateRequest request) throws Exception {
         // 检查网络是否存在
         NetworkEntity network = getNetworkOrThrowException(request.getNetworkName());
         // 检查当前组织是否位于该网络中
@@ -229,7 +229,7 @@ public class NetworkService {
         return result;
     }
 
-    public ResourceResult addOrderer(NetworkOrdererOptRequest request) throws Exception {
+    public ResourceResult addOrderer(NetworkOrdererOperateRequest request) throws Exception {
         // 检查网络是否存在
         NetworkEntity network = getNetworkOrThrowException(request.getNetworkName());
 
@@ -284,13 +284,13 @@ public class NetworkService {
         // 计算新旧JSON配置文件之间的差异得到Envelope，并对其进行签名
         File envelope = ResourceUtils.createTempFile("pb");
         ChannelUtils.generateEnvelope(fabricConfig.getSystemChannelName(), envelope, oldChannelConfig, newChannelConfig);
-        // ChannelUtils.signEnvelope(selectedOrdererCoreEnv.getMSPEnv(), envelope);
+        // ChannelUtils.signEnvelope(selectedOrdererCoreEnv.getMspEnv(), envelope);
         log.info("生成并使用Orderer身份对Envelope文件进行签名：" + envelope.getAbsolutePath());
 
         // 将Envelope提交到现有的Orderer节点
         ChannelUtils.submitChannelUpdate(
-                selectedOrdererCoreEnv.getMSPEnv(),
-                selectedOrdererCoreEnv.getTLSEnv(),
+                selectedOrdererCoreEnv.getMspEnv(),
+                selectedOrdererCoreEnv.getTlsEnv(),
                 fabricConfig.getSystemChannelName(),
                 envelope
         );
@@ -607,8 +607,8 @@ public class NetworkService {
         return new ListResult<>(network.getOrganizationNames());
     }
 
-    public SingletonResult<NetworkEntity> getNetwork(BaseNetworkRequest request) throws NetworkException {
-        return new SingletonResult<>(getNetworkOrThrowException(request.getNetworkName()));
+    public SingleResult<NetworkEntity> getNetwork(BaseNetworkRequest request) throws NetworkException {
+        return new SingleResult<>(getNetworkOrThrowException(request.getNetworkName()));
     }
 
     public ListResult<String> queryChannels(BaseNetworkRequest request) {

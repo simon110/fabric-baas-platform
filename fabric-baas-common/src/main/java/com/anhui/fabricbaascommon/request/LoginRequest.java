@@ -11,7 +11,7 @@ import javax.validation.constraints.Size;
 @Data
 @ApiModel(value = "登录请求")
 public class LoginRequest {
-    @Pattern(regexp = ParamPattern.ORG_NAME_REGEX, message = ParamPattern.ORG_NAME_MSG)
+    @Pattern(regexp = ParamPattern.ORGANIZATION_NAME_REGEX, message = ParamPattern.ORGANIZATION_NAME_MSG)
     @ApiModelProperty(value = "组织名称", required = true)
     private String organizationName;
 

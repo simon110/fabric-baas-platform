@@ -2,7 +2,9 @@ package com.anhui.fabricbaascommon.bean;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
@@ -11,8 +13,10 @@ import java.util.List;
  * https://en.wikipedia.org/wiki/Certificate_signing_request
  */
 @Data
-@ApiModel("CA服务配置")
-public class CAConfig {
+@AllArgsConstructor
+@NoArgsConstructor
+@ApiModel("CA服务的CSR配置")
+public class CSRConfig {
     @ApiModelProperty(value = "CA名称（例如WikimediaFoundationCA，对应CA配置ca.name）", required = true)
     private String caName;
 

@@ -8,11 +8,11 @@ import java.io.File;
 
 @NoArgsConstructor
 @Data
-public class TLSEnv {
+public class TlsEnv {
     private String address;
     private File tlsRootCert;
 
-    public TLSEnv(String address, File tlsRootCert) {
+    public TlsEnv(String address, File tlsRootCert) {
         assert tlsRootCert.isFile();
         this.address = address;
         this.tlsRootCert = tlsRootCert;

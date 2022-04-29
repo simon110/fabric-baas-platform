@@ -1,8 +1,8 @@
 package com.anhui.fabricbaasweb.configuration;
 
-import com.anhui.fabricbaasweb.bean.AntMatcherCollection;
-import com.anhui.fabricbaasweb.filter.AuthFilter;
-import com.anhui.fabricbaasweb.filter.DenialFilter;
+import com.anhui.fabricbaasweb.bean.AntMatchers;
+import com.anhui.fabricbaasweb.filter.JwtFilter;
+import com.anhui.fabricbaasweb.filter.DosFilter;
 import com.anhui.fabricbaasweb.service.JwtUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
@@ -26,13 +26,13 @@ import java.util.List;
 @EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true)
 public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Autowired
-    private AuthFilter authFilter;
+    private JwtFilter jwtFilter;
     @Autowired
-    private DenialFilter denialFilter;
+    private DosFilter dosFilter;
     @Autowired
     private JwtUserDetailsService jwtUserDetailsService;
     @Autowired
-    private AntMatcherCollection antMatcherCollection;
+    private AntMatchers antMatchers;
 
 
     @Override
@@ -41,8 +41,8 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .and().authorizeRequests()
                 .anyRequest().authenticated()
                 .and()
-                .addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(denialFilter, AuthFilter.class)
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(dosFilter, JwtFilter.class)
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
     }
 
@@ -54,7 +54,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
                 "/swagger-ui/*",
                 "/swagger-resources/**",
                 "/v3/api-docs");
-        Collections.addAll(list, antMatcherCollection.get());
+        Collections.addAll(list, antMatchers.get());
         String[] antMatchers = new String[list.size()];
         list.toArray(antMatchers);
         web.ignoring().antMatchers(antMatchers);

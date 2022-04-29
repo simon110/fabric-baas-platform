@@ -16,7 +16,7 @@ public class ChannelAddOrdererRequest {
     @ApiModelProperty(value = "通道名称", required = true)
     private String channelName;
 
-    @Range(min = ParamRange.MIN_KUBE_PORT, max = ParamRange.MAX_KUBE_PORT, message = ParamRange.KUBE_PORT_MSG)
+    @Range(min = ParamRange.MIN_KUBERNETES_PORT, max = ParamRange.MAX_KUBERNETES_PORT, message = ParamRange.KUBERNETES_PORT_MSG)
     @ApiModelProperty(value = "Orderer节点的端口（必须已经添加到网络）", required = true)
     private int ordererPort;
 }

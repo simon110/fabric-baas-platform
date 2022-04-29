@@ -10,7 +10,7 @@ import javax.validation.constraints.Pattern;
 @Data
 @ApiModel(value = "注册处理请求")
 public class RegistrationHandleRequest {
-    @Pattern(regexp = ParamPattern.ORG_NAME_REGEX, message = ParamPattern.ORG_NAME_MSG)
+    @Pattern(regexp = ParamPattern.ORGANIZATION_NAME_REGEX, message = ParamPattern.ORGANIZATION_NAME_MSG)
     @ApiModelProperty(value = "组织名称", required = true)
     private String organizationName;
 

@@ -13,7 +13,7 @@ import javax.validation.constraints.Pattern;
 @Data
 @ApiModel(value = "获取邀请指定组织加入通道的邀请码请求")
 public class ChannelGenerateInvitationCodeRequest extends BaseChannelRequest {
-    @Pattern(regexp = ParamPattern.ORG_NAME_REGEX, message = ParamPattern.ORG_NAME_MSG)
+    @Pattern(regexp = ParamPattern.ORGANIZATION_NAME_REGEX, message = ParamPattern.ORGANIZATION_NAME_MSG)
     @ApiModelProperty(value = "组织名称", required = true)
     private String organizationName;
 }

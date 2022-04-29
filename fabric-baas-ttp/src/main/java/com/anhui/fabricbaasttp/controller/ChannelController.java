@@ -5,12 +5,12 @@ import com.anhui.fabricbaascommon.request.BaseChannelRequest;
 import com.anhui.fabricbaascommon.response.EmptyResult;
 import com.anhui.fabricbaascommon.response.ListResult;
 import com.anhui.fabricbaascommon.response.ResourceResult;
-import com.anhui.fabricbaascommon.response.SingletonResult;
+import com.anhui.fabricbaascommon.response.SingleResult;
 import com.anhui.fabricbaasttp.bean.Peer;
 import com.anhui.fabricbaasttp.entity.ChannelEntity;
 import com.anhui.fabricbaasttp.request.ChannelCreateRequest;
 import com.anhui.fabricbaasttp.request.ChannelGenerateInvitationCodeRequest;
-import com.anhui.fabricbaasttp.request.ChannelPeerOptRequest;
+import com.anhui.fabricbaasttp.request.ChannelPeerOperateRequest;
 import com.anhui.fabricbaasttp.request.ChannelSubmitInvitationCodesRequest;
 import com.anhui.fabricbaasttp.response.InvitationCodeResult;
 import com.anhui.fabricbaasttp.service.ChannelService;
@@ -42,7 +42,7 @@ public class ChannelController {
     @Secured({Authority.USER})
     @PostMapping("/joinChannel")
     @ApiOperation("将组织的Peer节点加入到通道中")
-    public EmptyResult joinChannel(@Valid @RequestPart ChannelPeerOptRequest request,
+    public EmptyResult joinChannel(@Valid @RequestPart ChannelPeerOperateRequest request,
                                    @ApiParam(value = "Peer的证书压缩包（包含msp和tls两个文件夹）") @RequestPart MultipartFile peerCertZip) throws Exception {
         channelService.joinChannel(request, peerCertZip);
         return new EmptyResult();
@@ -66,7 +66,7 @@ public class ChannelController {
     @Secured({Authority.USER})
     @PostMapping("/setAnchorPeer")
     @ApiOperation("设置组织在通道中的锚节点（原有的锚节点不受影响）")
-    public EmptyResult setAnchorPeer(@Valid @RequestBody ChannelPeerOptRequest request) throws Exception {
+    public EmptyResult setAnchorPeer(@Valid @RequestBody ChannelPeerOperateRequest request) throws Exception {
         channelService.setAnchorPeer(request);
         return new EmptyResult();
     }
@@ -74,7 +74,7 @@ public class ChannelController {
     @Secured({Authority.USER, Authority.ADMIN})
     @PostMapping("/queryPeerTlsCert")
     @ApiOperation("查询当前组织所参与的任意网络中指定Peer节点的tls/ca.crt")
-    public ResourceResult queryPeerTlsCert(@Valid @RequestBody ChannelPeerOptRequest request) throws Exception {
+    public ResourceResult queryPeerTlsCert(@Valid @RequestBody ChannelPeerOperateRequest request) throws Exception {
         return channelService.queryPeerTlsCert(request);
     }
 
@@ -88,7 +88,7 @@ public class ChannelController {
     @Secured({Authority.USER, Authority.ADMIN})
     @PostMapping("/getChannel")
     @ApiOperation("查询指定通道的详细信息")
-    public SingletonResult<ChannelEntity> getChannel(@Valid @RequestBody BaseChannelRequest request) throws Exception {
+    public SingleResult<ChannelEntity> getChannel(@Valid @RequestBody BaseChannelRequest request) throws Exception {
         return channelService.getChannel(request);
     }
 }
