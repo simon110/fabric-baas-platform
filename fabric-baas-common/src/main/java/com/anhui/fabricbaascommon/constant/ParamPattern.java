@@ -1,8 +1,8 @@
 package com.anhui.fabricbaascommon.constant;
 
 public class ParamPattern {
-    public static final String CHANNEL_NAME_REGEX = "^[A-Za-z0-9]{4,}$";
-    public static final String CHANNEL_NAME_MSG = "通道名称长度至少为4，只能由字母和数字组成";
+    public static final String CHANNEL_NAME_REGEX = "^[a-z][a-z0-9]{3,}$";
+    public static final String CHANNEL_NAME_MSG = "通道名称长度至少为4，只能由小写字母和数字组成";
 
     public static final String NETWORK_NAME_REGEX = "^[A-Za-z0-9]{4,}$";
     public static final String NETWORK_NAME_MSG = "网络名称长度至少为4，只能由字母和数字组成";

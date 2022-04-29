@@ -458,3 +458,18 @@ token用于身份验证，需要将其设置为Http请求Header的`Authorization
 
 然后用这两样东西来启动新的Orderer即可。
 
+
+
+## 4 通道管理
+
+### 4.1 创建通道
+
+已经在网络中的组织可以通过`/api/v1/channel/createChannel`接口来创建通道：
+
+```json
+{
+  "channelName": "testchannel",
+  "networkName": "TestNetwork"
+}
+```
+

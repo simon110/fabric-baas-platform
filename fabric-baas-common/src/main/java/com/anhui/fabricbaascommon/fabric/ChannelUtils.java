@@ -260,7 +260,7 @@ public class ChannelUtils {
                 ordererTLSEnv.getTlsRootCert().getAbsolutePath(),
                 configtxDir.getCanonicalPath(),
                 channelName, channelGenesis.getCanonicalPath());
-        if (!str.toLowerCase().contains("created") || !channelGenesis.exists()) {
+        if (!channelGenesis.exists()) {
             throw new ChannelException("创建通道失败：" + str);
         }
     }

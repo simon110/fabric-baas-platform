@@ -164,8 +164,9 @@ public class ChannelService {
         ConfigtxUtils.appendChannelToConfigtx(configtxYaml, request.getChannelName(), Collections.singletonList(curOrgName));
         log.info(String.format("将通道配置加入configtx.yaml文件%s：", configtxYaml) + FileUtils.readFileToString(configtxYaml, StandardCharsets.UTF_8));
 
-        // 随机选择一个Orderer
-        Orderer orderer = RandomUtils.select(network.getOrderers());
+        // 默认选择第一个Orderer
+        // TODO: 选择后面动态加入的Orderer可会引发报错 Error: got unexpected status: SERVICE_UNAVAILABLE -- channel syschannel is not serviced by me
+        Orderer orderer = network.getOrderers().get(0);
         log.info("随机从网络中选择Orderer：" + orderer);
 
         // 创建通道

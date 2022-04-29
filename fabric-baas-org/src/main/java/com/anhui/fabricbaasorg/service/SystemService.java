@@ -16,6 +16,7 @@ import com.anhui.fabricbaasorg.request.SystemInitRequest;
 import com.anhui.fabricbaasorg.response.ClusterNodeQueryResult;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -76,13 +77,15 @@ public class SystemService {
         caService.initAdminCertfile(caConfig);
 
         // 更新系统管理员密码
-        Optional<UserEntity> adminOptional = userRepo.findById(adminConfiguration.getDefaultUsername());
-        adminOptional.ifPresent(admin -> {
-            log.info("正在初始化管理员信息");
-            String encodedPassword = passwordEncoder.encode(req.getAdminPassword());
-            admin.setPassword(encodedPassword);
-            userRepo.save(admin);
-        });
+        if (req.getAdminPassword() != null && !StringUtils.isBlank(req.getAdminPassword())) {
+            Optional<UserEntity> adminOptional = userRepo.findById(adminConfiguration.getDefaultUsername());
+            adminOptional.ifPresent(admin -> {
+                log.info("正在初始化管理员信息");
+                String encodedPassword = passwordEncoder.encode(req.getAdminPassword());
+                admin.setPassword(encodedPassword);
+                userRepo.save(admin);
+            });
+        }
     }
 
     public ClusterNodeQueryResult getClusterNodeNames() throws Exception {

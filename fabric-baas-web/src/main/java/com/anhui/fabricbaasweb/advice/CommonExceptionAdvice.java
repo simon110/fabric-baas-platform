@@ -14,6 +14,7 @@ public class CommonExceptionAdvice {
     public CommonResponse response(Exception e) {
         // 处理所有Service抛出的异常
         // 可用instanceof来对异常类型进行判断
+        e.printStackTrace();
         return new CommonResponse(ResultCode.ERROR.getValue(), e.getMessage(), null);
     }
 }

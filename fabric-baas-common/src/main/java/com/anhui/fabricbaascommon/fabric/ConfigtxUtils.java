@@ -9,10 +9,7 @@ import com.anhui.fabricbaascommon.util.YamlUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class ConfigtxUtils {
     private static Map<String, Object> buildOrdererOrg(
@@ -175,14 +172,14 @@ public class ConfigtxUtils {
         Map<String, Object> templateConfigtx = YamlUtils.load(new File("configtx.yaml"));
         Map<String, Object> profiles = (Map<String, Object>) templateConfigtx.get("Profiles");
         Map<String, Object> channel = (Map<String, Object>) profiles.get("TwoOrgsChannel");
-        profiles.remove("TwoOrgsChannel");
 
         Map<String, Object> configtx = YamlUtils.load(targetYaml);
-        Map<String, Object> organizations = (Map<String, Object>) configtx.get("Organizations");
+        List<Map<String, Object>> organizations = (List<Map<String, Object>>) configtx.get("Organizations");
         profiles = (Map<String, Object>) configtx.get("Profiles");
         if (profiles.containsKey(channelName)) {
             throw new ConfigtxException("通道已经存在于配置文件中");
         }
+
         // 获取联盟名称
         Map<String, Object> ordererGenesis = (Map<String, Object>) profiles.get("OrdererGenesis");
         Map<String, Object> ordererGenesisConsortiums = (Map<String, Object>) ordererGenesis.get("Consortiums");
@@ -193,12 +190,22 @@ public class ConfigtxUtils {
         Map<String, Object> channelApplication = (Map<String, Object>) channel.get("Application");
         List<Map<String, Object>> channelOrganizations = (List<Map<String, Object>>) channelApplication.get("Organizations");
         channelOrganizations.clear();
+
+        // 生成Organizations部分中所有组织名称的集合
+        Map<String, Integer> organizationIndices = new HashMap<>();
+        for (int i = 0; i < organizations.size(); i++) {
+            Map<String, Object> org = organizations.get(i);
+            organizationIndices.put((String) org.get("Name"), i);
+        }
+
         for (String organizationName : organizationNames) {
-            if (!organizations.containsKey(organizationName)) {
+            int organizationIndex = organizationIndices.getOrDefault(organizationName, -1);
+            if (organizationIndex == -1) {
                 throw new ConfigtxException("未在配置文件中找到相应的组织");
             }
-            channelOrganizations.add((Map<String, Object>) organizations.get(organizationName));
+            channelOrganizations.add(organizations.get(organizationIndex));
         }
+        profiles.put(channelName, channel);
         YamlUtils.saveWithPrefix(configtx, targetYaml);
     }
 
