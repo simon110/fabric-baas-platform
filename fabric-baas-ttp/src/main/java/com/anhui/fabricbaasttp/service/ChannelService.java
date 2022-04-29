@@ -34,8 +34,13 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
+/**
+ * TODO: 对传入通道名称不能为系统通道名称
+ * TODO: 让不同网络里面的通道可以重名
+ */
 @Service
 @Slf4j
 public class ChannelService {
@@ -89,6 +94,7 @@ public class ChannelService {
     private void signEnvelopeWithOrganizations(String networkName, List<String> organizationNames, File envelope) throws IOException, InterruptedException, EnvelopeException {
         for (String orgName : organizationNames) {
             MSPEnv organizationMspDir = fabricEnvService.buildMSPEnvForOrg(networkName, orgName);
+            log.info(String.format("正在使用%s在%s网络的证书对Envelope进行签名：", orgName, networkName) + envelope.getAbsolutePath());
             ChannelUtils.signEnvelope(organizationMspDir, envelope);
         }
     }
@@ -111,7 +117,6 @@ public class ChannelService {
         }
     }
 
-
     public ResourceResult createChannel(ChannelCreateRequest request) throws Exception {
         // 检查操作的组织是否属于相应的网络
         String curOrgName = SecurityUtils.getUsername();
@@ -132,9 +137,12 @@ public class ChannelService {
                 caService.getAdminOrganizationName(),
                 new File(caService.getAdminCertfileDir() + "/msp")
         );
+        log.info("生成Orderer组织的配置：" + ordererConfigtxOrg);
 
         ConfigtxOrganization currentConfigtxOrg = new ConfigtxOrganization(curOrgName, curOrgName, new File(organizationCertfileDir + "/msp"));
         List<ConfigtxOrganization> configtxOrganizations = Collections.singletonList(currentConfigtxOrg);
+        log.info("生成当前组织的配置：" + currentConfigtxOrg);
+
         List<ConfigtxOrderer> configtxOrderers = new ArrayList<>(network.getOrderers().size());
         for (Orderer endpoint : network.getOrderers()) {
             File tlsServerCrt = new File(CertfileUtils.getCertfileDir(endpoint.getCaUsername(), CertfileType.ORDERER) + "/tls/server.crt");
@@ -146,25 +154,32 @@ public class ChannelService {
             configtxOrderer.setClientTlsCert(tlsServerCrt);
             configtxOrderers.add(configtxOrderer);
         }
+        log.info("生成通道的Orderer节点配置：" + configtxOrderers);
 
         // 生成configtx.yaml配置文件
         File configtxDir = ResourceUtils.createTempDir();
         File configtxYaml = new File(configtxDir + "/configtx.yaml");
         ConfigtxUtils.generateConfigtx(configtxYaml, network.getConsortiumName(), configtxOrderers, ordererConfigtxOrg, configtxOrganizations);
+        log.info(String.format("生成基本configtx.yaml文件%s：", configtxYaml) + FileUtils.readFileToString(configtxYaml, StandardCharsets.UTF_8));
         ConfigtxUtils.appendChannelToConfigtx(configtxYaml, request.getChannelName(), Collections.singletonList(curOrgName));
+        log.info(String.format("将通道配置加入configtx.yaml文件%s：", configtxYaml) + FileUtils.readFileToString(configtxYaml, StandardCharsets.UTF_8));
 
         // 随机选择一个Orderer
         Orderer orderer = RandomUtils.select(network.getOrderers());
+        log.info("随机从网络中选择Orderer：" + orderer);
 
         // 创建通道
         MSPEnv organizationMspEnv = fabricEnvService.buildMSPEnvForOrg(network.getName(), curOrgName);
         TLSEnv ordererTlsEnv = fabricEnvService.buildTLSEnvForOrderer(orderer);
+        log.info("生成组织的MSP环境变量：" + organizationMspEnv);
+        log.info("生成Orderer的TLS环境变量：" + ordererTlsEnv);
         File appChannelGenesis = ResourceUtils.createTempFile("block");
         ChannelUtils.createChannel(organizationMspEnv, ordererTlsEnv, configtxDir, request.getChannelName(), appChannelGenesis);
 
         // 将通道创世区块保存至MinIO
         String channelId = IdentifierGenerator.ofChannel(request.getNetworkName(), request.getChannelName());
         minioService.putFile(MinIOBucket.APP_CHANNEL_GENESIS_BLOCK_BUCKET_NAME, channelId, appChannelGenesis);
+        log.info("将创世区块保存到MinIO：" + appChannelGenesis.getAbsolutePath());
 
         // 将通道信息保存至MongoDB
         ChannelEntity channel = new ChannelEntity();
@@ -174,6 +189,7 @@ public class ChannelService {
         channel.setPeers(Collections.emptyList());
         channel.setOrderers(network.getOrderers());
         channelRepo.save(channel);
+        log.info("保存通道信息：" + channel);
 
         String downloadUrl = String.format("/download/block/%s.block", UUID.randomUUID());
         FileUtils.copyFile(appChannelGenesis, new File("static" + downloadUrl));

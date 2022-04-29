@@ -547,6 +547,7 @@ public class NetworkService {
                 ZipUtils.unzip(certfileZip, CertfileUtils.getCertfileDir(certfileId, CertfileType.ADMIN));
                 // 将组织加入到网络
                 network.getOrganizationNames().add(request.getOrganizationName());
+                // TODO: 发送邮件通知
             }
         } else {
             // 如果操作者拒绝

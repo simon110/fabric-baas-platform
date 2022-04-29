@@ -14,6 +14,7 @@ import com.anhui.fabricbaascommon.repository.CARepo;
 import com.anhui.fabricbaascommon.repository.UserRepo;
 import com.anhui.fabricbaasttp.request.SystemInitRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -64,10 +65,12 @@ public class SystemService {
 
         Optional<UserEntity> adminOptional = userRepo.findById(adminConfiguration.getDefaultUsername());
         adminOptional.ifPresent(admin -> {
-            String encodedPassword = passwordEncoder.encode(req.getAdminPassword());
-            admin.setPassword(encodedPassword);
-            log.info("正在修改系统管理员密码...");
-            userRepo.save(admin);
+            if (req.getAdminPassword() != null && !StringUtils.isBlank(req.getAdminPassword())) {
+                String encodedPassword = passwordEncoder.encode(req.getAdminPassword());
+                admin.setPassword(encodedPassword);
+                log.info("正在修改系统管理员密码...");
+                userRepo.save(admin);
+            }
             log.info("正在保存TTP信息...");
         });
     }

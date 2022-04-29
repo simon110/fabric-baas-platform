@@ -68,7 +68,8 @@ class KubernetesClientTest {
         // pairs.add(new Pair<>("TestOrgA", "orderer0"));
         // pairs.add(new Pair<>("TestOrgA", "orderer1"));
         // pairs.add(new Pair<>("TestOrgB", "orderer0"));
-        pairs.add(new Pair<>("TestOrgC", "orderer0"));
+        // pairs.add(new Pair<>("TestOrgC", "orderer0"));
+        pairs.add(new Pair<>("TestOrgD", "orderer0"));
 
         for (Pair<String, String> pair : pairs) {
             File ordererYaml = new File(String.format("example/kubernetes/%s/%s.yaml", pair.getKey(), pair.getValue()));
