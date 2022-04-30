@@ -78,13 +78,13 @@ public class FabricYamlUtils {
         FileUtils.writeStringToFile(output, config, StandardCharsets.UTF_8);
     }
 
-    public static void generatePeerYaml(PeerEntity peer, String domain, File output) throws IOException {
+    public static void generatePeerYaml(String organizationName, PeerEntity peer, String domain, File output) throws IOException {
         String templatePath = "fabric/template/fabric-peer.yaml";
         String config = FileUtils.readFileToString(new File(templatePath), StandardCharsets.UTF_8);
         String[][] replacements = new String[][]{
                 {"peer-org-example-com", peer.getName().toLowerCase()},
                 {"peer.org.example.com", domain},
-                {"mspid", peer.getOrganizationName()},
+                {"mspid", organizationName},
                 {"couchdb-username", peer.getCouchDBUsername()},
                 {"couchdb-password", peer.getCouchDBPassword()},
                 {"kube-node", peer.getKubeNodeName()},

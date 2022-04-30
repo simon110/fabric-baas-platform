@@ -2,6 +2,7 @@ package com.anhui.fabricbaasorg.remote;
 
 import cn.hutool.json.JSONObject;
 import com.anhui.fabricbaascommon.bean.Node;
+import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -93,15 +94,16 @@ public class TTPChannelApi {
      *
      * @param channelName 通道名称
      * @param peer        Peer的地址信息
-     * @return TTP端返回的Peer节点TLS证书
+     * @param output      TTP端返回的Peer节点TLS证书
      * @throws Exception 返回请求中任何code!=200的情况都应该抛出异常
      */
-    public byte[] queryPeerTlsCert(String channelName, Node peer) throws Exception {
+    public void queryPeerTlsCert(String channelName, Node peer, File output) throws Exception {
         JSONObject data = new JSONObject();
         data.set("channelName", channelName);
         data.set("peer", peer);
         JSONObject response = httpClient.request("/api/v1/channel/queryPeerTlsCert", data);
-        return httpClient.download((String) response.get("downloadUrl"));
+        byte[] bytes = httpClient.download((String) response.get("downloadUrl"));
+        FileUtils.writeByteArrayToFile(output, bytes);
     }
 
     /**

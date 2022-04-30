@@ -93,7 +93,7 @@ public class KubernetesService {
         }
     }
 
-    public void assertClusterPortAvailable(int port) throws KubernetesException {
+    public void assertNodePortAvailable(int port) throws KubernetesException {
         List<PeerEntity> peers = peerRepo.findAllByKubeNodePortOrKubeEventNodePort(port, port);
         List<OrdererEntity> orderers = ordererRepo.findAllByKubeNodePort(port);
         if (!peers.isEmpty() || !orderers.isEmpty()) {
@@ -101,18 +101,18 @@ public class KubernetesService {
         }
     }
 
-    public void assertClusterNodeExists(String name) throws KubernetesException {
+    public void assertNodeExists(String name) throws KubernetesException {
         if (!getNodeNames().contains(name)) {
             throw new KubernetesException("物理节点不存在：" + name);
         }
     }
 
-    public void applyPeerYaml(PeerEntity peer, String domain, File peerCertfileDir) throws Exception {
+    public void applyPeerYaml(String organizationName, PeerEntity peer, String domain, File peerCertfileDir) throws Exception {
         // 生产YAML文件并部署到集群
         CertfileUtils.assertCertfile(peerCertfileDir);
         assertAdminConfig();
         File peerYaml = FabricYamlUtils.getPeerYaml(peer.getName());
-        FabricYamlUtils.generatePeerYaml(peer, domain, peerYaml);
+        FabricYamlUtils.generatePeerYaml(organizationName, peer, domain, peerYaml);
         try {
             kubernetesClient.applyYaml(peerYaml);
 
@@ -143,16 +143,17 @@ public class KubernetesService {
         }
     }
 
-    public void startPeer(PeerEntity peer, String domain, File peerCertfileDir) throws Exception {
+    public void startPeer(String organizationName, PeerEntity peer, String domain, File peerCertfileDir) throws Exception {
         // 检查物理主机是否存在
-        assertClusterNodeExists(peer.getKubeNodeName());
+        assertNodeExists(peer.getKubeNodeName());
         // 检查端口占用情况
-        assertClusterPortAvailable(peer.getKubeNodePort());
-        assertClusterPortAvailable(peer.getKubeEventNodePort());
+        assertNodePortAvailable(peer.getKubeNodePort());
+        assertNodePortAvailable(peer.getKubeEventNodePort());
         // 检查是否存在同名Peer
         assertDeploymentNameAvailable(peer.getName());
 
-        applyPeerYaml(peer, domain, peerCertfileDir);
+
+        applyPeerYaml(organizationName, peer, domain, peerCertfileDir);
         log.info("保存Peer信息：" + peer);
         peerRepo.save(peer);
     }
@@ -205,11 +206,11 @@ public class KubernetesService {
 
     public void startOrderer(String ttpOrgName, OrdererEntity orderer, File ordererCertfileDir, File genesisBlock) throws Exception {
         // 检查端口是否冲突
-        assertClusterPortAvailable(orderer.getKubeNodePort());
+        assertNodePortAvailable(orderer.getKubeNodePort());
         // 检查Orderer是否已经存在
         assertDeploymentNameAvailable(orderer.getName());
         // 检查物理主机是否存在
-        assertClusterNodeExists(orderer.getKubeNodeName());
+        assertNodeExists(orderer.getKubeNodeName());
 
         applyOrdererYaml(ttpOrgName, orderer, ordererCertfileDir, genesisBlock);
         log.info("保存Orderer信息：" + orderer);

@@ -6,6 +6,7 @@ import com.anhui.fabricbaascommon.bean.Node;
 import com.anhui.fabricbaascommon.response.PaginationQueryResult;
 import com.anhui.fabricbaasorg.bean.Network;
 import com.anhui.fabricbaasorg.bean.Participation;
+import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -24,10 +25,9 @@ public class TTPNetworkApi {
      * @param consortiumName 网络对应的联盟名称
      * @param orderers       当前组织预计提供的Orderer节点的地址
      * @param adminCertZip   当前组织在所创建网络中的管理员证书
-     * @return TTP返回的网络的创世区块的二进制数据
      * @throws Exception 返回请求中任何code!=200的情况都应该抛出异常
      */
-    public byte[] createNetwork(String networkName, String consortiumName, List<Node> orderers, File adminCertZip) throws Exception {
+    public void createNetwork(String networkName, String consortiumName, List<Node> orderers, File adminCertZip) throws Exception {
         JSONObject data = new JSONObject();
         data.set("networkName", networkName);
         data.set("consortiumName", consortiumName);
@@ -36,7 +36,6 @@ public class TTPNetworkApi {
         map.put("request", data);
         map.put("adminCertZip", adminCertZip);
         JSONObject response = httpClient.request("/api/v1/network/createNetwork", map);
-        return httpClient.download((String) response.get("downloadUrl"));
     }
 
     /**
@@ -59,16 +58,14 @@ public class TTPNetworkApi {
      * 当前组织申请加入网络
      *
      * @param networkName  要加入的网络名称
-     * @param orderers     当前组织预计提供的Orderer节点的地址
      * @param description  当前组织的名称
      * @param adminCertZip 当前组织在申请加入的网络中的管理员证书
      * @throws Exception 返回请求中任何code!=200的情况都应该抛出异常
      */
-    public void applyParticipation(String networkName, List<Node> orderers, String description, File adminCertZip) throws Exception {
+    public void applyParticipation(String networkName, String description, File adminCertZip) throws Exception {
         JSONObject data = new JSONObject();
         data.set("networkName", networkName);
         data.set("description", description);
-        data.set("orderers", orderers);
         Map<String, Object> map = new HashMap<>();
         map.put("request", data);
         map.put("adminCertZip", adminCertZip);
@@ -85,6 +82,8 @@ public class TTPNetworkApi {
         JSONObject data = new JSONObject();
         data.set("networkName", networkName);
         data.set("status", status);
+        data.set("page", page);
+        data.set("pageSize", pageSize);
         JSONObject response = httpClient.request("/api/v1/network/queryParticipations", data);
         PaginationQueryResult<Participation> result = new PaginationQueryResult<>();
         result.setItems(JSONUtil.toList(response.getJSONArray("items"), Participation.class));
@@ -113,15 +112,13 @@ public class TTPNetworkApi {
      *
      * @param networkName 网络名称
      * @param orderer     新添加的Orderer的地址信息
-     * @return TTP端返回的Orderer节点证书
      * @throws Exception 返回请求中任何code!=200的情况都应该抛出异常
      */
-    public byte[] addOrderer(String networkName, Node orderer) throws Exception {
+    public void addOrderer(String networkName, Node orderer) throws Exception {
         JSONObject data = new JSONObject();
         data.set("networkName", networkName);
         data.set("orderer", orderer);
         JSONObject response = httpClient.request("/api/v1/network/addOrderer", data);
-        return httpClient.download((String) response.get("downloadUrl"));
     }
 
     /**
@@ -129,15 +126,16 @@ public class TTPNetworkApi {
      *
      * @param networkName 网络名称
      * @param orderer     Orderer的地址信息
-     * @return TTP端返回的Orderer节点TLS证书
+     * @param output      TTP端返回的Orderer节点TLS证书
      * @throws Exception 返回请求中任何code!=200的情况都应该抛出异常
      */
-    public byte[] queryOrdererTlsCert(String networkName, Node orderer) throws Exception {
+    public void queryOrdererTlsCert(String networkName, Node orderer, File output) throws Exception {
         JSONObject data = new JSONObject();
         data.set("networkName", networkName);
         data.set("orderer", orderer);
         JSONObject response = httpClient.request("/api/v1/network/queryOrdererTlsCert", data);
-        return httpClient.download((String) response.get("downloadUrl"));
+        byte[] bytes = httpClient.download((String) response.get("downloadUrl"));
+        FileUtils.writeByteArrayToFile(output, bytes);
     }
 
     /**
@@ -145,28 +143,30 @@ public class TTPNetworkApi {
      *
      * @param networkName 网络名称
      * @param orderer     Orderer的地址信息
-     * @return TTP端返回的Orderer节点证书zip
+     * @param output      TTP端返回的Orderer节点证书zip
      * @throws Exception 返回请求中任何code!=200的情况都应该抛出异常
      */
-    public byte[] queryOrdererCert(String networkName, Node orderer) throws Exception {
+    public void queryOrdererCert(String networkName, Node orderer, File output) throws Exception {
         JSONObject data = new JSONObject();
         data.set("networkName", networkName);
         data.set("orderer", orderer);
         JSONObject response = httpClient.request("/api/v1/network/queryOrdererCert", data);
-        return httpClient.download((String) response.get("downloadUrl"));
+        byte[] bytes = httpClient.download((String) response.get("downloadUrl"));
+        FileUtils.writeByteArrayToFile(output, bytes);
     }
 
     /**
      * 获取指定网络的创世区块
      *
      * @param networkName 网络名称
-     * @return 创世区块二进制数据
+     * @param output      创世区块写出的位置
      * @throws Exception 返回请求中任何code!=200的情况都应该抛出异常
      */
-    public byte[] queryGenesisBlock(String networkName) throws Exception {
+    public void queryGenesisBlock(String networkName, File output) throws Exception {
         JSONObject data = new JSONObject();
         data.set("networkName", networkName);
         JSONObject response = httpClient.request("/api/v1/network/queryGenesisBlock", data);
-        return httpClient.download((String) response.get("downloadUrl"));
+        byte[] blockData = httpClient.download((String) response.get("downloadUrl"));
+        FileUtils.writeByteArrayToFile(output, blockData);
     }
 }

@@ -21,7 +21,6 @@ import com.anhui.fabricbaasorg.remote.TTPNetworkApi;
 import com.anhui.fabricbaasorg.repository.*;
 import com.anhui.fabricbaasorg.request.ChaincodeApproveRequest;
 import com.anhui.fabricbaasorg.request.ChaincodeCommitRequest;
-import com.anhui.fabricbaasorg.request.ChaincodeInstallRequest;
 import com.anhui.fabricbaasorg.response.CommittedChaincodeQueryResult;
 import com.anhui.fabricbaasorg.response.InstalledChaincodeQueryResult;
 import lombok.extern.slf4j.Slf4j;
@@ -31,10 +30,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @Slf4j
@@ -46,25 +43,18 @@ public class ChaincodeService {
     @Autowired
     private PeerRepo peerRepo;
     @Autowired
-    private OrdererRepo ordererRepo;
-    @Autowired
     private CaClientService caClientService;
     @Autowired
     private TTPChannelApi ttpChannelApi;
     @Autowired
     private TTPNetworkApi ttpNetworkApi;
     @Autowired
-    private ChannelRepo channelRepo;
+    private ChannelService channelService;
 
-    private CoreEnv buildCoreEnvForPeer(String peerName) throws IOException, NodeException, CertfileException, CaException {
-        Optional<PeerEntity> peerOptional = peerRepo.findById(peerName);
-        if (peerOptional.isEmpty()) {
-            throw new NodeException("Peer不存在：" + peerName);
-        }
-        PeerEntity peer = peerOptional.get();
-
+    private CoreEnv buildPeerCoreEnv(String peerName) throws NodeException, CertfileException, CaException {
         // 获取Peer证书
-        File certfileDir = CertfileUtils.getCertfileDir(peer.getName(), CertfileType.PEER);
+        PeerEntity peer = channelService.findPeerOrThrowEx(peerName);
+        File certfileDir = CertfileUtils.getCertfileDir(peer.getCaUsername(), CertfileType.PEER);
         CertfileUtils.assertCertfile(certfileDir);
 
         CoreEnv coreEnv = new CoreEnv();
@@ -72,28 +62,28 @@ public class ChaincodeService {
         coreEnv.setAddress(caEntity.getDomain() + ":" + peer.getKubeNodePort());
         coreEnv.setMspConfig(CertfileUtils.getMspDir(certfileDir));
         coreEnv.setMspId(caEntity.getOrganizationName());
-        coreEnv.setTlsRootCert(new File(certfileDir + "/tls/ca.crt"));
+        coreEnv.setTlsRootCert(CertfileUtils.getTlsCaCert(certfileDir));
         return coreEnv;
     }
 
-    public void install(ChaincodeInstallRequest request, MultipartFile chaincodePackage) throws Exception {
+    public void install(String peerName, String chaincodeLabel, MultipartFile chaincodePackage) throws Exception {
         // 将链码压缩包写入临时目录
         File tempChaincodePackage = SimpleFileUtils.createTempFile("tar.gz");
         FileUtils.writeByteArrayToFile(tempChaincodePackage, chaincodePackage.getBytes());
 
         // 执行链码安装
-        String packageId = ChaincodeUtils.installChaincode(tempChaincodePackage, buildCoreEnvForPeer(request.getPeerName()));
+        String packageId = ChaincodeUtils.installChaincode(tempChaincodePackage, buildPeerCoreEnv(peerName));
         InstalledChaincodeEntity installedChaincode = new InstalledChaincodeEntity();
-        installedChaincode.setPeerName(request.getPeerName());
+        installedChaincode.setPeerName(peerName);
         installedChaincode.setIdentifier(packageId);
-        installedChaincode.setLabel(request.getChaincodeLabel());
+        installedChaincode.setLabel(chaincodeLabel);
         installedChaincodeRepo.save(installedChaincode);
     }
 
     /**
      * 如果存在多个Orderer则会随机选择一个
      */
-    private TlsEnv buildChannelOrdererTlsEnv(String channelName) throws Exception {
+    private TlsEnv buildOrdererTlsEnv(String channelName) throws Exception {
         return null;
     }
 
@@ -110,10 +100,10 @@ public class ChaincodeService {
 
     public void approve(ChaincodeApproveRequest request) throws Exception {
         // 生成Peer的环境变量
-        CoreEnv peerCoreEnv = buildCoreEnvForPeer(request.getPeerName());
+        CoreEnv peerCoreEnv = buildPeerCoreEnv(request.getPeerName());
 
         // 生成Orderer的环境变量
-        TlsEnv ordererTlsEnv = buildChannelOrdererTlsEnv(request.getChannelName());
+        TlsEnv ordererTlsEnv = buildOrdererTlsEnv(request.getChannelName());
 
         BasicChaincodeProperties chaincodeProperties = new BasicChaincodeProperties();
         chaincodeProperties.setName(request.getName());
@@ -124,10 +114,10 @@ public class ChaincodeService {
 
     public void commit(ChaincodeCommitRequest request) throws Exception {
         // 生成Peer的环境变量
-        CoreEnv peerCoreEnv = buildCoreEnvForPeer(request.getPeerName());
+        CoreEnv peerCoreEnv = buildPeerCoreEnv(request.getPeerName());
 
         // 生成Orderer的环境变量
-        TlsEnv ordererTlsEnv = buildChannelOrdererTlsEnv(request.getChannelName());
+        TlsEnv ordererTlsEnv = buildOrdererTlsEnv(request.getChannelName());
 
         // 生成背书Peer的环境变量
         List<TlsEnv> endorsorPeerTlsEnvs = new ArrayList<>();
@@ -150,17 +140,11 @@ public class ChaincodeService {
         committedChaincodeRepo.save(committedChaincode);
     }
 
-    public InstalledChaincodeQueryResult getInstalledChaincodes() {
-        InstalledChaincodeQueryResult result = new InstalledChaincodeQueryResult();
-        List<InstalledChaincodeEntity> installedChaincodes = installedChaincodeRepo.findAll();
-        result.setInstalledChaincodes(installedChaincodes);
-        return result;
+    public List<InstalledChaincodeEntity> getAllInstalledChaincodes() {
+        return installedChaincodeRepo.findAll();
     }
 
-    public CommittedChaincodeQueryResult getCommittedChaincodes() {
-        CommittedChaincodeQueryResult result = new CommittedChaincodeQueryResult();
-        List<CommittedChaincodeEntity> committedChaincodes = committedChaincodeRepo.findAll();
-        result.setCommittedChaincodes(committedChaincodes);
-        return result;
+    public List<CommittedChaincodeEntity> getAllCommittedChaincodes() {
+        return committedChaincodeRepo.findAll();
     }
 }

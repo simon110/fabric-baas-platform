@@ -52,14 +52,14 @@ public class ChaincodeController {
     @PostMapping("/getInstalledChaincodes")
     @ApiOperation("查询指定Peer上已安装的所有链码")
     public InstalledChaincodeQueryResult getInstalledChaincodes() throws Exception {
-        return chaincodeService.getInstalledChaincodes();
+        return chaincodeService.getAllInstalledChaincodes();
     }
 
     @Secured({Authority.ADMIN})
     @PostMapping("/getCommittedChaincodes")
     @ApiOperation("查询指定Peer上已生效的所有链码")
     public CommittedChaincodeQueryResult getCommittedChaincodes() throws Exception {
-        return chaincodeService.getCommittedChaincodes();
+        return chaincodeService.getAllCommittedChaincodes();
     }
 }
 

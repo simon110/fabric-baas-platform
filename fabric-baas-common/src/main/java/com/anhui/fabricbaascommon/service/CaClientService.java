@@ -54,7 +54,7 @@ public class CaClientService {
     }
 
 
-    private CertfileEntity findCertfileOrThrowEx(String username) throws CertfileException {
+    public CertfileEntity findCertfileOrThrowEx(String username) throws CertfileException {
         Optional<CertfileEntity> certfileOptional = certfileRepo.findById(username);
         if (certfileOptional.isEmpty()) {
             throw new CertfileException("相应的证书未注册：" + username);

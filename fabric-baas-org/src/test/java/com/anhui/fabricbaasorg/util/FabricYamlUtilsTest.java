@@ -57,13 +57,12 @@ class FabricYamlUtilsTest {
                 peer.setKubeEventNodePort(peerEventNodePort++);
                 peer.setCouchDBUsername(couchDBUsername);
                 peer.setCouchDBPassword(couchDBPassword);
-                peer.setOrganizationName(organizationName);
                 // CA信息不会被用到
                 peer.setCaUsername(null);
                 peer.setCaPassword(null);
 
                 File yaml = new File(String.format("%s/%s/peer%d.yaml", BASE_DIR_PATH, organizationName, j));
-                FabricYamlUtils.generatePeerYaml(peer, organizationDomain, yaml);
+                FabricYamlUtils.generatePeerYaml(organizationName, peer, organizationDomain, yaml);
                 Assertions.assertTrue(yaml.exists());
             }
         }

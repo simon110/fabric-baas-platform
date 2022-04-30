@@ -20,14 +20,6 @@ public class PeerEntity {
     @ApiModelProperty(value = "Peer名称", required = true)
     private String name;
 
-    @JsonIgnore
-    @ApiModelProperty(value = "Peer CA服务证书账号", required = true)
-    private String caUsername;
-
-    @JsonIgnore
-    @ApiModelProperty(value = "Peer CA服务证书密码", required = true)
-    private String caPassword;
-
     @ApiModelProperty(value = "物理节点名称", required = true)
     private String kubeNodeName;
 
@@ -37,8 +29,13 @@ public class PeerEntity {
     @ApiModelProperty(value = "事件监听端口（对应7053）", required = true)
     private Integer kubeEventNodePort;
 
-    @ApiModelProperty(value = "Peer 所属的组织名", required = true)
-    private String organizationName;
+    @JsonIgnore
+    @ApiModelProperty(value = "Peer CA服务证书账号", required = true)
+    private String caUsername;
+
+    @JsonIgnore
+    @ApiModelProperty(value = "Peer CA服务证书密码", required = true)
+    private String caPassword;
 
     @ApiModelProperty(value = "Peer Couchdb账号", required = true)
     @JsonIgnore
