@@ -727,7 +727,7 @@ token用于身份验证，需要将其设置为Http请求Header的`Authorization
   "code": 200,
   "message": "成功调用服务",
   "data": {
-    "invitationCode": "9ajLhC0nl7FQteTkLCZ7Sl4WoMVl/HN6SeY5KeNnYMQ7kqfwIwbp/b9oficgB7CYH7nLjY9jo8OSXkY0IGGW8A=="
+    "result": "9ajLhC0nl7FQteTkLCZ7Sl4WoMVl/HN6SeY5KeNnYMQ7kqfwIwbp/b9oficgB7CYH7nLjY9jo8OSXkY0IGGW8A=="
   }
 }
 ```

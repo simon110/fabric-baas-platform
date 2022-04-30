@@ -26,7 +26,7 @@ public class CoreEnv {
     }
 
     public void selfAssert() throws CertfileException {
-        getMspEnv().assertMspConfig();
-        getTlsEnv().assertRootCert();
+        getMspEnv().assertMspCert();
+        getTlsEnv().assertTlsCert();
     }
 }

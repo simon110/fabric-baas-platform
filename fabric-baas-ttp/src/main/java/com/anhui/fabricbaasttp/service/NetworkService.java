@@ -70,9 +70,9 @@ public class NetworkService {
 
     private static void assertOrderersNotInNetwork(List<Node> orderers, NetworkEntity network) throws NodeException {
         Set<String> set = new TreeSet<>();
-        network.getOrderers().forEach(node -> set.add(node.addr()));
+        network.getOrderers().forEach(node -> set.add(node.getAddr()));
         for (Node orderer : orderers) {
-            String addr = orderer.addr();
+            String addr = orderer.getAddr();
             if (set.contains(addr)) {
                 throw new NodeException("该网络中已存在Orderer：" + addr);
             }
@@ -82,7 +82,7 @@ public class NetworkService {
     private static void assertOrderersNotDuplicated(List<Node> orderers) throws NodeException {
         Set<String> set = new TreeSet<>();
         for (Node node : orderers) {
-            String addr = node.addr();
+            String addr = node.getAddr();
             if (set.contains(addr)) {
                 throw new NodeException("存在重复的Orderer地址");
             }
@@ -139,7 +139,7 @@ public class NetworkService {
 
         // 随机选择一个Orderer并拉取配置文件
         Orderer orderer = RandomUtils.select(network.getOrderers());
-        log.info("随机从网络中选择了Orderer：" + orderer.addr());
+        log.info("随机从网络中选择了Orderer：" + orderer.getAddr());
         CoreEnv ordererCoreEnv = fabricEnvService.buildCoreEnvForOrderer(orderer);
         log.info("生成Orderer的环境变量：" + ordererCoreEnv);
         ChannelUtils.fetchConfig(ordererCoreEnv, fabricConfig.getSystemChannelName(), oldConfig);

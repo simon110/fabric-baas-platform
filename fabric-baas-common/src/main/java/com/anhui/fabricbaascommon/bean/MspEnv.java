@@ -19,7 +19,7 @@ public class MspEnv {
         this.mspConfig = mspConfig;
     }
 
-    public void assertMspConfig() throws CertfileException {
+    public void assertMspCert() throws CertfileException {
         if (!CertfileUtils.checkMSPDir(mspConfig)) {
             throw new CertfileException("非法的MSP证书目录：" + mspConfig);
         }

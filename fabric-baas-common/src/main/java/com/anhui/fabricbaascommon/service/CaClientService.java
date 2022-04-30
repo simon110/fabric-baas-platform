@@ -36,13 +36,6 @@ public class CaClientService {
     @Autowired
     private FabricConfiguration fabricConfig;
 
-    private CertfileEntity findCertfileOrThrowEx(String username) throws CertfileException {
-        Optional<CertfileEntity> certfileOptional = certfileRepo.findById(username);
-        if (certfileOptional.isEmpty()) {
-            throw new CertfileException("相应的证书未注册：" + username);
-        }
-        return certfileOptional.get();
-    }
 
     public void register(String username, String password, String usertype) throws CertfileException, CaException, IOException, InterruptedException {
         if (certfileRepo.existsById(username)) {
@@ -60,7 +53,16 @@ public class CaClientService {
         CaUtils.enroll(targetCertfileDir, FABRIC_CA_SERVER_CERT, getCaName(), FABRIC_CA_SERVER_ADDR, certfile, csrHosts);
     }
 
-    public CaEntity findCaEntity() throws CaException {
+
+    private CertfileEntity findCertfileOrThrowEx(String username) throws CertfileException {
+        Optional<CertfileEntity> certfileOptional = certfileRepo.findById(username);
+        if (certfileOptional.isEmpty()) {
+            throw new CertfileException("相应的证书未注册：" + username);
+        }
+        return certfileOptional.get();
+    }
+
+    public CaEntity findCaEntityOrThrowEx() throws CaException {
         Optional<CaEntity> caOptional = caRepo.findFirstByOrganizationNameIsNotNull();
         if (caOptional.isPresent()) {
             return caOptional.get();
@@ -69,16 +71,17 @@ public class CaClientService {
     }
 
     public String getCaOrganizationName() throws CaException {
-        return findCaEntity().getOrganizationName();
+        return findCaEntityOrThrowEx().getOrganizationName();
     }
 
     public String getCaOrganizationDomain() throws CaException {
-        return findCaEntity().getDomain();
+        return findCaEntityOrThrowEx().getDomain();
     }
 
     public String getCaName() throws CaException {
         return getCaOrganizationName() + "CA";
     }
+
 
     public void initRootCertfile(CsrConfig csrConfig) throws IOException, InterruptedException, CaException {
         boolean mkdirs = FABRIC_CA_ROOT_CERTFILE_DIR.mkdirs();

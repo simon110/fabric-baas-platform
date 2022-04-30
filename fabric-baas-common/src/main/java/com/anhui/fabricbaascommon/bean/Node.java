@@ -24,7 +24,7 @@ public class Node {
     @ApiModelProperty(value = "端口", required = true)
     private int port;
 
-    public String addr() {
+    public String getAddr() {
         return String.format("%s:%d", host, port);
     }
 }

@@ -68,7 +68,7 @@ public class ChaincodeService {
         CertfileUtils.assertCertfile(certfileDir);
 
         CoreEnv coreEnv = new CoreEnv();
-        CaEntity caEntity = caClientService.findCaEntity();
+        CaEntity caEntity = caClientService.findCaEntityOrThrowEx();
         coreEnv.setAddress(caEntity.getDomain() + ":" + peer.getKubeNodePort());
         coreEnv.setMspConfig(CertfileUtils.getCertfileMspDir(certfileDir));
         coreEnv.setMspId(caEntity.getOrganizationName());
@@ -103,7 +103,7 @@ public class ChaincodeService {
         FileUtils.writeByteArrayToFile(endorsorTlsCert, endorsorTlsCertData);
 
         TlsEnv tlsEnv = new TlsEnv();
-        tlsEnv.setAddress(endorsor.addr());
+        tlsEnv.setAddress(endorsor.getAddr());
         tlsEnv.setTlsRootCert(endorsorTlsCert);
         return tlsEnv;
     }

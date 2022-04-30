@@ -71,7 +71,7 @@ public class FabricEnvService {
 
     private static TlsEnv buildTlsEnv(Node node, File certfileDir) {
         TlsEnv tlsEnv = new TlsEnv();
-        tlsEnv.setAddress(node.addr());
+        tlsEnv.setAddress(node.getAddr());
         tlsEnv.setTlsRootCert(new File(certfileDir.getAbsolutePath() + "/tls/ca.crt"));
         return tlsEnv;
     }

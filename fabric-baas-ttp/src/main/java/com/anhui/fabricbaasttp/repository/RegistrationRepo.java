@@ -11,6 +11,8 @@ import java.util.List;
 public interface RegistrationRepo extends MongoRepository<RegistrationEntity, ObjectId> {
     List<RegistrationEntity> findAllByOrganizationName(String organizationName);
 
+    List<RegistrationEntity> findAllByOrganizationNameAndStatus(String organizationName, int status);
+
     Page<RegistrationEntity> findAllByStatus(int status, Pageable pageable);
 
     int countAllByStatus(int status);

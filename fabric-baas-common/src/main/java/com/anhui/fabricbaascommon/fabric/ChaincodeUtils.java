@@ -169,7 +169,7 @@ public class ChaincodeUtils {
             String packageId,
             BasicChaincodeProperties chaincodeProperties) throws IOException, InterruptedException, CertfileException, ChaincodeException {
         peerCoreEnv.selfAssert();
-        ordererTlsEnv.assertRootCert();
+        ordererTlsEnv.assertTlsCert();
 
         //检查链码批准情况
         List<ChaincodeApproval> oldCheckCommitReadiness = checkCommittedReadiness(ordererTlsEnv, peerCoreEnv, channelName, chaincodeProperties);
@@ -206,7 +206,7 @@ public class ChaincodeUtils {
             BasicChaincodeProperties chaincodeProperties)
             throws IOException, InterruptedException, CertfileException, ChaincodeException {
         peerCoreEnv.selfAssert();
-        ordererTlsEnv.assertRootCert();
+        ordererTlsEnv.assertTlsCert();
 
         String str = CommandUtils.exec(
                 SimpleFileUtils.getWorkingDir() + "/shell/fabric-chaincode-check-readiness.sh",
@@ -259,7 +259,7 @@ public class ChaincodeUtils {
             BasicChaincodeProperties chaincodeProperties)
             throws IOException, InterruptedException, CertfileException, ChaincodeException {
         committerPeerCoreEnv.selfAssert();
-        ordererTlsEnv.assertRootCert();
+        ordererTlsEnv.assertTlsCert();
         List<String> commandList = Arrays.asList(
                 SimpleFileUtils.getWorkingDir() + "/shell/fabric-chaincode-commit.sh",
                 chaincodeProperties.getName(),

@@ -4,7 +4,6 @@ import com.anhui.fabricbaascommon.constant.Authority;
 import com.anhui.fabricbaascommon.response.UniqueResult;
 import com.anhui.fabricbaasttp.request.SystemInitRequest;
 import com.anhui.fabricbaasttp.service.SystemService;
-import com.anhui.fabricbaascommon.response.EmptyResult;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,15 +25,14 @@ public class SystemController {
     @Secured({Authority.ADMIN})
     @PostMapping("/init")
     @ApiOperation("对系统管理员的账户密码和CA服务进行配置")
-    public EmptyResult init(@Valid @RequestBody SystemInitRequest request) throws Exception {
-        systemService.init(request);
-        return new EmptyResult();
+    public void init(@Valid @RequestBody SystemInitRequest request) throws Exception {
+        systemService.init(request.getTtp(), request.getAdminPassword());
     }
 
     @Secured({Authority.ADMIN})
-    @PostMapping("/isInitialized")
+    @PostMapping("/isReady")
     @ApiOperation("系统当前是否已经初始化")
-    public UniqueResult<Boolean> isInitialized() {
-        return new UniqueResult<>(systemService.isInitialized());
+    public UniqueResult<Boolean> isReady() {
+        return new UniqueResult<>(systemService.isReady());
     }
 }

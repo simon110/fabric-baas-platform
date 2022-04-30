@@ -7,12 +7,12 @@ import com.anhui.fabricbaascommon.configuration.FabricConfiguration;
 import com.anhui.fabricbaascommon.entity.CaEntity;
 import com.anhui.fabricbaascommon.entity.UserEntity;
 import com.anhui.fabricbaascommon.exception.DuplicatedOperationException;
+import com.anhui.fabricbaascommon.exception.OrganizationException;
 import com.anhui.fabricbaascommon.fabric.CaUtils;
 import com.anhui.fabricbaascommon.repository.CaRepo;
 import com.anhui.fabricbaascommon.repository.UserRepo;
 import com.anhui.fabricbaascommon.service.CaClientService;
 import com.anhui.fabricbaascommon.service.CaContainerService;
-import com.anhui.fabricbaasttp.request.SystemInitRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,32 +39,32 @@ public class SystemService {
     @Autowired
     private CaRepo caRepo;
 
-    private void editAdminPassword(String newPassword) {
-        Optional<UserEntity> adminOptional = userRepo.findById(adminConfiguration.getDefaultUsername());
-        assert adminOptional.isPresent();
-        adminOptional.ifPresent(admin -> {
-            String encodedPassword = passwordEncoder.encode(newPassword);
-            admin.setPassword(encodedPassword);
-            log.info("正在修改系统管理员密码...");
-            userRepo.save(admin);
-        });
+    private void setPassword(String organizationName, String newPassword) throws OrganizationException {
+        Optional<UserEntity> optional = userRepo.findById(organizationName);
+        if (optional.isEmpty()) {
+            throw new OrganizationException("不存在组织：" + organizationName);
+        }
+        UserEntity organization = optional.get();
+        String encodedPassword = passwordEncoder.encode(newPassword);
+        organization.setPassword(encodedPassword);
+        log.info("正在修改系统管理员密码...");
+        userRepo.save(organization);
     }
 
     /**
-     * 初始化主要包括两个任务：
-     * 1. 更新管理员的密码
+     * 初始化主要包括三个任务：
+     * 1. 更新管理员的密码（可选）
      * 2. 启动CA服务容器
      * 3. 登记管理员证书
      */
-    public void init(SystemInitRequest request) throws Exception {
-        if (isInitialized()) {
+    public void init(CaEntity ttp, String newAdminPassword) throws Exception {
+        if (isReady()) {
             throw new DuplicatedOperationException("系统中已存在TTP信息，请勿重复初始化系统");
         }
         if (caContainerService.checkCaContainer()) {
             throw new DuplicatedOperationException("CA服务已进入运行状态，系统状态异常");
         }
 
-        CaEntity ttp = request.getTtp();
         CsrConfig csrConfig = CaUtils.buildCsrConfig(ttp);
         log.info("可信第三方信息：" + ttp);
         log.info("生成CA服务信息：" + csrConfig);
@@ -75,13 +75,12 @@ public class SystemService {
         caRepo.save(ttp);
 
         // 在有必要时修改密码
-        String newAdminPassword = request.getAdminPassword();
         if (newAdminPassword != null && !StringUtils.isBlank(newAdminPassword)) {
-            editAdminPassword(newAdminPassword);
+            setPassword(adminConfiguration.getDefaultUsername(), newAdminPassword);
         }
     }
 
-    public boolean isInitialized() {
+    public boolean isReady() {
         return caRepo.count() == 0;
     }
 }

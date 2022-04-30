@@ -5,12 +5,14 @@ import com.anhui.fabricbaascommon.request.BaseOrganizationRequest;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 @ApiModel(value = "申请注册请求")
 public class RegistrationApplyRequest extends BaseOrganizationRequest {

@@ -80,9 +80,9 @@ public class ChannelService {
     }
 
     private static Node findNodeByAddress(Node node, List<? extends Node> nodes) {
-        String target = node.addr();
+        String target = node.getAddr();
         for (Node item : nodes) {
-            if (item.addr().equals(target)) {
+            if (item.getAddr().equals(target)) {
                 return item;
             }
         }
@@ -332,7 +332,7 @@ public class ChannelService {
         log.info("更新通道信息：" + channel);
     }
 
-    public UniqueResult<String> generateInvitationCode(ChannelGenerateInvitationCodeRequest request) throws Exception {
+    public String generateInvitationCode(ChannelGenerateInvitationCodeRequest request) throws Exception {
         // 检查组织是否是通道的合法成员
         String curOrgName = SecurityUtils.getUsername();
         ChannelEntity channel = getChannelOrThrowException(request.getChannelName());
@@ -355,7 +355,7 @@ public class ChannelService {
         log.info("生成邀请信息：" + invitation);
         String invitationCode = InvitationUtils.getCode(invitation);
         log.info("生成邀请码：" + invitationCode);
-        return new UniqueResult<>(invitationCode);
+        return invitationCode;
     }
 
     public void setAnchorPeer(ChannelPeerOperateRequest request) throws Exception {
@@ -368,7 +368,7 @@ public class ChannelService {
         // 检查Peer是否在通道中且为该组织的节点
         Peer peer = (Peer) findNodeByAddress(request.getPeer(), channel.getPeers());
         if (peer == null) {
-            throw new NodeException("不存在相应的Peer：" + request.getPeer().addr());
+            throw new NodeException("不存在相应的Peer：" + request.getPeer().getAddr());
         } else if (!peer.getOrganizationName().equals(curOrgName)) {
             throw new OrganizationException("Peer不属于当前组织：" + curOrgName);
         }

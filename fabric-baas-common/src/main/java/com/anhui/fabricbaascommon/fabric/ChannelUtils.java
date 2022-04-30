@@ -181,7 +181,7 @@ public class ChannelUtils {
                 String anchorPeerHost = (String) anchorPeer.get("host");
                 int anchorPeerPort = (Integer) anchorPeer.get("port");
                 if (newAnchorPeer.getHost().equals(anchorPeerHost) && newAnchorPeer.getPort() == anchorPeerPort) {
-                    throw new ChannelException("已存在相同地址的锚节点" + newAnchorPeer.addr());
+                    throw new ChannelException("已存在相同地址的锚节点" + newAnchorPeer.getAddr());
                 }
             }
             Map<String, Object> newAnchorPeerObj = new TreeMap<>();

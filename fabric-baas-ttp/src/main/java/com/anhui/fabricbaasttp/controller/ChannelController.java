@@ -12,7 +12,6 @@ import com.anhui.fabricbaasttp.request.ChannelCreateRequest;
 import com.anhui.fabricbaasttp.request.ChannelGenerateInvitationCodeRequest;
 import com.anhui.fabricbaasttp.request.ChannelPeerOperateRequest;
 import com.anhui.fabricbaasttp.request.ChannelSubmitInvitationCodesRequest;
-import com.anhui.fabricbaasttp.response.InvitationCodeResult;
 import com.anhui.fabricbaasttp.service.ChannelService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;

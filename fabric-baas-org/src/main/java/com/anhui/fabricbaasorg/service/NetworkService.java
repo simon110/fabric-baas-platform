@@ -142,7 +142,7 @@ public class NetworkService {
 
     public void startPeer(PeerStartRequest request) throws Exception {
         // 获取集群域名
-        CaEntity caEntity = caClientService.findCaEntity();
+        CaEntity caEntity = caClientService.findCaEntityOrThrowEx();
         String domain = caEntity.getDomain();
 
         // 生成Peer证书

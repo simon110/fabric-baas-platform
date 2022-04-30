@@ -69,7 +69,7 @@ public class CaContainerService {
     }
 
     @SuppressWarnings("unchecked")
-    private void editDockerComposeYaml(CsrConfig csrConfig, String adminUsername, String adminPassword) throws IOException {
+    private void initDockerComposeYaml(CsrConfig csrConfig, String adminUsername, String adminPassword) throws IOException {
         Map<String, Object> dockerComposeYaml = YamlUtils.load(FABRIC_CA_DOCKER_COMPOSE);
         System.out.println(dockerComposeYaml);
         Map<String, Object> containers = (Map<String, Object>) dockerComposeYaml.get("services");
@@ -84,10 +84,11 @@ public class CaContainerService {
         String dockerCommand = String.format("sh -c 'fabric-ca-server start -b %s:%s -d'", adminUsername, adminPassword);
         container.put("command", dockerCommand);
         String dockerComposeContent = YamlUtils.save(dockerComposeYaml, FABRIC_CA_DOCKER_COMPOSE);
+        System.out.println(dockerComposeContent);
     }
 
     @SuppressWarnings("unchecked")
-    private void editFabricCaConfigYaml(CsrConfig csrConfig, String adminUsername, String adminPassword) throws IOException {
+    private void initFabricCaConfigYaml(CsrConfig csrConfig, String adminUsername, String adminPassword) throws IOException {
         Map<String, Object> caServerConfigYaml = YamlUtils.load(FABRIC_CA_SERVER_CONFIG);
         Map<String, Object> caOption = (Map<String, Object>) caServerConfigYaml.get("ca");
         caOption.put("name", csrConfig.getCaName());
@@ -105,6 +106,7 @@ public class CaContainerService {
         csrNameOption.put("L", csrConfig.getCsrLocality());
         csrNameOption.put("O", csrConfig.getCsrOrganizationName());
         String fabricCaConfigContent = YamlUtils.save(caServerConfigYaml, FABRIC_CA_SERVER_CONFIG);
+        System.out.println(fabricCaConfigContent);
     }
 
     /**
@@ -114,9 +116,9 @@ public class CaContainerService {
      */
     public void startCaContainer(CsrConfig csrConfig, String adminUsername, String adminPassword) throws IOException, InterruptedException, DockerException {
         // 修改Docker Compose配置文件
-        editDockerComposeYaml(csrConfig, adminUsername, adminPassword);
+        initDockerComposeYaml(csrConfig, adminUsername, adminPassword);
         // 修改Fabric CA Server配置文件
-        editFabricCaConfigYaml(csrConfig, adminUsername, adminPassword);
+        initFabricCaConfigYaml(csrConfig, adminUsername, adminPassword);
         // 运行Fabric CA Server容器（如果已经启动则更新）
         CommandUtils.exec("docker-compose", "-f", FABRIC_CA_DOCKER_COMPOSE.getAbsolutePath(), "up", "-d");
 
