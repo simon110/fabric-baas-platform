@@ -114,7 +114,7 @@ public class ChannelUtils {
             ConfigtxOrderer newOrderer,
             File channelJsonConfig)
             throws IOException, ChannelException {
-        String addr = newOrderer.addr();
+        String addr = newOrderer.getAddr();
         byte[] newOrdererTlsCertBytes = FileUtils.readFileToByteArray(newOrderer.getServerTlsCert());
         String base64TlsCert = Base64Utils.encodeToString(newOrdererTlsCertBytes);
 

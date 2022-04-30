@@ -5,10 +5,6 @@ import com.anhui.fabricbaascommon.constant.CertfileType;
 import com.anhui.fabricbaascommon.exception.*;
 import com.anhui.fabricbaascommon.fabric.ChannelUtils;
 import com.anhui.fabricbaascommon.fabric.ConfigtxUtils;
-import com.anhui.fabricbaascommon.request.BaseChannelRequest;
-import com.anhui.fabricbaascommon.response.ListResult;
-import com.anhui.fabricbaascommon.response.ResourceResult;
-import com.anhui.fabricbaascommon.response.UniqueResult;
 import com.anhui.fabricbaascommon.service.CaClientService;
 import com.anhui.fabricbaascommon.service.MinioService;
 import com.anhui.fabricbaascommon.util.*;
@@ -18,13 +14,7 @@ import com.anhui.fabricbaasttp.constant.MinioBucket;
 import com.anhui.fabricbaasttp.entity.ChannelEntity;
 import com.anhui.fabricbaasttp.entity.NetworkEntity;
 import com.anhui.fabricbaasttp.repository.ChannelRepo;
-import com.anhui.fabricbaasttp.request.ChannelCreateRequest;
-import com.anhui.fabricbaasttp.request.ChannelGenerateInvitationCodeRequest;
-import com.anhui.fabricbaasttp.request.ChannelPeerOperateRequest;
-import com.anhui.fabricbaasttp.request.ChannelSubmitInvitationCodesRequest;
-import com.anhui.fabricbaasttp.response.InvitationCodeResult;
 import com.anhui.fabricbaasttp.util.IdentifierGenerator;
-import com.anhui.fabricbaasweb.util.SecurityUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,46 +43,46 @@ public class ChannelService {
     @Autowired
     private FabricEnvService fabricEnvService;
 
-    private void assertOrganizationInChannel(ChannelEntity channel, String orgName) throws OrganizationException {
-        if (!channel.getOrganizationNames().contains(orgName)) {
-            throw new OrganizationException("当前组织不是通道的合法成员");
+    private void assertOrganizationInChannel(ChannelEntity channel, String organizationName, boolean expected) throws OrganizationException {
+        if (channel.getOrganizationNames().contains(organizationName) != expected) {
+            throw new OrganizationException("组织在通道中的存在不符合断言：" + organizationName);
         }
     }
 
-    private ChannelEntity getChannelOrThrowException(String channelName) throws ChannelException {
+    public ChannelEntity findChannelOrThrowEx(String channelName) throws ChannelException {
         Optional<ChannelEntity> channelOptional = channelRepo.findById(channelName);
         if (channelOptional.isEmpty()) {
-            throw new ChannelException("未找到相应名称的通道");
+            throw new ChannelException("未找到相应名称的通道：" + channelName);
         }
         return channelOptional.get();
     }
 
-    public String getPeerIdentifierOrThrowException(ChannelEntity channel, Node peer) throws NodeException {
-        List<Peer> peers = channel.getPeers();
-        for (int i = 0, size = peers.size(); i < size; i++) {
-            Peer endpoint = peers.get(i);
-            if (endpoint.getHost().equals(peer.getHost()) &&
-                    endpoint.getPort() == peer.getPort()) {
-                return IdentifierGenerator.generatePeerId(channel.getName(), i);
-            }
+    private void assertPeerInChannel(ChannelEntity channel, Node peer, boolean expected) throws NodeException {
+        Set<String> set = new HashSet<>();
+        channel.getPeers().forEach(p -> set.add(p.getAddr()));
+        String addr = peer.getAddr();
+        if (set.contains(addr) != expected) {
+            throw new NodeException("Peer在通道中的存在不符合断言：" + addr);
         }
-        throw new NodeException("未找到相应的Peer");
     }
 
-    private static Node findNodeByAddress(Node node, List<? extends Node> nodes) {
-        String target = node.getAddr();
-        for (Node item : nodes) {
-            if (item.getAddr().equals(target)) {
-                return item;
-            }
+    private void assertPeerOwnership(ChannelEntity channel, Node peer, String organizationName) throws NodeException {
+        String targetAddr = peer.getAddr();
+        boolean result = false;
+        List<Peer> peers = channel.getPeers();
+        for (int i = 0; i < peers.size() && !result; i++) {
+            Peer channelPeer = peers.get(i);
+            result = channelPeer.getAddr().equals(targetAddr) && organizationName.equals(channelPeer.getOrganizationName());
         }
-        return null;
+        if (!result) {
+            throw new NodeException("Peer节点不属于该组织：" + organizationName);
+        }
     }
 
     private void signEnvelopeWithOrganizations(String networkName, List<String> organizationNames, File envelope) throws IOException, InterruptedException, EnvelopeException {
-        for (String orgName : organizationNames) {
-            MspEnv organizationMspDir = fabricEnvService.buildPeerMspEnv(networkName, orgName);
-            log.info(String.format("正在使用%s在%s网络的管理员证书对Envelope进行签名：", orgName, networkName) + envelope.getAbsolutePath());
+        for (String organizationName : organizationNames) {
+            MspEnv organizationMspDir = fabricEnvService.buildPeerMspEnv(networkName, organizationName);
+            log.info("正在使用{}在{}网络的管理员证书对Envelope进行签名：{}", organizationName, networkName, envelope.getAbsolutePath());
             ChannelUtils.signEnvelope(organizationMspDir, envelope);
         }
     }
@@ -118,135 +108,126 @@ public class ChannelService {
         }
     }
 
-    public void createChannel(ChannelCreateRequest request) throws Exception {
+    public void createChannel(String currentOrganizationName, String channelName, String networkName) throws Exception {
         // 检查操作的组织是否属于相应的网络
-        String curOrgName = SecurityUtils.getUsername();
-        NetworkEntity network = networkService.findNetworkOrThrowEx(request.getNetworkName());
-        networkService.assertOrganizationInNetwork(network, curOrgName);
+        NetworkEntity network = networkService.findNetworkOrThrowEx(networkName);
+        networkService.assertOrganizationInNetwork(network, currentOrganizationName);
 
         // 检查相同名称的通道是否已经存在
-        Optional<ChannelEntity> channelOptional = channelRepo.findById(request.getChannelName());
-        if (channelOptional.isPresent()) {
+        if (channelRepo.existsById(channelName)) {
             throw new ChannelException("相同名称的通道已存在");
         }
 
         // 默认配置该网络中当前的所有Orderer作为排序节点
-        String organizationCertfileId = IdentifierGenerator.generateCertfileId(request.getNetworkName(), curOrgName);
+        String organizationCertfileId = IdentifierGenerator.generateCertfileId(networkName, currentOrganizationName);
         File organizationCertfileDir = CertfileUtils.getCertfileDir(organizationCertfileId, CertfileType.ADMIN);
         ConfigtxOrganization ordererConfigtxOrg = new ConfigtxOrganization(
                 caClientService.getCaOrganizationName(),
                 caClientService.getCaOrganizationName(),
-                new File(caClientService.getRootCertfileDir() + "/msp")
+                CertfileUtils.getMspDir(caClientService.getRootCertfileDir())
         );
         log.info("生成Orderer组织的配置：" + ordererConfigtxOrg);
 
-        ConfigtxOrganization currentConfigtxOrg = new ConfigtxOrganization(curOrgName, curOrgName, new File(organizationCertfileDir + "/msp"));
+        ConfigtxOrganization currentConfigtxOrg = new ConfigtxOrganization(
+                currentOrganizationName,
+                currentOrganizationName,
+                CertfileUtils.getMspDir(organizationCertfileDir)
+        );
         List<ConfigtxOrganization> configtxOrganizations = Collections.singletonList(currentConfigtxOrg);
         log.info("生成当前组织的配置：" + currentConfigtxOrg);
 
-        List<ConfigtxOrderer> configtxOrderers = new ArrayList<>(network.getOrderers().size());
-        for (Orderer endpoint : network.getOrderers()) {
-            File tlsServerCrt = new File(CertfileUtils.getCertfileDir(endpoint.getCaUsername(), CertfileType.ORDERER) + "/tls/server.crt");
-
-            ConfigtxOrderer configtxOrderer = new ConfigtxOrderer();
-            configtxOrderer.setHost(endpoint.getHost());
-            configtxOrderer.setPort(endpoint.getPort());
-            configtxOrderer.setServerTlsCert(tlsServerCrt);
-            configtxOrderer.setClientTlsCert(tlsServerCrt);
-            configtxOrderers.add(configtxOrderer);
-        }
+        List<ConfigtxOrderer> configtxOrderers = networkService.generateConfigtxOrderers(network.getOrderers());
         log.info("生成通道的Orderer节点配置：" + configtxOrderers);
 
         // 生成configtx.yaml配置文件
         File configtxDir = SimpleFileUtils.createTempDir();
         File configtxYaml = new File(configtxDir + "/configtx.yaml");
         ConfigtxUtils.generateConfigtx(configtxYaml, network.getConsortiumName(), configtxOrderers, ordererConfigtxOrg, configtxOrganizations);
-        log.info(String.format("生成基本configtx.yaml文件：%s", configtxYaml.getAbsolutePath()));
-        ConfigtxUtils.appendChannelToConfigtx(configtxYaml, request.getChannelName(), Collections.singletonList(curOrgName));
-        log.info(String.format("将通道配置加入configtx.yaml文件：%s", configtxYaml.getAbsolutePath()));
+        log.info("生成基本通道配置文件：" + configtxYaml.getAbsolutePath());
+        ConfigtxUtils.appendChannelToConfigtx(configtxYaml, channelName, Collections.singletonList(currentOrganizationName));
+        log.info("将新通道加入配置文件：" + channelName);
 
-        // 默认选择第一个Orderer
+
         // TODO: 选择后面动态加入的Orderer可会引发报错 Error: got unexpected status: SERVICE_UNAVAILABLE -- channel syschannel is not serviced by me
         Orderer orderer = network.getOrderers().get(0);
-        log.info("随机从网络中选择Orderer：" + orderer);
+        log.info("从网络中选择Orderer：" + orderer);
 
         // 创建通道
-        MspEnv organizationMspEnv = fabricEnvService.buildPeerMspEnv(network.getName(), curOrgName);
+        MspEnv organizationMspEnv = fabricEnvService.buildPeerMspEnv(network.getName(), currentOrganizationName);
         TlsEnv ordererTlsEnv = fabricEnvService.buildOrdererTlsEnv(orderer);
         log.info("生成组织的MSP环境变量：" + organizationMspEnv);
         log.info("生成Orderer的TLS环境变量：" + ordererTlsEnv);
         File appChannelGenesis = SimpleFileUtils.createTempFile("block");
-        ChannelUtils.createChannel(organizationMspEnv, ordererTlsEnv, configtxDir, request.getChannelName(), appChannelGenesis);
-
-        // 将通道创世区块保存至MinIO
-        String channelId = IdentifierGenerator.generateChannelId(request.getNetworkName(), request.getChannelName());
-        minioService.putFile(MinioBucket.APP_CHANNEL_GENESIS_BLOCK_BUCKET_NAME, channelId, appChannelGenesis);
-        log.info("将创世区块保存到MinIO：" + appChannelGenesis.getAbsolutePath());
+        ChannelUtils.createChannel(organizationMspEnv, ordererTlsEnv, configtxDir, channelName, appChannelGenesis);
 
         // 将通道信息保存至MongoDB
         ChannelEntity channel = new ChannelEntity();
-        channel.setName(request.getChannelName());
-        channel.setNetworkName(request.getNetworkName());
-        channel.setOrganizationNames(Collections.singletonList(curOrgName));
+        channel.setName(channelName);
+        channel.setNetworkName(networkName);
+        channel.setOrganizationNames(Collections.singletonList(currentOrganizationName));
         channel.setPeers(Collections.emptyList());
         channelRepo.save(channel);
         log.info("保存通道信息：" + channel);
     }
 
-    public byte[] queryGenesisBlock(String channelName) throws Exception {
-        ChannelEntity channel = getChannelOrThrowException(channelName);
-        String curOrgName = SecurityUtils.getUsername();
-        assertOrganizationInChannel(channel, curOrgName);
-        Orderer orderer = RandomUtils.select(networkService.getNetworkOrderers(channel.getNetworkName()));
-
-        File block = SimpleFileUtils.createTempFile("block");
-
-        CoreEnv ordererCoreEnv = fabricEnvService.buildOrdererCoreEnv(orderer);
-        ChannelUtils.fetchGenesisBlock(ordererCoreEnv, channelName, block);
-        return FileUtils.readFileToByteArray(block);
-    }
-
-    public void submitInvitationCodes(ChannelSubmitInvitationCodesRequest request) throws Exception {
-        String curOrgName = SecurityUtils.getUsername();
-        ChannelEntity channel = getChannelOrThrowException(request.getChannelName());
-        if (channel.getOrganizationNames().contains(curOrgName)) {
-            throw new OrganizationException("组织已经是通道的合法成员");
-        }
-
-        // 对邀请码进行验证
-        assertInvitationCodes(request.getInvitationCodes(), channel.getOrganizationNames(), curOrgName, channel.getName());
-
-        // 从通道中随机选择一个Orderer
-        Orderer orderer = RandomUtils.select(networkService.getNetworkOrderers(channel.getNetworkName()));
-        log.info("随机选择Orderer节点：" + orderer);
-
-        // 拉取指定通道的配置
+    public CoreEnv fetchChannelConfig(ChannelEntity channel, File config) throws NetworkException, CaException, IOException, InterruptedException, ChannelException {
+        List<Orderer> orderers = networkService.getNetworkOrderers(channel.getNetworkName());
+        assert !orderers.isEmpty();
+        // Orderer orderer = RandomUtils.select(orderers);
+        Orderer orderer = orderers.get(0);
+        log.info("选择Orderer节点：" + orderer);
         CoreEnv ordererCoreEnv = fabricEnvService.buildOrdererCoreEnv(orderer);
         log.info("生成Orderer环境变量：" + ordererCoreEnv);
+        ChannelUtils.fetchConfig(ordererCoreEnv, channel.getName(), config);
+        log.info("拉取通道配置：" + channel.getName());
+        return ordererCoreEnv;
+    }
+
+    public CoreEnv fetchChannelGenesis(ChannelEntity channel, File genesis) throws NetworkException, IOException, InterruptedException, ChannelException, CaException {
+        // 随机选择一个Orderer
+        List<Orderer> orderers = networkService.getNetworkOrderers(channel.getNetworkName());
+        Orderer orderer = RandomUtils.select(orderers);
+        log.info("随机选择Orderer节点：" + orderer);
+
+        // 拉取通道的启动区块
+        CoreEnv ordererCoreEnv = fabricEnvService.buildOrdererCoreEnv(orderer);
+        log.info("生成Orderer的环境变量参数：" + ordererCoreEnv);
+        ChannelUtils.fetchGenesisBlock(ordererCoreEnv, channel.getName(), genesis);
+        log.info("拉取通道{}的启动区块：{}", channel.getName(), genesis.getAbsolutePath());
+        return ordererCoreEnv;
+    }
+
+    public void submitInvitationCodes(String currentOrganizationName, String channelName, List<String> invitationCodes) throws Exception {
+        ChannelEntity channel = findChannelOrThrowEx(channelName);
+        assertOrganizationInChannel(channel, currentOrganizationName, false);
+
+        // 对邀请码进行验证
+        assertInvitationCodes(invitationCodes, channel.getOrganizationNames(), currentOrganizationName, channel.getName());
+
+        // 拉取指定通道的配置
         File oldChannelConfig = SimpleFileUtils.createTempFile("json");
-        ChannelUtils.fetchConfig(ordererCoreEnv, channel.getName(), oldChannelConfig);
-        log.info(String.format("拉取通道配置：%s", channel.getName()));
+        CoreEnv ordererCoreEnv = fetchChannelConfig(channel, oldChannelConfig);
 
         // 生成新组织的配置
         File newOrgConfigtxDir = SimpleFileUtils.createTempDir();
         File newOrgConfigtxYaml = new File(newOrgConfigtxDir + "/configtx.yaml");
         File newOrgConfigtxJson = SimpleFileUtils.createTempFile("json");
-        String newOrgCertfileId = IdentifierGenerator.generateCertfileId(channel.getNetworkName(), curOrgName);
+        String newOrgCertfileId = IdentifierGenerator.generateCertfileId(channel.getNetworkName(), currentOrganizationName);
         File newOrgCertfileDir = CertfileUtils.getCertfileDir(newOrgCertfileId, CertfileType.ADMIN);
 
         ConfigtxOrganization configtxOrganization = new ConfigtxOrganization();
-        configtxOrganization.setId(curOrgName);
-        configtxOrganization.setName(curOrgName);
+        configtxOrganization.setId(currentOrganizationName);
+        configtxOrganization.setName(currentOrganizationName);
         configtxOrganization.setMspDir(new File(newOrgCertfileDir + "/msp"));
         ConfigtxUtils.generateOrgConfigtx(newOrgConfigtxYaml, configtxOrganization);
-        log.info("生成新组织的configtx.yaml配置：" + newOrgConfigtxYaml.getAbsolutePath());
-        ConfigtxUtils.convertOrgConfigtxToJson(newOrgConfigtxJson, newOrgConfigtxDir, curOrgName);
-        log.info("将新组织的configtx.yaml转换为json格式：" + newOrgConfigtxJson.getAbsolutePath());
+        log.info("生成新组织的配置：" + newOrgConfigtxYaml.getAbsolutePath());
+        ConfigtxUtils.convertOrgConfigtxToJson(newOrgConfigtxJson, newOrgConfigtxDir, currentOrganizationName);
+        log.info("将新组织的转换为：" + newOrgConfigtxJson.getAbsolutePath());
 
         // 对通道配置文件进行更新并生成Envelope
         File newChannelConfig = SimpleFileUtils.createTempFile("json");
         FileUtils.copyFile(oldChannelConfig, newChannelConfig);
-        ChannelUtils.appendOrganizationToAppChannelConfig(curOrgName, newOrgConfigtxJson, newChannelConfig);
+        ChannelUtils.appendOrganizationToAppChannelConfig(currentOrganizationName, newOrgConfigtxJson, newChannelConfig);
         log.info("将新组织添加到现有的通道配置中：" + newChannelConfig.getAbsolutePath());
         File envelope = SimpleFileUtils.createTempFile("pb");
         ChannelUtils.generateEnvelope(channel.getName(), envelope, oldChannelConfig, newChannelConfig);
@@ -262,95 +243,79 @@ public class ChannelService {
         // 提交更新的组织会同时进行签名，所以提交更新的组织不用参与签名的签名过程
         String lastChannelOrgName = channelOrganizationNames.get(channelOrganizationNames.size() - 1);
         MspEnv organizationMspEnv = fabricEnvService.buildPeerMspEnv(channel.getNetworkName(), lastChannelOrgName);
-        log.info("生成提交Envelope的当前组织的MSP环境变量：" + organizationMspEnv);
+        log.info("生成提交Envelope的组织的MSP环境变量：" + organizationMspEnv);
         ChannelUtils.submitChannelUpdate(organizationMspEnv, ordererCoreEnv.getTlsEnv(), channel.getName(), envelope);
 
         // 将组织保存至MongoDB
-        channel.getOrganizationNames().add(curOrgName);
+        channel.getOrganizationNames().add(currentOrganizationName);
         log.info("更新通道信息：" + channel);
         channelRepo.save(channel);
     }
 
-    public void joinChannel(ChannelPeerOperateRequest request, MultipartFile peerCertZip) throws Exception {
-        String curOrgName = SecurityUtils.getUsername();
-        ChannelEntity channel = getChannelOrThrowException(request.getChannelName());
+    public void joinChannel(String currentOrganizationName, String channelName, Node peer, MultipartFile peerCertZip) throws Exception {
+        ChannelEntity channel = findChannelOrThrowEx(channelName);
 
         // 对证书格式进行检查
         CertfileUtils.assertCertfileZip(peerCertZip);
 
         // 检查Peer是否在通道中且为该组织的节点
-        Peer peer = (Peer) findNodeByAddress(request.getPeer(), channel.getPeers());
-        if (peer != null) {
-            throw new NodeException("相应的Peer节点已经加入了通道");
-        }
+        assertPeerInChannel(channel, peer, false);
+
         // 生成新Peer的信息
-        int newPeerNo = channel.getPeers().size();
-        String newPeerId = IdentifierGenerator.generatePeerId(channel.getName(), newPeerNo);
-        peer = new Peer();
-        peer.setName(newPeerId);
-        peer.setHost(request.getPeer().getHost());
-        peer.setPort(request.getPeer().getPort());
-        peer.setOrganizationName(curOrgName);
-        log.info("生成新Peer信息：" + peer);
+        String newPeerId = IdentifierGenerator.generatePeerId(channel.getName(), peer);
+        Peer newPeer = new Peer();
+        newPeer.setName(newPeerId);
+        newPeer.setHost(peer.getHost());
+        newPeer.setPort(peer.getPort());
+        newPeer.setOrganizationName(currentOrganizationName);
+        log.info("生成新Peer信息：" + newPeer);
 
-        // 随机选择一个Orderer
-        Orderer orderer = RandomUtils.select(networkService.getNetworkOrderers(channel.getNetworkName()));
-        log.info("随机选择Orderer节点：" + orderer);
-
-        // 拉取通道的创世区块
-        CoreEnv ordererCoreEnv = fabricEnvService.buildOrdererCoreEnv(orderer);
-        log.info("生成Orderer的环境变量参数：" + ordererCoreEnv);
         File channelGenesisBlock = SimpleFileUtils.createTempFile("block");
-        ChannelUtils.fetchGenesisBlock(ordererCoreEnv, channel.getName(), channelGenesisBlock);
-        log.info(String.format("拉取通道%s的启动区块：", channel.getName()) + channelGenesisBlock.getAbsolutePath());
+        fetchChannelGenesis(channel, channelGenesisBlock);
 
         // 解压Peer证书到临时目录
         File peerCertfileZip = SimpleFileUtils.createTempFile("zip");
         FileUtils.writeByteArrayToFile(peerCertfileZip, peerCertZip.getBytes());
         log.info("将用户上传的Peer证书保存至：" + peerCertfileZip.getAbsolutePath());
-        File peerCertTempCertfileDir = SimpleFileUtils.createTempDir();
-        ZipUtils.unzip(peerCertfileZip, peerCertTempCertfileDir);
-        log.info("将Peer证书解压到：" + peerCertTempCertfileDir.getAbsolutePath());
-        CertfileUtils.assertCertfile(peerCertTempCertfileDir);
+        File peerCertfileDir = SimpleFileUtils.createTempDir();
+        ZipUtils.unzip(peerCertfileZip, peerCertfileDir);
+        log.info("将Peer证书解压到：" + peerCertfileDir.getAbsolutePath());
+        CertfileUtils.assertCertfile(peerCertfileDir);
 
         // 尝试将Peer加入到通道中（TLS环境变量需要改为临时目录中的，因为还没保存到正式目录）
-        CoreEnv peerCoreEnv = fabricEnvService.buildPeerCoreEnv(channel.getNetworkName(), curOrgName, peer);
-        peerCoreEnv.setTlsRootCert(new File(peerCertTempCertfileDir + "/tls/ca.crt"));
+        CoreEnv peerCoreEnv = fabricEnvService.buildPeerCoreEnv(channel.getNetworkName(), currentOrganizationName, newPeer);
+        peerCoreEnv.setTlsRootCert(CertfileUtils.getTlsCaCert(peerCertfileDir));
         log.info("生成Peer的环境变量：" + peerCoreEnv);
         ChannelUtils.joinChannel(peerCoreEnv, channelGenesisBlock);
 
         // 将Peer证书保存到MinIO和证书目录
-        minioService.putBytes(MinioBucket.PEER_CERTFILE_BUCKET_NAME, peer.getName(), peerCertZip.getBytes());
+        minioService.putBytes(MinioBucket.PEER_CERTFILE_BUCKET_NAME, newPeer.getName(), peerCertZip.getBytes());
         log.info("将用户上传的Peer证书保存至MinIO：" + peerCertZip.getOriginalFilename());
-        File formalPeerCertfileDir = CertfileUtils.getCertfileDir(peer.getName(), CertfileType.PEER);
+        File formalPeerCertfileDir = CertfileUtils.getCertfileDir(newPeer.getName(), CertfileType.PEER);
         ZipUtils.unzip(peerCertfileZip, formalPeerCertfileDir);
         log.info("将Peer证书保存到正式目录：" + formalPeerCertfileDir.getAbsolutePath());
 
         // 更新MongoDB中的信息
-        channel.getPeers().add(peer);
+        channel.getPeers().add(newPeer);
         channelRepo.save(channel);
         log.info("更新通道信息：" + channel);
     }
 
-    public String generateInvitationCode(ChannelGenerateInvitationCodeRequest request) throws Exception {
+    public String generateInvitationCode(String currentOrganizationName, String channelName, String inviteeOrganizationName) throws Exception {
         // 检查组织是否是通道的合法成员
-        String curOrgName = SecurityUtils.getUsername();
-        ChannelEntity channel = getChannelOrThrowException(request.getChannelName());
-        if (!channel.getOrganizationNames().contains(curOrgName)) {
-            throw new OrganizationException("当前组织不存在于指定通道中");
-        }
+        ChannelEntity channel = findChannelOrThrowEx(channelName);
+        assertOrganizationInChannel(channel, currentOrganizationName, true);
 
         // 检查被邀请的组织是否是合法的网络成员
         NetworkEntity network = networkService.findNetworkOrThrowEx(channel.getNetworkName());
-        if (!network.getOrganizationNames().contains(request.getOrganizationName())) {
-            throw new OrganizationException("被邀请的组织不是合法的网络成员");
-        }
+        networkService.assertOrganizationInNetwork(network, currentOrganizationName);
+        networkService.assertOrganizationInNetwork(network, inviteeOrganizationName);
 
         // 生成邀请码
         Invitation invitation = new Invitation();
-        invitation.setInvitorOrgName(curOrgName);
-        invitation.setInviteeOrgName(request.getOrganizationName());
-        invitation.setChannelName(request.getChannelName());
+        invitation.setInvitorOrgName(currentOrganizationName);
+        invitation.setInviteeOrgName(inviteeOrganizationName);
+        invitation.setChannelName(channelName);
         invitation.setTimestamp(System.currentTimeMillis());
         log.info("生成邀请信息：" + invitation);
         String invitationCode = InvitationUtils.getCode(invitation);
@@ -358,78 +323,53 @@ public class ChannelService {
         return invitationCode;
     }
 
-    public void setAnchorPeer(ChannelPeerOperateRequest request) throws Exception {
-        String curOrgName = SecurityUtils.getUsername();
-        ChannelEntity channel = getChannelOrThrowException(request.getChannelName());
-        if (!channel.getOrganizationNames().contains(curOrgName)) {
-            throw new OrganizationException("组织不是通道的合法成员");
-        }
+    public void setAnchorPeer(String currentOrganizationName, String channelName, Node peer) throws Exception {
+        ChannelEntity channel = findChannelOrThrowEx(channelName);
+        assertOrganizationInChannel(channel, currentOrganizationName, true);
 
         // 检查Peer是否在通道中且为该组织的节点
-        Peer peer = (Peer) findNodeByAddress(request.getPeer(), channel.getPeers());
-        if (peer == null) {
-            throw new NodeException("不存在相应的Peer：" + request.getPeer().getAddr());
-        } else if (!peer.getOrganizationName().equals(curOrgName)) {
-            throw new OrganizationException("Peer不属于当前组织：" + curOrgName);
-        }
+
+        assertPeerInChannel(channel, peer, true);
+        assertPeerOwnership(channel, peer, currentOrganizationName);
 
         // 从通道中随机选择一个Orderer
         Orderer orderer = RandomUtils.select(networkService.getNetworkOrderers(channel.getNetworkName()));
         log.info("随机选择Orderer节点：" + orderer);
 
         // 拉取指定通道的配置
-        CoreEnv ordererCoreEnv = fabricEnvService.buildOrdererCoreEnv(orderer);
-        log.info("生成Orderer环境变量：" + ordererCoreEnv);
         File oldChannelConfig = SimpleFileUtils.createTempFile("json");
-        ChannelUtils.fetchConfig(ordererCoreEnv, channel.getName(), oldChannelConfig);
-        log.info("通道配置文件：" + oldChannelConfig.getAbsolutePath());
+        CoreEnv ordererCoreEnv = fetchChannelConfig(channel, oldChannelConfig);
 
         // 对通道配置文件进行更新并生成Envelope
         File newChannelConfig = SimpleFileUtils.createTempFile("json");
         FileUtils.copyFile(oldChannelConfig, newChannelConfig);
-        ChannelUtils.appendAnchorPeerToChannelConfig(request.getPeer(), curOrgName, oldChannelConfig);
+        ChannelUtils.appendAnchorPeerToChannelConfig(peer, currentOrganizationName, oldChannelConfig);
         log.info("将锚节点添加到通道配置中：" + newChannelConfig.getAbsolutePath());
+
         File envelope = SimpleFileUtils.createTempFile("pb");
         ChannelUtils.generateEnvelope(channel.getName(), envelope, oldChannelConfig, newChannelConfig);
         log.info("生成更新锚节点的Envelope：" + envelope.getAbsolutePath());
 
         // 将Envelope提交到Orderer
-        MspEnv organizationMspEnv = fabricEnvService.buildPeerMspEnv(channel.getNetworkName(), curOrgName);
+        MspEnv organizationMspEnv = fabricEnvService.buildPeerMspEnv(channel.getNetworkName(), currentOrganizationName);
         ChannelUtils.submitChannelUpdate(organizationMspEnv, ordererCoreEnv.getTlsEnv(), channel.getName(), envelope);
     }
 
-    public ResourceResult queryPeerTlsCert(ChannelPeerOperateRequest request) throws Exception {
-        // 检查网络是否存在
-        Optional<ChannelEntity> channelOptional = channelRepo.findById(request.getChannelName());
-        if (channelOptional.isEmpty()) {
-            throw new ChannelException("不存在通道：" + request.getChannelName());
-        }
-        // 检查当前组织是否位于该网络中
-        String curOrgName = SecurityUtils.getUsername();
-        assertOrganizationInChannel(channelOptional.get(), curOrgName);
+    public String queryPeerTlsCert(String currentOrganizationName, String channelName, Node peer) throws Exception {
+        // 检查通道是否存在
+        ChannelEntity channel = findChannelOrThrowEx(channelName);
+        // 检查当前组织是否位于该通道中
+        assertOrganizationInChannel(channel, currentOrganizationName, true);
 
-        String peerName = getPeerIdentifierOrThrowException(channelOptional.get(), request.getPeer());
+        String peerId = IdentifierGenerator.generatePeerId(channelName, peer);
         // 检查Orderer证书
-        File ordererCertfileDir = CertfileUtils.getCertfileDir(peerName, CertfileType.PEER);
+        File ordererCertfileDir = CertfileUtils.getCertfileDir(peerId, CertfileType.PEER);
         CertfileUtils.assertCertfile(ordererCertfileDir);
-        String downloadUrl = String.format("/download/cert/%s.crt", UUID.randomUUID());
-        FileUtils.copyFile(new File(ordererCertfileDir + "/tls/ca.crt"), new File("static" + downloadUrl));
-
-        ResourceResult result = new ResourceResult();
-        result.setDownloadUrl(downloadUrl);
-        return result;
+        File ordererTlsCert = CertfileUtils.getTlsCaCert(ordererCertfileDir);
+        return ResourceUtils.release(ordererTlsCert, "crt");
     }
 
-    public ListResult<Peer> queryPeers(BaseChannelRequest request) throws Exception {
-        Optional<ChannelEntity> channelOptional = channelRepo.findById(request.getChannelName());
-        if (channelOptional.isPresent()) {
-            return new ListResult<>(channelOptional.get().getPeers());
-        } else {
-            throw new ChannelException("未找到通道：" + request.getChannelName());
-        }
-    }
-
-    public UniqueResult<ChannelEntity> getChannel(BaseChannelRequest request) throws ChannelException {
-        return new UniqueResult<>(getChannelOrThrowException(request.getChannelName()));
+    public List<Peer> queryPeers(String channelName) throws Exception {
+        return findChannelOrThrowEx(channelName).getPeers();
     }
 }

@@ -13,5 +13,11 @@ public class ConfigtxOrganization {
     private String name;
     private String id;
     private File mspDir;
+
+    public ConfigtxOrganization(String organizationName, File mspDir) {
+        this.name = organizationName;
+        this.id = organizationName;
+        this.mspDir = mspDir;
+    }
 }
 

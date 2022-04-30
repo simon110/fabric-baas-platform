@@ -85,7 +85,8 @@ public class NetworkController {
     @PostMapping("/queryGenesisBlock")
     @ApiOperation("查询当前组织所参与的任意网络的创世区块")
     public ResourceResult queryGenesisBlock(@Valid @RequestBody BaseNetworkRequest request) throws Exception {
-        String downloadUrl = networkService.queryGenesisBlock(request.getNetworkName());
+        String currentOrganizationName = SecurityUtils.getUsername();
+        String downloadUrl = networkService.queryGenesisBlock(currentOrganizationName, request.getNetworkName());
         return new ResourceResult(downloadUrl);
     }
 
@@ -93,7 +94,8 @@ public class NetworkController {
     @PostMapping("/queryOrdererTlsCert")
     @ApiOperation("查询当前组织所参与的任意网络中指定Orderer节点的tls/ca.crt")
     public ResourceResult queryOrdererTlsCert(@Valid @RequestBody NetworkOrdererOperateRequest request) throws Exception {
-        String downloadUrl = networkService.queryOrdererTlsCert(request.getNetworkName(), request.getOrderer());
+        String currentOrganizationName = SecurityUtils.getUsername();
+        String downloadUrl = networkService.queryOrdererTlsCert(currentOrganizationName, request.getNetworkName(), request.getOrderer());
         return new ResourceResult(downloadUrl);
     }
 

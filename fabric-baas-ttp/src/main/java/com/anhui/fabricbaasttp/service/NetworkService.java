@@ -23,7 +23,6 @@ import com.anhui.fabricbaasttp.repository.ChannelRepo;
 import com.anhui.fabricbaasttp.repository.NetworkRepo;
 import com.anhui.fabricbaasttp.repository.ParticipationRepo;
 import com.anhui.fabricbaasttp.util.IdentifierGenerator;
-import com.anhui.fabricbaasweb.util.SecurityUtils;
 import com.spotify.docker.client.exceptions.NodeNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
@@ -61,12 +60,12 @@ public class NetworkService {
         }
     }
 
-    private static void assertOrdererNotInNetwork(NetworkEntity network, Node orderer) throws NodeException {
+    private static void assertOrdererInNetwork(NetworkEntity network, Node orderer, boolean expected) throws NodeException {
         Set<String> set = new TreeSet<>();
         network.getOrderers().forEach(o -> set.add(o.getAddr()));
         String addr = orderer.getAddr();
-        if (set.contains(addr)) {
-            throw new NodeException("该网络中已存在Orderer：" + addr);
+        if (set.contains(addr) != expected) {
+            throw new NodeException("Orderer在网络中的存在不符合断言：" + addr);
         }
     }
 
@@ -172,15 +171,14 @@ public class NetworkService {
         return findNetworkOrThrowEx(networkName).getOrderers();
     }
 
-    public String queryOrdererTlsCert(String networkName, Node orderer) throws Exception {
+    public String queryOrdererTlsCert(String currentOrganizationName, String networkName, Node orderer) throws Exception {
         // 检查网络是否存在
         NetworkEntity network = findNetworkOrThrowEx(networkName);
-        // 检查当前组织是否位于该网络中
-        String curOrgName = SecurityUtils.getUsername();
-        assertOrganizationInNetwork(network, curOrgName);
-        String ordererId = IdentifierGenerator.generateOrdererId(networkName, orderer);
+        assertOrdererInNetwork(network, orderer, true);
+        assertOrganizationInNetwork(network, currentOrganizationName);
 
         // 检查Orderer证书
+        String ordererId = IdentifierGenerator.generateOrdererId(networkName, orderer);
         File ordererCertfileDir = CertfileUtils.getCertfileDir(ordererId, CertfileType.ORDERER);
         CertfileUtils.assertCertfile(ordererCertfileDir);
         File ordererTlsCert = CertfileUtils.getTlsCaCert(ordererCertfileDir);
@@ -217,7 +215,7 @@ public class NetworkService {
         // 检查当前组织是否位于该网络中
         assertOrganizationInNetwork(network, currentOrganizationName);
         // 检查Orderer节点是否已经存在于网络中
-        assertOrdererNotInNetwork(network, orderer);
+        assertOrdererInNetwork(network, orderer, false);
 
         // 为新Orderer注册证书并登记
         String caUsername = IdentifierGenerator.generateOrdererId(network.getName(), orderer);
@@ -332,11 +330,7 @@ public class NetworkService {
             // 增加configtx的Orderer定义
             // 注意此处的TLS证书路径是configtx.yaml的相对路径或绝对路径
             File tlsSeverCert = CertfileUtils.getTlsServerCert(ordererCertfileDir);
-            ConfigtxOrderer configtxOrderer = new ConfigtxOrderer();
-            configtxOrderer.setHost(orderer.getHost());
-            configtxOrderer.setPort(orderer.getPort());
-            configtxOrderer.setServerTlsCert(tlsSeverCert);
-            configtxOrderer.setClientTlsCert(tlsSeverCert);
+            ConfigtxOrderer configtxOrderer = new ConfigtxOrderer(orderer, tlsSeverCert);
             configtxOrderers.add(configtxOrderer);
 
             // 生成保存到数据库的Orderer信息
@@ -534,10 +528,9 @@ public class NetworkService {
         return participationRepo.findAllByNetworkNameAndStatus(networkName, status, pageable);
     }
 
-    public String queryGenesisBlock(String networkName) throws Exception {
+    public String queryGenesisBlock(String currentOrganizationName, String networkName) throws Exception {
         NetworkEntity network = findNetworkOrThrowEx(networkName);
-        String organizationName = SecurityUtils.getUsername();
-        assertOrganizationInNetwork(network, organizationName);
+        assertOrganizationInNetwork(network, currentOrganizationName);
 
         Orderer orderer = network.getOrderers().get(0);
         CoreEnv ordererCoreEnv = fabricEnvService.buildOrdererCoreEnv(orderer);
@@ -552,7 +545,6 @@ public class NetworkService {
         return network.getOrganizationNames();
     }
 
-
     public List<String> queryChannels(String networkName) {
         List<ChannelEntity> channels = channelRepo.findAllByNetworkName(networkName);
         List<String> channelNames = new ArrayList<>(channels.size());
@@ -563,5 +555,17 @@ public class NetworkService {
     public List<Orderer> queryOrderers(String networkName) throws NetworkException {
         NetworkEntity network = findNetworkOrThrowEx(networkName);
         return network.getOrderers();
+    }
+
+    public List<ConfigtxOrderer> generateConfigtxOrderers(List<Orderer> orderers) {
+        List<ConfigtxOrderer> configtxOrderers = new ArrayList<>(orderers.size());
+        for (Orderer endpoint : orderers) {
+            File ordererCertfileDir = CertfileUtils.getCertfileDir(endpoint.getCaUsername(), CertfileType.ORDERER);
+            File ordererTlsServerCert = CertfileUtils.getTlsServerCert(ordererCertfileDir);
+
+            ConfigtxOrderer configtxOrderer = new ConfigtxOrderer(endpoint, ordererTlsServerCert);
+            configtxOrderers.add(configtxOrderer);
+        }
+        return configtxOrderers;
     }
 }

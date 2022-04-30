@@ -15,7 +15,14 @@ public class ConfigtxOrderer {
     private File serverTlsCert;
     private File clientTlsCert;
 
-    public String addr() {
+    public String getAddr() {
         return host + ":" + port;
+    }
+
+    public ConfigtxOrderer(Node node, File tlsCert) {
+        this.host = node.getHost();
+        this.port = node.getPort();
+        this.serverTlsCert = tlsCert;
+        this.clientTlsCert = tlsCert;
     }
 }
