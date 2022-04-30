@@ -50,12 +50,12 @@ public class FabricEnvService {
         return mspEnv;
     }
 
-    public MspEnv buildPeerMspEnv(String networkName, String orgName) {
-        String orgCertfileId = IdentifierGenerator.generateCertfileId(networkName, orgName);
+    public MspEnv buildPeerMspEnv(String networkName, String organizationName) {
+        String orgCertfileId = IdentifierGenerator.generateCertfileId(networkName, organizationName);
         File dir = CertfileUtils.getCertfileDir(orgCertfileId, CertfileType.ADMIN);
 
         MspEnv mspEnv = new MspEnv();
-        mspEnv.setMspId(orgName);
+        mspEnv.setMspId(organizationName);
         mspEnv.setMspConfig(CertfileUtils.getMspDir(dir));
         return mspEnv;
     }

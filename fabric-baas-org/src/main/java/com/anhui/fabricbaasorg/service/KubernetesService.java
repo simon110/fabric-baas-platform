@@ -113,29 +113,34 @@ public class KubernetesService {
         assertAdminConfig();
         File peerYaml = FabricYamlUtils.getPeerYaml(peer.getName());
         FabricYamlUtils.generatePeerYaml(peer, domain, peerYaml);
-        kubernetesClient.applyYaml(peerYaml);
+        try {
+            kubernetesClient.applyYaml(peerYaml);
 
-        List<Pod> podList = kubernetesClient.findPodsByKeyword(peer.getName());
+            List<Pod> podList = kubernetesClient.findPodsByKeyword(peer.getName());
 
-        assert podList.size() == 1;
-        Pod pod = podList.get(0);
-        String podName = pod.getMetadata().getName();
-        waitFor(podName, 3000, 30000);
-        List<ContainerStatus> containerStatuses = pod.getStatus().getContainerStatuses();
-        String containerName = null;
-        for (int i = 0; i < containerStatuses.size() && containerName == null; i++) {
-            ContainerStatus containerStatus = containerStatuses.get(i);
-            if (containerStatus.getImage().contains("hyperledger/fabric-peer")) {
-                containerName = containerStatus.getName();
+            assert podList.size() == 1;
+            Pod pod = podList.get(0);
+            String podName = pod.getMetadata().getName();
+            waitFor(podName, 3000, 30000);
+            List<ContainerStatus> containerStatuses = pod.getStatus().getContainerStatuses();
+            String containerName = null;
+            for (int i = 0; i < containerStatuses.size() && containerName == null; i++) {
+                ContainerStatus containerStatus = containerStatuses.get(i);
+                if (containerStatus.getImage().contains("hyperledger/fabric-peer")) {
+                    containerName = containerStatus.getName();
+                }
             }
-        }
-        assert containerName != null;
+            assert containerName != null;
 
-        CertfileUtils.assertCertfile(peerCertfileDir);
-        File peerCertfileMSPDir = CertfileUtils.getMspDir(peerCertfileDir);
-        File peerCertfileTLSDir = CertfileUtils.getTlsDir(peerCertfileDir);
-        kubernetesClient.uploadToContainer(peerCertfileMSPDir, "/var/crypto-config/msp", podName, containerName);
-        kubernetesClient.uploadToContainer(peerCertfileTLSDir, "/var/crypto-config/tls", podName, containerName);
+            CertfileUtils.assertCertfile(peerCertfileDir);
+            File peerCertfileMSPDir = CertfileUtils.getMspDir(peerCertfileDir);
+            File peerCertfileTLSDir = CertfileUtils.getTlsDir(peerCertfileDir);
+            kubernetesClient.uploadToContainer(peerCertfileMSPDir, "/var/crypto-config/msp", podName, containerName);
+            kubernetesClient.uploadToContainer(peerCertfileTLSDir, "/var/crypto-config/tls", podName, containerName);
+        } catch (Exception e) {
+            kubernetesClient.deleteYaml(peerYaml);
+            throw e;
+        }
     }
 
     public void startPeer(PeerEntity peer, String domain, File peerCertfileDir) throws Exception {
@@ -173,24 +178,29 @@ public class KubernetesService {
         assertAdminConfig();
         File ordererYaml = FabricYamlUtils.getOrdererYaml(orderer.getName());
         FabricYamlUtils.generateOrdererYaml(ttpOrgName, orderer, ordererYaml);
-        kubernetesClient.applyYaml(ordererYaml);
+        try {
+            kubernetesClient.applyYaml(ordererYaml);
 
-        // 等待容器启动完成
-        List<Pod> podList = kubernetesClient.findPodsByKeyword(orderer.getName());
-        assert podList.size() == 1;
-        Pod pod = podList.get(0);
-        String podName = pod.getMetadata().getName();
-        waitFor(podName, 5000, 60000);
-        List<ContainerStatus> containerStatuses = pod.getStatus().getContainerStatuses();
-        String containerName = containerStatuses.get(0).getName();
+            // 等待容器启动完成
+            List<Pod> podList = kubernetesClient.findPodsByKeyword(orderer.getName());
+            assert podList.size() == 1;
+            Pod pod = podList.get(0);
+            String podName = pod.getMetadata().getName();
+            waitFor(podName, 5000, 60000);
+            List<ContainerStatus> containerStatuses = pod.getStatus().getContainerStatuses();
+            String containerName = containerStatuses.get(0).getName();
 
-        // 上传创世区块和证书
-        CertfileUtils.assertCertfile(ordererCertfileDir);
-        File ordererCertfileMSPDir = CertfileUtils.getMspDir(ordererCertfileDir);
-        File ordererCertfileTLSDir = CertfileUtils.getTlsDir(ordererCertfileDir);
-        kubernetesClient.uploadToContainer(genesisBlock, "/var/crypto-config/genesis.block", podName, containerName);
-        kubernetesClient.uploadToContainer(ordererCertfileMSPDir, "/var/crypto-config/msp", podName, containerName);
-        kubernetesClient.uploadToContainer(ordererCertfileTLSDir, "/var/crypto-config/tls", podName, containerName);
+            // 上传创世区块和证书
+            CertfileUtils.assertCertfile(ordererCertfileDir);
+            File ordererCertfileMSPDir = CertfileUtils.getMspDir(ordererCertfileDir);
+            File ordererCertfileTLSDir = CertfileUtils.getTlsDir(ordererCertfileDir);
+            kubernetesClient.uploadToContainer(genesisBlock, "/var/crypto-config/genesis.block", podName, containerName);
+            kubernetesClient.uploadToContainer(ordererCertfileMSPDir, "/var/crypto-config/msp", podName, containerName);
+            kubernetesClient.uploadToContainer(ordererCertfileTLSDir, "/var/crypto-config/tls", podName, containerName);
+        } catch (Exception e) {
+            kubernetesClient.deleteYaml(ordererYaml);
+            throw e;
+        }
     }
 
     public void startOrderer(String ttpOrgName, OrdererEntity orderer, File ordererCertfileDir, File genesisBlock) throws Exception {
