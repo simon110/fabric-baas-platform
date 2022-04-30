@@ -29,10 +29,10 @@ public class SystemController {
         systemService.init(request.getTtp(), request.getAdminPassword());
     }
 
-    @Secured({Authority.ADMIN})
-    @PostMapping("/isReady")
+    @Secured({Authority.ADMIN, Authority.USER})
+    @PostMapping("/isAvailable")
     @ApiOperation("系统当前是否已经初始化")
-    public UniqueResult<Boolean> isReady() {
-        return new UniqueResult<>(systemService.isReady());
+    public UniqueResult<Boolean> isAvailable() {
+        return new UniqueResult<>(systemService.isAvailable());
     }
 }

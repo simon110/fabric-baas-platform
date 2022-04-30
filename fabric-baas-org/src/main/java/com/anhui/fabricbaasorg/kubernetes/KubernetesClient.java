@@ -33,11 +33,11 @@ public class KubernetesClient {
      * @param adminConfig 包含集群的链接信息和证书信息
      */
     public KubernetesClient(File adminConfig) throws IOException {
-        FileReader fileReader = new FileReader(adminConfig);
-        Config kubeConfig = Config.fromKubeconfig(FileUtils.readFileToString(adminConfig, StandardCharsets.UTF_8));
+        String adminConfigContent = FileUtils.readFileToString(adminConfig, StandardCharsets.UTF_8);
+        Config kubeConfig = Config.fromKubeconfig(adminConfigContent);
         this.apiClient = new DefaultKubernetesClient(kubeConfig);
-        getAllNodes();
-        getAllPods();
+        System.out.println(getAllNodes());
+        System.out.println(getAllPods());
     }
 
     /**
@@ -144,7 +144,7 @@ public class KubernetesClient {
         return podList.getItems();
     }
 
-    public List<Pod> getPodsByKeyword(String keyword) {
+    public List<Pod> findPodsByKeyword(String keyword) {
         String lowerCaseKeyword = keyword.toLowerCase();
         List<Pod> pods = getAllPods();
         return pods.stream().filter(pod -> {

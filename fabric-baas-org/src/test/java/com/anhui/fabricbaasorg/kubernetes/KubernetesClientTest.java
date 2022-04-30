@@ -31,7 +31,7 @@ class KubernetesClientTest {
 
         kubernetesClient.applyYaml(busyboxYaml);
         TimeUnit.SECONDS.sleep(10);
-        List<Pod> pods = kubernetesClient.getPodsByKeyword("busybox");
+        List<Pod> pods = kubernetesClient.findPodsByKeyword("busybox");
         Assertions.assertFalse(pods.isEmpty());
         Pod busybox = pods.get(0);
         ObjectMeta busyboxMetadata = busybox.getMetadata();
@@ -80,7 +80,7 @@ class KubernetesClientTest {
             kubernetesClient.applyYaml(ordererYaml);
             TimeUnit.SECONDS.sleep(10);
 
-            List<Pod> pods = kubernetesClient.getPodsByKeyword((pair.getKey() + pair.getValue()).toLowerCase());
+            List<Pod> pods = kubernetesClient.findPodsByKeyword((pair.getKey() + pair.getValue()).toLowerCase());
             Assertions.assertEquals(1, pods.size());
             Pod orderer = pods.get(0);
             ObjectMeta ordererMetadata = orderer.getMetadata();
@@ -123,7 +123,7 @@ class KubernetesClientTest {
             kubernetesClient.applyYaml(peerYaml);
             TimeUnit.SECONDS.sleep(15);
 
-            List<Pod> pods = kubernetesClient.getPodsByKeyword((pair.getKey() + pair.getValue()).toLowerCase());
+            List<Pod> pods = kubernetesClient.findPodsByKeyword((pair.getKey() + pair.getValue()).toLowerCase());
             Assertions.assertEquals(1, pods.size());
             Pod orderer = pods.get(0);
             ObjectMeta ordererMetadata = orderer.getMetadata();

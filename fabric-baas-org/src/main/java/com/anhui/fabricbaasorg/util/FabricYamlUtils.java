@@ -1,5 +1,6 @@
 package com.anhui.fabricbaasorg.util;
 
+import com.anhui.fabricbaascommon.util.SimpleFileUtils;
 import com.anhui.fabricbaasorg.entity.OrdererEntity;
 import com.anhui.fabricbaasorg.entity.PeerEntity;
 import org.apache.commons.io.FileUtils;
@@ -37,7 +38,7 @@ public class FabricYamlUtils {
             }
         }
         if (temp.length() != 0) {
-            builder.append(temp.toString());
+            builder.append(temp);
         }
         return builder.toString();
     }
@@ -92,5 +93,13 @@ public class FabricYamlUtils {
         };
         config = replace(config, replacements);
         FileUtils.writeStringToFile(output, config, StandardCharsets.UTF_8);
+    }
+
+    public static File getOrdererYaml(String ordererName) {
+        return new File(String.format("%s/kubernetes/orderer/%s.yaml", SimpleFileUtils.getWorkingDir(), ordererName));
+    }
+
+    public static File getPeerYaml(String peerName) {
+        return new File(String.format("%s/kubernetes/peer/%s.yaml", SimpleFileUtils.getWorkingDir(), peerName));
     }
 }

@@ -2,10 +2,7 @@ package com.anhui.fabricbaasorg.service;
 
 import com.anhui.fabricbaascommon.entity.CertfileEntity;
 import com.anhui.fabricbaascommon.repository.CertfileRepo;
-import com.anhui.fabricbaascommon.response.PaginationQueryResult;
 import com.anhui.fabricbaascommon.service.CaClientService;
-import com.anhui.fabricbaasorg.request.CertGenerateRequest;
-import com.anhui.fabricbaasorg.request.CertQueryRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -22,18 +19,13 @@ public class CertService {
     @Autowired
     private CertfileRepo certfileRepo;
 
-    public void generate(CertGenerateRequest req) throws Exception {
-        caClientService.register(req.getCaUsername(), req.getCaPassword(), req.getCaUsertype());
+    public void generate(CertfileEntity certfile) throws Exception {
+        caClientService.register(certfile.getCaUsername(), certfile.getCaPassword(), certfile.getCaUsertype());
     }
 
-    public PaginationQueryResult<CertfileEntity> query(CertQueryRequest request) throws Exception {
+    public Page<CertfileEntity> query(String usertype, int page, int pageSize) throws Exception {
         Sort sort = Sort.by(Sort.Direction.ASC, "caUsername");
-        Pageable pageable = PageRequest.of(request.getPage() - 1, request.getPageSize(), sort);
-        Page<CertfileEntity> certfileEntities = certfileRepo.findAllByCaUsertype(request.getCertType(), pageable);
-
-        PaginationQueryResult<CertfileEntity> result = new PaginationQueryResult<>();
-        result.setItems(certfileEntities.getContent());
-        result.setTotalPages(certfileEntities.getTotalPages());
-        return result;
+        Pageable pageable = PageRequest.of(page - 1, pageSize, sort);
+        return certfileRepo.findAllByCaUsertype(usertype, pageable);
     }
 }

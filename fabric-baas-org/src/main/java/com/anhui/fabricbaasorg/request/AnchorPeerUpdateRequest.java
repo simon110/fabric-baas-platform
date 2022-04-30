@@ -5,9 +5,11 @@ import com.anhui.fabricbaascommon.request.BaseChannelRequest;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import javax.validation.constraints.Pattern;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 @ApiModel(value = "锚节点更新请求")
 public class AnchorPeerUpdateRequest extends BaseChannelRequest {

@@ -4,6 +4,8 @@ import com.anhui.fabricbaascommon.constant.Authority;
 import com.anhui.fabricbaascommon.request.LoginRequest;
 import com.anhui.fabricbaascommon.response.LoginResult;
 import com.anhui.fabricbaascommon.response.PaginationQueryResult;
+import com.anhui.fabricbaascommon.response.UniqueResult;
+import com.anhui.fabricbaascommon.service.CaClientService;
 import com.anhui.fabricbaasttp.entity.OrganizationEntity;
 import com.anhui.fabricbaasttp.entity.RegistrationEntity;
 import com.anhui.fabricbaasttp.request.OrganizationQueryRequest;
@@ -29,6 +31,8 @@ import javax.validation.Valid;
 public class OrganizationController {
     @Autowired
     private OrganizationService organizationService;
+    @Autowired
+    private CaClientService caClientService;
 
     @PostMapping("/login")
     @ApiOperation(value = "组织登录并获取口令")
@@ -70,5 +74,12 @@ public class OrganizationController {
     public PaginationQueryResult<OrganizationEntity> queryOrganizations(@Valid @RequestBody OrganizationQueryRequest request) {
         Page<OrganizationEntity> page = organizationService.queryOrganizations(request.getOrganizationNameKeyword(), request.getPage(), request.getPageSize());
         return new PaginationQueryResult<>(page.getTotalPages(), page.getContent());
+    }
+
+    @Secured({Authority.ADMIN, Authority.USER})
+    @PostMapping("/getCaOrganizationName")
+    @ApiOperation("获取维护该系统的组织的名称")
+    public UniqueResult<String> getCaOrganizationName() throws Exception {
+        return new UniqueResult<>(caClientService.getCaOrganizationName());
     }
 }

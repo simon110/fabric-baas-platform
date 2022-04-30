@@ -45,10 +45,8 @@ public class NetworkService {
     private OrdererRepo ordererRepo;
     @Autowired
     private PeerRepo peerRepo;
-    @Autowired
-    private TTPService ttpService;
 
-    private List<Node> getOrderers(List<Integer> ordererPorts) throws CaException {
+    private List<Node> buildOrderers(List<Integer> ordererPorts) throws CaException {
         String domain = caClientService.getCaOrganizationDomain();
         List<Node> orderers = new ArrayList<>();
         for (Integer ordererPort : ordererPorts) {
@@ -63,11 +61,11 @@ public class NetworkService {
     public void create(NetworkCreateRequest request) throws Exception {
         // 检查端口是否已经被占用
         for (Integer ordererPort : request.getOrdererPorts()) {
-            kubernetesService.assertKubePortUnused(ordererPort);
+            kubernetesService.assertClusterPortAvailable(ordererPort);
         }
 
         // 生成Orderer节点的连接信息
-        List<Node> orderers = getOrderers(request.getOrdererPorts());
+        List<Node> orderers = buildOrderers(request.getOrdererPorts());
 
         // 将CA管理员的证书打包成zip
         File adminCertfileZip = SimpleFileUtils.createTempFile("zip");
@@ -91,7 +89,7 @@ public class NetworkService {
     }
 
     public void applyParticipation(ParticipationApplyRequest request) throws Exception {
-        List<Node> orderers = getOrderers(request.getOrdererPorts());
+        List<Node> orderers = buildOrderers(request.getOrdererPorts());
         File adminCertfileZip = SimpleFileUtils.createTempFile("zip");
         caClientService.getRootCertfileZip(adminCertfileZip);
         // 调用TTP端的接口发送加入网络申请
@@ -133,7 +131,7 @@ public class NetworkService {
         orderer.setKubeNodeName(request.getKubeNodeName());
         orderer.setKubeNodePort(request.getKubeNodePort());
         try {
-            kubernetesService.startOrderer(ttpService.getNameOrThrowException(), orderer, certfileDir, genesisBlock);
+            kubernetesService.startOrderer(remoteService.getNameOrThrowEx(), orderer, certfileDir, genesisBlock);
         } catch (Exception e) {
             kubernetesService.stopOrderer(orderer.getName());
             throw e;
@@ -181,7 +179,7 @@ public class NetworkService {
         }
     }
 
-    public OrdererQueryResult getOrderers() {
+    public OrdererQueryResult buildOrderers() {
         List<OrdererEntity> orderers = ordererRepo.findAll();
 
         OrdererQueryResult result = new OrdererQueryResult();

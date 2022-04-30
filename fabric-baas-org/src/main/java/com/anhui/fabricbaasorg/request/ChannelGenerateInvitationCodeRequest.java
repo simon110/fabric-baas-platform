@@ -1,19 +1,18 @@
 package com.anhui.fabricbaasorg.request;
 
 import com.anhui.fabricbaascommon.constant.ParamPattern;
+import com.anhui.fabricbaascommon.request.BaseChannelRequest;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import javax.validation.constraints.Pattern;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 @ApiModel(value = "生成加入通道邀请请求")
-public class InvitationGenerateRequest {
-    @Pattern(regexp = ParamPattern.CHANNEL_NAME_REGEX, message = ParamPattern.CHANNEL_NAME_MSG)
-    @ApiModelProperty(value = "通道名称", required = true)
-    private String channelName;
-
+public class ChannelGenerateInvitationCodeRequest extends BaseChannelRequest {
     @Pattern(regexp = ParamPattern.ORGANIZATION_NAME_REGEX, message = ParamPattern.ORGANIZATION_NAME_MSG)
     @ApiModelProperty(value = "允许加入的组织名称", required = true)
     private String invitedOrganizationName;

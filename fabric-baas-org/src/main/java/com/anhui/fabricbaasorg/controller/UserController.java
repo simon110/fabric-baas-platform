@@ -22,8 +22,8 @@ public class UserController {
 
     @PostMapping("/login")
     @ApiOperation(value = "管理员登录并获取口令")
-    public LoginResult login(@Valid @RequestBody LoginRequest request) {
-        return userService.login(request);
+    public LoginResult login(@Valid @RequestBody LoginRequest request) throws Exception {
+        return userService.login(request.getOrganizationName(), request.getPassword());
     }
 }
 

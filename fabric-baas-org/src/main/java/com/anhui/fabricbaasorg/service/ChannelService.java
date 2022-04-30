@@ -57,14 +57,14 @@ public class ChannelService {
         ttpChannelApi.setAnchorPeer(request.getChannelName(), peer);
     }
 
-    public InvitationGenerateResult generateInvitation(InvitationGenerateRequest request) throws Exception {
+    public InvitationGenerateResult generateInvitation(ChannelGenerateInvitationCodeRequest request) throws Exception {
         String invitationCode = ttpChannelApi.generateInvitationCode(request.getChannelName(), request.getInvitedOrganizationName());
         InvitationGenerateResult result = new InvitationGenerateResult();
         result.setInvitation(invitationCode);
         return result;
     }
 
-    public void submitInvitations(InvitationSubmitRequest request) throws Exception {
+    public void submitInvitations(ChannelSubmitInvitationCodesRequest request) throws Exception {
         ttpChannelApi.submitInvitationCodes(request.getChannelName(), request.getInvitations());
     }
 

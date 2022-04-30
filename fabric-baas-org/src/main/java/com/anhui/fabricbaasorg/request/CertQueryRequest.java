@@ -15,5 +15,5 @@ import javax.validation.constraints.Pattern;
 public class CertQueryRequest extends PaginationQueryRequest {
     @Pattern(regexp = ParamPattern.CA_USERTYPE_REGEX, message = ParamPattern.CA_USERTYPE_MSG)
     @ApiModelProperty(value = "证书类型", required = true)
-    private String certType;
+    private String usertype;
 }

@@ -1,20 +1,20 @@
 package com.anhui.fabricbaasorg.request;
 
 import com.anhui.fabricbaascommon.constant.ParamPattern;
+import com.anhui.fabricbaascommon.request.BaseNetworkRequest;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Pattern;
 import java.util.List;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 @ApiModel(value = "创建网络请求")
-public class NetworkCreateRequest {
-    @Pattern(regexp = ParamPattern.NETWORK_NAME_REGEX, message = ParamPattern.NETWORK_NAME_MSG)
-    @ApiModelProperty(value = "网络名称", required = true)
-    private String networkName;
+public class NetworkCreateRequest extends BaseNetworkRequest {
 
     @Pattern(regexp = ParamPattern.CONSORTIUM_NAME_REGEX, message = ParamPattern.CONSORTIUM_NAME_MSG)
     @ApiModelProperty(value = "联盟名称（可将网络与联盟视为等价关系）", required = true)

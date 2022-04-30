@@ -77,7 +77,7 @@ public class NetworkController {
     @PostMapping("/getOrderers")
     @ApiOperation("获取组织所有的Orderer节点")
     public OrdererQueryResult getOrderers() {
-        return networkService.getOrderers();
+        return networkService.buildOrderers();
     }
 
     @Secured({Authority.ADMIN})

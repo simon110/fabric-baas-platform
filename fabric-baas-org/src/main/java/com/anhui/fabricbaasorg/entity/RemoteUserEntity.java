@@ -13,12 +13,12 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
-@Document(collection = "ttp")
+@Document(collection = "remoteuser")
 @ApiModel("在TTP端的组织信息")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class TTPEntity {
+public class RemoteUserEntity {
     @Pattern(regexp = ParamPattern.ORGANIZATION_NAME_REGEX, message = ParamPattern.ORGANIZATION_NAME_MSG)
     @ApiModelProperty(value = "登录可信端的组织名称", required = true)
     @Id

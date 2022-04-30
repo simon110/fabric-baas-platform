@@ -58,7 +58,7 @@ public class SystemService {
      * 3. 登记管理员证书
      */
     public void init(CaEntity ttp, String newAdminPassword) throws Exception {
-        if (isReady()) {
+        if (isAvailable()) {
             throw new DuplicatedOperationException("系统中已存在TTP信息，请勿重复初始化系统");
         }
         if (caContainerService.checkCaContainer()) {
@@ -80,7 +80,7 @@ public class SystemService {
         }
     }
 
-    public boolean isReady() {
+    public boolean isAvailable() {
         return caRepo.count() == 0;
     }
 }

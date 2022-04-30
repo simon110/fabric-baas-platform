@@ -42,14 +42,14 @@ public class ChannelController {
     @Secured({Authority.ADMIN})
     @PostMapping("/generateInvitation")
     @ApiOperation("生成邀请信息")
-    public InvitationGenerateResult generateInvitation(@Valid @RequestBody InvitationGenerateRequest request) throws Exception {
+    public InvitationGenerateResult generateInvitation(@Valid @RequestBody ChannelGenerateInvitationCodeRequest request) throws Exception {
         return channelService.generateInvitation(request);
     }
 
     @Secured({Authority.ADMIN})
     @PostMapping("/submitInvitations")
     @ApiOperation("生成邀请信息")
-    public EmptyResult submitInvitations(@Valid @RequestBody InvitationSubmitRequest request) throws Exception {
+    public EmptyResult submitInvitations(@Valid @RequestBody ChannelSubmitInvitationCodesRequest request) throws Exception {
         channelService.submitInvitations(request);
         return new EmptyResult();
     }
