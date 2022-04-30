@@ -23,7 +23,8 @@ public class UserController {
     @PostMapping("/login")
     @ApiOperation(value = "管理员登录并获取口令")
     public LoginResult login(@Valid @RequestBody LoginRequest request) throws Exception {
-        return userService.login(request.getOrganizationName(), request.getPassword());
+        String token = userService.login(request.getOrganizationName(), request.getPassword());
+        return new LoginResult(token);
     }
 }
 

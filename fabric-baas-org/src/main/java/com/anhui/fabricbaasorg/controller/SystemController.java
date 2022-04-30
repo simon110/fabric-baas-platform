@@ -1,9 +1,8 @@
 package com.anhui.fabricbaasorg.controller;
 
 import com.anhui.fabricbaascommon.constant.Authority;
-import com.anhui.fabricbaascommon.response.EmptyResult;
+import com.anhui.fabricbaascommon.response.ListResult;
 import com.anhui.fabricbaasorg.request.SystemInitRequest;
-import com.anhui.fabricbaasorg.response.ClusterNodeQueryResult;
 import com.anhui.fabricbaasorg.service.SystemService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -17,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/system")
@@ -28,17 +28,18 @@ public class SystemController {
     @Secured({Authority.ADMIN})
     @PostMapping("/getClusterNodeNames")
     @ApiOperation("获取集群的所有物理节点")
-    public ClusterNodeQueryResult getClusterNodeNames() throws Exception {
-        return systemService.getClusterNodeNames();
+    public ListResult<String> getClusterNodeNames() throws Exception {
+        List<String> nodeNames = systemService.getClusterNodeNames();
+        return new ListResult<>(nodeNames);
     }
 
     @Secured({Authority.ADMIN})
     @PostMapping("/init")
     @ApiOperation("对系统管理员的账户密码和CA服务进行配置")
-    public EmptyResult init(@Valid @RequestPart SystemInitRequest request,
-                            @ApiParam(value = "连接K8S的Yaml配置文件") @RequestPart MultipartFile clusterConfig) throws Exception {
-        systemService.init(request, clusterConfig);
-        return new EmptyResult();
+    public void init(
+            @Valid @RequestPart SystemInitRequest request,
+            @ApiParam(value = "连接Kubernetes集群的Yaml配置文件") @RequestPart MultipartFile kubernetesConfig) throws Exception {
+        systemService.init(request.getOrg(), request.getRemoteUser(), request.getAdminPassword(), kubernetesConfig);
     }
 }
 

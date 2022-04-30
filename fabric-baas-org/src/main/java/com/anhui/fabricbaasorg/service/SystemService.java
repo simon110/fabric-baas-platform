@@ -103,9 +103,11 @@ public class SystemService {
     }
 
     /**
-     * 主要包括一下内容
+     * 主要包括以下内容
      * 1. 重置管理员的密码
-     * 2. 将集群配置导入到KubernetesService
+     * 2. 将集群配置导入到Kubernetes服务
+     * 3. 初始化CA服务
+     * 4. 初始化TTP远程用户
      */
     public void init(CaEntity org, RemoteUserEntity remoteUser, String adminPassword, MultipartFile kubernetesConfig) throws Exception {
         initCaService(org);

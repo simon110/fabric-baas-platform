@@ -77,9 +77,9 @@ public class OrganizationController {
     }
 
     @Secured({Authority.ADMIN, Authority.USER})
-    @PostMapping("/getCaOrganizationName")
+    @PostMapping("/getOrdererOrganizationName")
     @ApiOperation("获取维护该系统的组织的名称")
-    public UniqueResult<String> getCaOrganizationName() throws Exception {
+    public UniqueResult<String> getOrdererOrganizationName() throws Exception {
         return new UniqueResult<>(caClientService.getCaOrganizationName());
     }
 }

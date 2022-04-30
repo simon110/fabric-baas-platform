@@ -33,4 +33,8 @@ public class TTPOrganizationApi {
         remoteHttpClient.setHeaderProperty("Authorization", result.getToken());
         return result.getToken();
     }
+
+    public String getOrdererOrganizationName() {
+        return null;
+    }
 }

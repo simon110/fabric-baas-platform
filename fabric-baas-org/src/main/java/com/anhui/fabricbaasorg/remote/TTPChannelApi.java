@@ -2,7 +2,6 @@ package com.anhui.fabricbaasorg.remote;
 
 import cn.hutool.json.JSONObject;
 import com.anhui.fabricbaascommon.bean.Node;
-import com.anhui.fabricbaasorg.response.ChannelQueryPeerResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -116,6 +115,7 @@ public class TTPChannelApi {
         JSONObject data = new JSONObject();
         data.set("channelName", channelName);
         JSONObject response = httpClient.request("/api/v1/channel/queryPeers", data);
-        return response.toBean(ChannelQueryPeerResult.class).getPeers();
+        // TODO: 手动解析响应中的数据
+        return null;
     }
 }
