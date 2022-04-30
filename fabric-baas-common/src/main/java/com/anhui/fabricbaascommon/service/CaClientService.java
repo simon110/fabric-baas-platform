@@ -106,8 +106,8 @@ public class CaClientService {
     public void getRootCertfileZip(File output) throws IOException, CertfileException {
         CertfileUtils.assertCertfile(FABRIC_CA_ROOT_CERTFILE_DIR);
         ZipUtils.zip(output,
-                CertfileUtils.getCertfileMspDir(FABRIC_CA_ROOT_CERTFILE_DIR),
-                CertfileUtils.getCertfileTlsDir(FABRIC_CA_ROOT_CERTFILE_DIR)
+                CertfileUtils.getMspDir(FABRIC_CA_ROOT_CERTFILE_DIR),
+                CertfileUtils.getTlsDir(FABRIC_CA_ROOT_CERTFILE_DIR)
         );
     }
 }

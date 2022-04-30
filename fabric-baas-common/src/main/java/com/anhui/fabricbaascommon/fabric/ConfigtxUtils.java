@@ -12,6 +12,8 @@ import java.io.IOException;
 import java.util.*;
 
 public class ConfigtxUtils {
+    public static final String ORDERER_GENESIS_NAME = "OrdererGenesis";
+
     private static Map<String, Object> buildOrdererOrg(
             ConfigtxOrganization ordererOrganization,
             List<ConfigtxOrderer> configtxOrderers) {
@@ -141,7 +143,7 @@ public class ConfigtxUtils {
         Map<String, Object> genesis = (Map<String, Object>) profiles.get("TwoOrgsOrdererGenesis");
         profiles.remove("TwoOrgsChannel");
         profiles.remove("TwoOrgsOrdererGenesis");
-        profiles.put("OrdererGenesis", genesis);
+        profiles.put(ORDERER_GENESIS_NAME, genesis);
         Map<String, Object> genesisOrderer = (Map<String, Object>) genesis.get("Orderer");
         genesisOrderer.putAll(orderer);
         List<Map<String, Object>> ordererOrgs = new ArrayList<>();

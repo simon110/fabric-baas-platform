@@ -37,28 +37,6 @@ public class CertfileUtils {
         }
     }
 
-    public static File getCertfileMspDir(File dir) {
-        return new File(dir + "/msp");
-    }
-
-    public static File getCertfileTlsDir(File dir) {
-        return new File(dir + "/tls");
-    }
-
-    /**
-     * 注意该方法不检查对应路径的内容是否存在以及是否正确
-     *
-     * @param name CA账户名称
-     * @param type CA账户类型
-     * @return CA账户证书应该被存放的位置
-     */
-    public static File getCertfileDir(String name, String type) {
-        assert type.equals(CertfileType.ORDERER) ||
-                type.equals(CertfileType.ADMIN) ||
-                type.equals(CertfileType.CLIENT) ||
-                type.equals(CertfileType.PEER);
-        return new File(String.format("%s/fabric/certfile/%s/%s", SimpleFileUtils.getWorkingDir(), type, name));
-    }
     /**
      * 检查完成后返回压缩包的随机路径，如果检查不通过则抛出异常。
      */
@@ -81,5 +59,36 @@ public class CertfileUtils {
             FileUtils.deleteQuietly(certfileZip);
             FileUtils.deleteDirectory(tempDir);
         }
+    }
+
+    /**
+     * 注意该方法不检查对应路径的内容是否存在以及是否正确
+     *
+     * @param name CA账户名称
+     * @param type CA账户类型
+     * @return CA账户证书应该被存放的位置
+     */
+    public static File getCertfileDir(String name, String type) {
+        assert type.equals(CertfileType.ORDERER) ||
+                type.equals(CertfileType.ADMIN) ||
+                type.equals(CertfileType.CLIENT) ||
+                type.equals(CertfileType.PEER);
+        return new File(String.format("%s/fabric/certfile/%s/%s", SimpleFileUtils.getWorkingDir(), type, name));
+    }
+
+    public static File getMspDir(File certfileDir) {
+        return new File(certfileDir + "/msp");
+    }
+
+    public static File getTlsDir(File certfileDir) {
+        return new File(certfileDir + "/tls");
+    }
+
+    public static File getTlsCaCert(File certfileDir) {
+        return new File(certfileDir + "/tls/ca.crt");
+    }
+
+    public static File getTlsServerCert(File certfileDir) {
+        return new File(certfileDir + "/tls/server.crt");
     }
 }

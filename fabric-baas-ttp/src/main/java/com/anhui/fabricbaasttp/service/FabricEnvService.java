@@ -30,49 +30,51 @@ public class FabricEnvService {
         );
     }
 
-    public CoreEnv buildCoreEnvForOrderer(Orderer orderer) throws CaException {
-        MspEnv mspEnv = buildMspEnvForOrderer();
+    public CoreEnv buildOrdererCoreEnv(Orderer orderer) throws CaException {
+        MspEnv mspEnv = buildOrdererMspEnv();
         TlsEnv tlsEnv = buildOrdererTlsEnv(orderer);
         return buildCoreEnv(mspEnv, tlsEnv);
     }
 
-    public CoreEnv buildCoreEnvForPeer(String networkName, String orgName, Peer peer) {
-        MspEnv mspEnv = buildMspEnvForOrg(networkName, orgName);
+    public CoreEnv buildPeerCoreEnv(String networkName, String organizationName, Peer peer) {
+        MspEnv mspEnv = buildPeerMspEnv(networkName, organizationName);
         TlsEnv tlsEnv = buildPeerTlsEnv(peer);
         return buildCoreEnv(mspEnv, tlsEnv);
     }
 
-    public MspEnv buildMspEnvForOrderer() throws CaException {
+
+    public MspEnv buildOrdererMspEnv() throws CaException {
         MspEnv mspEnv = new MspEnv();
         mspEnv.setMspId(caClientService.getCaOrganizationName());
-        mspEnv.setMspConfig(new File(caClientService.getRootCertfileDir() + "/msp"));
+        mspEnv.setMspConfig(CertfileUtils.getMspDir(caClientService.getRootCertfileDir()));
         return mspEnv;
     }
 
-    public MspEnv buildMspEnvForOrg(String networkName, String orgName) {
+    public MspEnv buildPeerMspEnv(String networkName, String orgName) {
         String orgCertfileId = IdentifierGenerator.generateCertfileId(networkName, orgName);
         File dir = CertfileUtils.getCertfileDir(orgCertfileId, CertfileType.ADMIN);
 
         MspEnv mspEnv = new MspEnv();
         mspEnv.setMspId(orgName);
-        mspEnv.setMspConfig(new File(dir.getAbsolutePath() + "/msp"));
+        mspEnv.setMspConfig(CertfileUtils.getMspDir(dir));
         return mspEnv;
-    }
-
-    public TlsEnv buildOrdererTlsEnv(Orderer orderer) {
-        File certfileDir = CertfileUtils.getCertfileDir(orderer.getCaUsername(), CertfileType.ORDERER);
-        return buildTlsEnv(orderer, certfileDir);
-    }
-
-    public TlsEnv buildPeerTlsEnv(Peer peer) {
-        File certfileDir = CertfileUtils.getCertfileDir(peer.getName(), CertfileType.PEER);
-        return buildTlsEnv(peer, certfileDir);
     }
 
     private static TlsEnv buildTlsEnv(Node node, File certfileDir) {
         TlsEnv tlsEnv = new TlsEnv();
         tlsEnv.setAddress(node.getAddr());
-        tlsEnv.setTlsRootCert(new File(certfileDir.getAbsolutePath() + "/tls/ca.crt"));
+        tlsEnv.setTlsRootCert(CertfileUtils.getTlsCaCert(certfileDir));
         return tlsEnv;
     }
+
+    public TlsEnv buildOrdererTlsEnv(Orderer orderer) {
+        File ordererCertfileDir = CertfileUtils.getCertfileDir(orderer.getCaUsername(), CertfileType.ORDERER);
+        return buildTlsEnv(orderer, ordererCertfileDir);
+    }
+
+    public TlsEnv buildPeerTlsEnv(Peer peer) {
+        File peerCertfileDir = CertfileUtils.getCertfileDir(peer.getName(), CertfileType.PEER);
+        return buildTlsEnv(peer, peerCertfileDir);
+    }
+
 }

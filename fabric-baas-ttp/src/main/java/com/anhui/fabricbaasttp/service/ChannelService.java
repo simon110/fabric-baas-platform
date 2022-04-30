@@ -91,7 +91,7 @@ public class ChannelService {
 
     private void signEnvelopeWithOrganizations(String networkName, List<String> organizationNames, File envelope) throws IOException, InterruptedException, EnvelopeException {
         for (String orgName : organizationNames) {
-            MspEnv organizationMspDir = fabricEnvService.buildMspEnvForOrg(networkName, orgName);
+            MspEnv organizationMspDir = fabricEnvService.buildPeerMspEnv(networkName, orgName);
             log.info(String.format("正在使用%s在%s网络的管理员证书对Envelope进行签名：", orgName, networkName) + envelope.getAbsolutePath());
             ChannelUtils.signEnvelope(organizationMspDir, envelope);
         }
@@ -121,7 +121,7 @@ public class ChannelService {
     public void createChannel(ChannelCreateRequest request) throws Exception {
         // 检查操作的组织是否属于相应的网络
         String curOrgName = SecurityUtils.getUsername();
-        NetworkEntity network = networkService.getNetworkOrThrowException(request.getNetworkName());
+        NetworkEntity network = networkService.findNetworkOrThrowEx(request.getNetworkName());
         networkService.assertOrganizationInNetwork(network, curOrgName);
 
         // 检查相同名称的通道是否已经存在
@@ -171,7 +171,7 @@ public class ChannelService {
         log.info("随机从网络中选择Orderer：" + orderer);
 
         // 创建通道
-        MspEnv organizationMspEnv = fabricEnvService.buildMspEnvForOrg(network.getName(), curOrgName);
+        MspEnv organizationMspEnv = fabricEnvService.buildPeerMspEnv(network.getName(), curOrgName);
         TlsEnv ordererTlsEnv = fabricEnvService.buildOrdererTlsEnv(orderer);
         log.info("生成组织的MSP环境变量：" + organizationMspEnv);
         log.info("生成Orderer的TLS环境变量：" + ordererTlsEnv);
@@ -197,11 +197,11 @@ public class ChannelService {
         ChannelEntity channel = getChannelOrThrowException(channelName);
         String curOrgName = SecurityUtils.getUsername();
         assertOrganizationInChannel(channel, curOrgName);
-        Orderer orderer = RandomUtils.select(networkService.getOrderers(channel.getNetworkName()));
+        Orderer orderer = RandomUtils.select(networkService.getNetworkOrderers(channel.getNetworkName()));
 
         File block = SimpleFileUtils.createTempFile("block");
 
-        CoreEnv ordererCoreEnv = fabricEnvService.buildCoreEnvForOrderer(orderer);
+        CoreEnv ordererCoreEnv = fabricEnvService.buildOrdererCoreEnv(orderer);
         ChannelUtils.fetchGenesisBlock(ordererCoreEnv, channelName, block);
         return FileUtils.readFileToByteArray(block);
     }
@@ -217,11 +217,11 @@ public class ChannelService {
         assertInvitationCodes(request.getInvitationCodes(), channel.getOrganizationNames(), curOrgName, channel.getName());
 
         // 从通道中随机选择一个Orderer
-        Orderer orderer = RandomUtils.select(networkService.getOrderers(channel.getNetworkName()));
+        Orderer orderer = RandomUtils.select(networkService.getNetworkOrderers(channel.getNetworkName()));
         log.info("随机选择Orderer节点：" + orderer);
 
         // 拉取指定通道的配置
-        CoreEnv ordererCoreEnv = fabricEnvService.buildCoreEnvForOrderer(orderer);
+        CoreEnv ordererCoreEnv = fabricEnvService.buildOrdererCoreEnv(orderer);
         log.info("生成Orderer环境变量：" + ordererCoreEnv);
         File oldChannelConfig = SimpleFileUtils.createTempFile("json");
         ChannelUtils.fetchConfig(ordererCoreEnv, channel.getName(), oldChannelConfig);
@@ -261,7 +261,7 @@ public class ChannelService {
         // 注意不能用未在通道中的组织的身份来提交通道更新，即使通道中的组织全都签名了也依然会报错
         // 提交更新的组织会同时进行签名，所以提交更新的组织不用参与签名的签名过程
         String lastChannelOrgName = channelOrganizationNames.get(channelOrganizationNames.size() - 1);
-        MspEnv organizationMspEnv = fabricEnvService.buildMspEnvForOrg(channel.getNetworkName(), lastChannelOrgName);
+        MspEnv organizationMspEnv = fabricEnvService.buildPeerMspEnv(channel.getNetworkName(), lastChannelOrgName);
         log.info("生成提交Envelope的当前组织的MSP环境变量：" + organizationMspEnv);
         ChannelUtils.submitChannelUpdate(organizationMspEnv, ordererCoreEnv.getTlsEnv(), channel.getName(), envelope);
 
@@ -294,11 +294,11 @@ public class ChannelService {
         log.info("生成新Peer信息：" + peer);
 
         // 随机选择一个Orderer
-        Orderer orderer = RandomUtils.select(networkService.getOrderers(channel.getNetworkName()));
+        Orderer orderer = RandomUtils.select(networkService.getNetworkOrderers(channel.getNetworkName()));
         log.info("随机选择Orderer节点：" + orderer);
 
         // 拉取通道的创世区块
-        CoreEnv ordererCoreEnv = fabricEnvService.buildCoreEnvForOrderer(orderer);
+        CoreEnv ordererCoreEnv = fabricEnvService.buildOrdererCoreEnv(orderer);
         log.info("生成Orderer的环境变量参数：" + ordererCoreEnv);
         File channelGenesisBlock = SimpleFileUtils.createTempFile("block");
         ChannelUtils.fetchGenesisBlock(ordererCoreEnv, channel.getName(), channelGenesisBlock);
@@ -314,7 +314,7 @@ public class ChannelService {
         CertfileUtils.assertCertfile(peerCertTempCertfileDir);
 
         // 尝试将Peer加入到通道中（TLS环境变量需要改为临时目录中的，因为还没保存到正式目录）
-        CoreEnv peerCoreEnv = fabricEnvService.buildCoreEnvForPeer(channel.getNetworkName(), curOrgName, peer);
+        CoreEnv peerCoreEnv = fabricEnvService.buildPeerCoreEnv(channel.getNetworkName(), curOrgName, peer);
         peerCoreEnv.setTlsRootCert(new File(peerCertTempCertfileDir + "/tls/ca.crt"));
         log.info("生成Peer的环境变量：" + peerCoreEnv);
         ChannelUtils.joinChannel(peerCoreEnv, channelGenesisBlock);
@@ -341,7 +341,7 @@ public class ChannelService {
         }
 
         // 检查被邀请的组织是否是合法的网络成员
-        NetworkEntity network = networkService.getNetworkOrThrowException(channel.getNetworkName());
+        NetworkEntity network = networkService.findNetworkOrThrowEx(channel.getNetworkName());
         if (!network.getOrganizationNames().contains(request.getOrganizationName())) {
             throw new OrganizationException("被邀请的组织不是合法的网络成员");
         }
@@ -374,11 +374,11 @@ public class ChannelService {
         }
 
         // 从通道中随机选择一个Orderer
-        Orderer orderer = RandomUtils.select(networkService.getOrderers(channel.getNetworkName()));
+        Orderer orderer = RandomUtils.select(networkService.getNetworkOrderers(channel.getNetworkName()));
         log.info("随机选择Orderer节点：" + orderer);
 
         // 拉取指定通道的配置
-        CoreEnv ordererCoreEnv = fabricEnvService.buildCoreEnvForOrderer(orderer);
+        CoreEnv ordererCoreEnv = fabricEnvService.buildOrdererCoreEnv(orderer);
         log.info("生成Orderer环境变量：" + ordererCoreEnv);
         File oldChannelConfig = SimpleFileUtils.createTempFile("json");
         ChannelUtils.fetchConfig(ordererCoreEnv, channel.getName(), oldChannelConfig);
@@ -394,7 +394,7 @@ public class ChannelService {
         log.info("生成更新锚节点的Envelope：" + envelope.getAbsolutePath());
 
         // 将Envelope提交到Orderer
-        MspEnv organizationMspEnv = fabricEnvService.buildMspEnvForOrg(channel.getNetworkName(), curOrgName);
+        MspEnv organizationMspEnv = fabricEnvService.buildPeerMspEnv(channel.getNetworkName(), curOrgName);
         ChannelUtils.submitChannelUpdate(organizationMspEnv, ordererCoreEnv.getTlsEnv(), channel.getName(), envelope);
     }
 

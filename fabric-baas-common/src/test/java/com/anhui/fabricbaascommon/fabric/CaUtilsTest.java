@@ -68,7 +68,7 @@ class CaUtilsTest {
             CertfileEntity adminCertfile = new CertfileEntity(adminUsername, commonPassword, CertfileType.ADMIN);
             CaUtils.enroll(adminCertfileDir, caTlsCert, CSRConfig.getCaName(), address, adminCertfile, csrHosts);
             File adminCertfileZip = new File(String.format("%s/%s/root.zip", BASE_DIR_PATH, ca.getOrganizationName()));
-            ZipUtils.zip(adminCertfileZip, CertfileUtils.getCertfileMspDir(adminCertfileDir), CertfileUtils.getCertfileTlsDir(adminCertfileDir));
+            ZipUtils.zip(adminCertfileZip, CertfileUtils.getMspDir(adminCertfileDir), CertfileUtils.getTlsDir(adminCertfileDir));
             Assertions.assertTrue(adminCertfileZip.exists());
 
             // 注册并登记四种类型的证书
@@ -83,7 +83,7 @@ class CaUtilsTest {
                     File certfileDir = SimpleFileUtils.createTempDir();
                     CaUtils.enroll(certfileDir, caTlsCert, CSRConfig.getCaName(), address, certfile, csrHosts);
                     File certfileZip = new File(String.format("%s/%s/%s%d.zip", BASE_DIR_PATH, ca.getOrganizationName(), type, j));
-                    ZipUtils.zip(certfileZip, CertfileUtils.getCertfileMspDir(certfileDir), CertfileUtils.getCertfileTlsDir(certfileDir));
+                    ZipUtils.zip(certfileZip, CertfileUtils.getMspDir(certfileDir), CertfileUtils.getTlsDir(certfileDir));
                     Assertions.assertTrue(certfileZip.exists());
                     FileUtils.deleteDirectory(certfileDir);
                 }
