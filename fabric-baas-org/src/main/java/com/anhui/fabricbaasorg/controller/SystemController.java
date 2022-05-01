@@ -46,9 +46,7 @@ public class SystemController {
     @Secured({Authority.ADMIN})
     @PostMapping("/isAvailable")
     @ApiOperation("判断当前系统是否已经初始化")
-    public UniqueResult<Boolean> isAvailable() throws Exception {
+    public UniqueResult<Boolean> isAvailable() {
         return new UniqueResult<>(systemService.isAvailable());
     }
 }
-
-

@@ -60,49 +60,50 @@ class KubernetesClientTest {
         kubernetesClient.deleteYaml(busyboxYaml);
     }
 
-    @Test
+    // @Test
     public void deployOrderers() throws IOException, InterruptedException {
         File adminConfig = new File("example/kubernetes/admin.conf");
         KubernetesClient kubernetesClient = new KubernetesClient(adminConfig);
         List<Pair<String, String>> pairs = new ArrayList<>();
-        // pairs.add(new Pair<>("TestOrgA", "orderer0"));
-        // pairs.add(new Pair<>("TestOrgA", "orderer1"));
-        // pairs.add(new Pair<>("TestOrgB", "orderer0"));
+        pairs.add(new Pair<>("TestOrgA", "orderer0"));
+        pairs.add(new Pair<>("TestOrgA", "orderer1"));
+        pairs.add(new Pair<>("TestOrgB", "orderer0"));
         pairs.add(new Pair<>("TestOrgB", "orderer1"));
-        // pairs.add(new Pair<>("TestOrgC", "orderer0"));
-        // pairs.add(new Pair<>("TestOrgC", "orderer1"));
-        // pairs.add(new Pair<>("TestOrgD", "orderer0"));
+        pairs.add(new Pair<>("TestOrgC", "orderer0"));
+        pairs.add(new Pair<>("TestOrgC", "orderer1"));
+        pairs.add(new Pair<>("TestOrgD", "orderer0"));
 
         for (Pair<String, String> pair : pairs) {
             File ordererYaml = new File(String.format("example/kubernetes/%s/%s.yaml", pair.getKey(), pair.getValue()));
-            File materialDir = new File(String.format("temp/%s/%s", pair.getKey(), pair.getValue()));
-
-            kubernetesClient.applyYaml(ordererYaml);
-            TimeUnit.SECONDS.sleep(10);
-
-            List<Pod> pods = kubernetesClient.findPodsByKeyword((pair.getKey() + pair.getValue()).toLowerCase());
-            Assertions.assertEquals(1, pods.size());
-            Pod orderer = pods.get(0);
-            ObjectMeta ordererMetadata = orderer.getMetadata();
-            Assertions.assertNotNull(ordererMetadata);
-            PodStatus ordererStatus = orderer.getStatus();
-            Assertions.assertNotNull(ordererStatus);
-            List<ContainerStatus> containerStatuses = ordererStatus.getContainerStatuses();
-            Assertions.assertNotNull(containerStatuses);
-            Assertions.assertEquals(1, containerStatuses.size());
-
-            String podName = ordererMetadata.getName();
-            String containerName = containerStatuses.get(0).getName();
-            Assertions.assertNotNull(podName);
-            Assertions.assertNotNull(containerName);
-
-            kubernetesClient.uploadToContainer(new File(materialDir + "/msp"), "/var/crypto-config/msp", podName, containerName);
-            kubernetesClient.uploadToContainer(new File(materialDir + "/tls"), "/var/crypto-config/tls", podName, containerName);
-            kubernetesClient.uploadToContainer(new File(materialDir + "/genesis.block"), "/var/crypto-config/genesis.block", podName, containerName);
+//            File materialDir = new File(String.format("temp/%s/%s", pair.getKey(), pair.getValue()));
+//
+//            kubernetesClient.applyYaml(ordererYaml);
+//            TimeUnit.SECONDS.sleep(10);
+//
+//            List<Pod> pods = kubernetesClient.findPodsByKeyword((pair.getKey() + pair.getValue()).toLowerCase());
+//            Assertions.assertEquals(1, pods.size());
+//            Pod orderer = pods.get(0);
+//            ObjectMeta ordererMetadata = orderer.getMetadata();
+//            Assertions.assertNotNull(ordererMetadata);
+//            PodStatus ordererStatus = orderer.getStatus();
+//            Assertions.assertNotNull(ordererStatus);
+//            List<ContainerStatus> containerStatuses = ordererStatus.getContainerStatuses();
+//            Assertions.assertNotNull(containerStatuses);
+//            Assertions.assertEquals(1, containerStatuses.size());
+//
+//            String podName = ordererMetadata.getName();
+//            String containerName = containerStatuses.get(0).getName();
+//            Assertions.assertNotNull(podName);
+//            Assertions.assertNotNull(containerName);
+//
+//            kubernetesClient.uploadToContainer(new File(materialDir + "/msp"), "/var/crypto-config/msp", podName, containerName);
+//            kubernetesClient.uploadToContainer(new File(materialDir + "/tls"), "/var/crypto-config/tls", podName, containerName);
+//            kubernetesClient.uploadToContainer(new File(materialDir + "/genesis.block"), "/var/crypto-config/genesis.block", podName, containerName);
+            kubernetesClient.deleteYaml(ordererYaml);
         }
     }
 
-    // @Test
+    @Test
     public void deployPeers() throws IOException, InterruptedException {
         File adminConfig = new File("example/kubernetes/admin.conf");
         KubernetesClient kubernetesClient = new KubernetesClient(adminConfig);
@@ -118,38 +119,38 @@ class KubernetesClientTest {
 
         for (Pair<String, String> pair : pairs) {
             File peerYaml = new File(String.format("example/kubernetes/%s/%s.yaml", pair.getKey(), pair.getValue()));
-            File materialDir = new File(String.format("temp/%s/%s", pair.getKey(), pair.getValue()));
-
-            kubernetesClient.applyYaml(peerYaml);
-            TimeUnit.SECONDS.sleep(15);
-
-            List<Pod> pods = kubernetesClient.findPodsByKeyword((pair.getKey() + pair.getValue()).toLowerCase());
-            Assertions.assertEquals(1, pods.size());
-            Pod orderer = pods.get(0);
-            ObjectMeta ordererMetadata = orderer.getMetadata();
-            Assertions.assertNotNull(ordererMetadata);
-            PodStatus ordererStatus = orderer.getStatus();
-            Assertions.assertNotNull(ordererStatus);
-            List<ContainerStatus> containerStatuses = ordererStatus.getContainerStatuses();
-            Assertions.assertNotNull(containerStatuses);
-            Assertions.assertEquals(3, containerStatuses.size());
-
-            String podName = ordererMetadata.getName();
-            String containerName = null;
-            for (ContainerStatus containerStatus : containerStatuses) {
-                if (containerStatus.getImage().contains("hyperledger/fabric-peer")) {
-                    containerName = containerStatus.getName();
-                    break;
-                }
-            }
-            Assertions.assertNotNull(podName);
-            Assertions.assertNotNull(containerName);
-            System.out.println(podName);
-            System.out.println(containerName);
-
-            kubernetesClient.uploadToContainer(new File(materialDir + "/msp"), "/var/crypto-config/msp", podName, containerName);
-            kubernetesClient.uploadToContainer(new File(materialDir + "/tls"), "/var/crypto-config/tls", podName, containerName);
-            // kubernetesClient.deleteYaml(peerYaml);
+//            File materialDir = new File(String.format("temp/%s/%s", pair.getKey(), pair.getValue()));
+//
+//            kubernetesClient.applyYaml(peerYaml);
+//            TimeUnit.SECONDS.sleep(15);
+//
+//            List<Pod> pods = kubernetesClient.findPodsByKeyword((pair.getKey() + pair.getValue()).toLowerCase());
+//            Assertions.assertEquals(1, pods.size());
+//            Pod orderer = pods.get(0);
+//            ObjectMeta ordererMetadata = orderer.getMetadata();
+//            Assertions.assertNotNull(ordererMetadata);
+//            PodStatus ordererStatus = orderer.getStatus();
+//            Assertions.assertNotNull(ordererStatus);
+//            List<ContainerStatus> containerStatuses = ordererStatus.getContainerStatuses();
+//            Assertions.assertNotNull(containerStatuses);
+//            Assertions.assertEquals(3, containerStatuses.size());
+//
+//            String podName = ordererMetadata.getName();
+//            String containerName = null;
+//            for (ContainerStatus containerStatus : containerStatuses) {
+//                if (containerStatus.getImage().contains("hyperledger/fabric-peer")) {
+//                    containerName = containerStatus.getName();
+//                    break;
+//                }
+//            }
+//            Assertions.assertNotNull(podName);
+//            Assertions.assertNotNull(containerName);
+//            System.out.println(podName);
+//            System.out.println(containerName);
+//
+//            kubernetesClient.uploadToContainer(new File(materialDir + "/msp"), "/var/crypto-config/msp", podName, containerName);
+//            kubernetesClient.uploadToContainer(new File(materialDir + "/tls"), "/var/crypto-config/tls", podName, containerName);
+            kubernetesClient.deleteYaml(peerYaml);
         }
     }
 }

@@ -54,9 +54,9 @@ public class NetworkService {
     @Autowired
     private ChannelRepo channelRepo;
 
-    public void assertOrganizationInNetwork(NetworkEntity network, String organizationName) throws OrganizationException {
-        if (!network.getOrganizationNames().contains(organizationName)) {
-            throw new OrganizationException("组织不是网络的合法成员：" + organizationName);
+    public void assertOrganizationInNetwork(NetworkEntity network, String organizationName, boolean expected) throws OrganizationException {
+        if (network.getOrganizationNames().contains(organizationName) == expected) {
+            throw new OrganizationException("组织在网络中的存在性不符合断言：" + organizationName);
         }
     }
 
@@ -175,7 +175,7 @@ public class NetworkService {
         // 检查网络是否存在
         NetworkEntity network = findNetworkOrThrowEx(networkName);
         assertOrdererInNetwork(network, orderer, true);
-        assertOrganizationInNetwork(network, currentOrganizationName);
+        assertOrganizationInNetwork(network, currentOrganizationName, true);
 
         // 检查Orderer证书
         String ordererId = IdentifierGenerator.generateOrdererId(networkName, orderer);
@@ -189,7 +189,7 @@ public class NetworkService {
         // 检查网络是否存在
         NetworkEntity network = findNetworkOrThrowEx(networkName);
         // 检查当前组织是否位于该网络中
-        assertOrganizationInNetwork(network, currentOrganizationName);
+        assertOrganizationInNetwork(network, currentOrganizationName, true);
 
         // 检查Orderer是否属于该组织
         String ordererOrgName = findOrdererOrganizationNameOrThrowEx(network, orderer);
@@ -213,7 +213,7 @@ public class NetworkService {
         // 检查网络是否存在
         NetworkEntity network = findNetworkOrThrowEx(networkName);
         // 检查当前组织是否位于该网络中
-        assertOrganizationInNetwork(network, currentOrganizationName);
+        assertOrganizationInNetwork(network, currentOrganizationName, true);
         // 检查Orderer节点是否已经存在于网络中
         assertOrdererInNetwork(network, orderer, false);
 
@@ -455,9 +455,7 @@ public class NetworkService {
             throw new DuplicatedOperationException("该组织存在未处理的加入该网络的申请");
         }
         // 检查组织是否已经在网络中
-        if (network.getOrganizationNames().contains(currentOrganizationName)) {
-            throw new OrganizationException("组织已存在于网络中，请勿重复加入");
-        }
+        assertOrganizationInNetwork(network, currentOrganizationName, false);
         // 检查证书格式是否正确
         CertfileUtils.assertCertfileZip(adminCertZip);
         // 保存管理员证书至MinIO
@@ -483,7 +481,8 @@ public class NetworkService {
         NetworkEntity network = findNetworkOrThrowEx(networkName);
 
         // 确定操作者是该网络中的成员
-        assertOrganizationInNetwork(network, currentOrganizationName);
+        assertOrganizationInNetwork(network, currentOrganizationName, true);
+        assertOrganizationInNetwork(network, applierOrganizationName, false);
 
         // 确定操作者没有重复操作
         if (participation.getApprovals().contains(currentOrganizationName)) {
@@ -530,7 +529,7 @@ public class NetworkService {
 
     public String queryGenesisBlock(String currentOrganizationName, String networkName) throws Exception {
         NetworkEntity network = findNetworkOrThrowEx(networkName);
-        assertOrganizationInNetwork(network, currentOrganizationName);
+        assertOrganizationInNetwork(network, currentOrganizationName, true);
 
         Orderer orderer = network.getOrderers().get(0);
         CoreEnv ordererCoreEnv = fabricEnvService.buildOrdererCoreEnv(orderer);

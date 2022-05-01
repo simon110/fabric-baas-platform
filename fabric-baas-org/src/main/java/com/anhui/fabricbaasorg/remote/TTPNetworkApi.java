@@ -30,7 +30,7 @@ public class TTPNetworkApi {
      * @param adminCertZip   当前组织在所创建网络中的管理员证书
      * @throws Exception 返回请求中任何code!=200的情况都应该抛出异常
      */
-    public void createNetwork(String networkName, String consortiumName, List<Node> orderers, File adminCertZip) throws Exception {
+    public void createNetwork(String networkName, String consortiumName, List<Node> orderers, File adminCertZip, File output) throws Exception {
         JSONObject data = new JSONObject();
         data.set("networkName", networkName);
         data.set("consortiumName", consortiumName);
