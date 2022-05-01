@@ -2,18 +2,16 @@ package com.anhui.fabricbaasorg.remote;
 
 import cn.hutool.json.JSONObject;
 import com.anhui.fabricbaascommon.response.LoginResult;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @Component
 public class TTPOrganizationApi {
-    @Autowired
-    private RemoteHttpClient remoteHttpClient;
-    @Autowired
-    private TTPOrganizationApi ttpOrganizationApi;
+    private final RemoteHttpClient remoteHttpClient;
+
+    public TTPOrganizationApi(RemoteHttpClient remoteHttpClient) {
+        this.remoteHttpClient = remoteHttpClient;
+    }
+
 
     /**
      * 调用远程服务端的login接口并调用setHeaderProperty设置Header的Authentication字段为返回token
@@ -28,15 +26,15 @@ public class TTPOrganizationApi {
         JSONObject data = new JSONObject();
         data.set("organizationName", organizationName);
         data.set("password", password);
-        Map<String, Object> map = new HashMap<>();
-        map.put("request", data);
-        JSONObject jsonObject = remoteHttpClient.request("/api/v1/organization/login", map);
+        JSONObject jsonObject = remoteHttpClient.request("/api/v1/organization/login", data);
         LoginResult result = jsonObject.toBean(LoginResult.class);
         remoteHttpClient.setHeaderProperty("Authorization", result.getToken());
         return result.getToken();
     }
 
-    public String getOrdererOrganizationName() {
-        return null;
+    public String getOrdererOrganizationName() throws Exception {
+        JSONObject data = new JSONObject();
+        JSONObject response = remoteHttpClient.request("/api/v1/organization/getOrdererOrganizationName", data);
+        return (String) response.get("result");
     }
 }

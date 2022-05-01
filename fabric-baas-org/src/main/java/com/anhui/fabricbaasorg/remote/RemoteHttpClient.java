@@ -62,11 +62,12 @@ public class RemoteHttpClient {
             throw new Exception("非法数据类型：" + data.getClass().getName());
         }
         HttpResponse httpResponse = header.execute();
+        System.out.println(httpResponse.body());
         CommonResponse commonResponse = JSONUtil.toBean(httpResponse.body(), CommonResponse.class);
         if (httpResponse.getStatus() != 200 || commonResponse.getCode() != 200) {
             throw new Exception(commonResponse.getMessage());
         }
-        return (JSONObject) commonResponse.getData();
+        return commonResponse.getData() instanceof cn.hutool.json.JSONNull ? null : (JSONObject) commonResponse.getData();
     }
 
     /**

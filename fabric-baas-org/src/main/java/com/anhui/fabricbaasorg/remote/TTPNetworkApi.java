@@ -8,7 +8,6 @@ import com.anhui.fabricbaasorg.bean.Network;
 import com.anhui.fabricbaasorg.bean.NetworkOrderer;
 import com.anhui.fabricbaasorg.bean.Participation;
 import org.apache.commons.io.FileUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -18,8 +17,11 @@ import java.util.Map;
 
 @Component
 public class TTPNetworkApi {
-    @Autowired
-    private RemoteHttpClient httpClient;
+    private final RemoteHttpClient httpClient;
+
+    public TTPNetworkApi(RemoteHttpClient httpClient) {
+        this.httpClient = httpClient;
+    }
 
     /**
      * @param networkName    要创建的网络名称
@@ -28,7 +30,7 @@ public class TTPNetworkApi {
      * @param adminCertZip   当前组织在所创建网络中的管理员证书
      * @throws Exception 返回请求中任何code!=200的情况都应该抛出异常
      */
-    public void createNetwork(String networkName, String consortiumName, List<Node> orderers, File adminCertZip) throws Exception {
+    public void createNetwork(String networkName, String consortiumName, List<Node> orderers, File adminCertZip, File output) throws Exception {
         JSONObject data = new JSONObject();
         data.set("networkName", networkName);
         data.set("consortiumName", consortiumName);
@@ -37,6 +39,8 @@ public class TTPNetworkApi {
         map.put("request", data);
         map.put("adminCertZip", adminCertZip);
         JSONObject response = httpClient.request("/api/v1/network/createNetwork", map);
+        byte[] bytes = httpClient.download((String) response.get("downloadUrl"));
+        FileUtils.writeByteArrayToFile(output, bytes);
     }
 
     /**
@@ -47,10 +51,12 @@ public class TTPNetworkApi {
      * @return 所有相关的网络信息
      * @throws Exception 返回请求中任何code!=200的情况都应该抛出异常
      */
-    public List<Network> queryNetworks(String networkNameKeyword, String organizationNameKeyword) throws Exception {
+    public List<Network> queryNetworks(String networkNameKeyword, String organizationNameKeyword, int page, int pageSize) throws Exception {
         JSONObject data = new JSONObject();
         data.set("networkNameKeyword", networkNameKeyword);
         data.set("organizationNameKeyword", organizationNameKeyword);
+        data.set("page", page);
+        data.set("pageSize", pageSize);
         JSONObject response = httpClient.request("/api/v1/network/queryNetworks", data);
         return JSONUtil.toList(response.getJSONArray("items"), Network.class);
     }
@@ -104,7 +110,7 @@ public class TTPNetworkApi {
         JSONObject data = new JSONObject();
         data.set("networkName", networkName);
         data.set("organizationName", organizationName);
-        data.set("isAllowed", isAccepted);
+        data.set("allowed", isAccepted);
         httpClient.request("/api/v1/network/handleParticipation", data);
     }
 
@@ -171,7 +177,10 @@ public class TTPNetworkApi {
         FileUtils.writeByteArrayToFile(output, blockData);
     }
 
-    public List<NetworkOrderer> queryOrderers(String networkName) {
-        return null;
+    public List<NetworkOrderer> queryOrderers(String networkName) throws Exception {
+        JSONObject data = new JSONObject();
+        data.set("networkName", networkName);
+        JSONObject response = httpClient.request("/api/v1/network/queryOrderers", data);
+        return JSONUtil.toList(response.getJSONArray("items"), NetworkOrderer.class);
     }
 }
