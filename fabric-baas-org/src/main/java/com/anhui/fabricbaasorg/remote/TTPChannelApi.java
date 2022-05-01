@@ -1,6 +1,7 @@
 package com.anhui.fabricbaasorg.remote;
 
 import cn.hutool.json.JSONObject;
+import cn.hutool.json.JSONUtil;
 import com.anhui.fabricbaascommon.bean.Node;
 import com.anhui.fabricbaasorg.bean.ChannelPeer;
 import org.apache.commons.io.FileUtils;
@@ -13,6 +14,7 @@ import java.util.Map;
 
 @Component
 public class TTPChannelApi {
+
     private final RemoteHttpClient httpClient;
 
     public TTPChannelApi(RemoteHttpClient httpClient) {
@@ -74,7 +76,7 @@ public class TTPChannelApi {
         data.set("channelName", channelName);
         data.set("organizationName", invitedOrganizationName);
         JSONObject response = httpClient.request("/api/v1/channel/generateInvitationCode", data);
-        return (String) response.get("invitationCode");
+        return (String) response.get("result");
     }
 
     /**
@@ -119,7 +121,6 @@ public class TTPChannelApi {
         JSONObject data = new JSONObject();
         data.set("channelName", channelName);
         JSONObject response = httpClient.request("/api/v1/channel/queryPeers", data);
-        // TODO: 手动解析响应中的数据
-        return null;
+        return JSONUtil.toList(response.getJSONArray("items"), ChannelPeer.class);
     }
 }
