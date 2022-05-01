@@ -67,7 +67,8 @@ public class RemoteHttpClient {
         if (httpResponse.getStatus() != 200 || commonResponse.getCode() != 200) {
             throw new Exception(commonResponse.getMessage());
         }
-        return commonResponse.getData() instanceof cn.hutool.json.JSONNull ? null : (JSONObject) commonResponse.getData();
+        Object responseData = commonResponse.getData();
+        return responseData instanceof cn.hutool.json.JSONNull ? null : (JSONObject) responseData;
     }
 
     /**

@@ -2,6 +2,7 @@ package com.anhui.fabricbaasorg.request;
 
 import com.anhui.fabricbaascommon.constant.ParamPattern;
 import com.anhui.fabricbaascommon.request.BaseNetworkRequest;
+import com.anhui.fabricbaasorg.entity.OrdererEntity;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -21,6 +22,6 @@ public class NetworkCreateRequest extends BaseNetworkRequest {
     private String consortiumName;
 
     @NotEmpty
-    @ApiModelProperty(value = "预计提供Orderer节点端口", required = true)
-    private List<Integer> ordererPorts;
+    @ApiModelProperty(value = "预计提供Orderer节点配置", required = true)
+    private List<OrdererEntity> orderers;
 }

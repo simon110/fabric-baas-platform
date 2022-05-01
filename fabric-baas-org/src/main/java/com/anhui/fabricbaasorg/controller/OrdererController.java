@@ -51,7 +51,7 @@ public class OrdererController {
     @Secured({Authority.ADMIN})
     @PostMapping("/queryOrderersInNetwork")
     @ApiOperation("获取组织所有的Orderer节点")
-    public ListResult<NetworkOrderer> queryOrderersInNetwork(@Valid @RequestBody BaseNetworkRequest request) {
+    public ListResult<NetworkOrderer> queryOrderersInNetwork(@Valid @RequestBody BaseNetworkRequest request) throws Exception {
         List<NetworkOrderer> orderers = ttpNetworkApi.queryOrderers(request.getNetworkName());
         return new ListResult<>(orderers);
     }

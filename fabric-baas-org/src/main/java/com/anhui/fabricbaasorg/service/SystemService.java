@@ -123,4 +123,8 @@ public class SystemService {
     public List<String> getClusterNodeNames() throws Exception {
         return kubernetesService.getNodeNames();
     }
+
+    public boolean isAvailable() {
+        return caRepo.count() != 0;
+    }
 }

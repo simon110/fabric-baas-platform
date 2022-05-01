@@ -30,7 +30,7 @@ public class NetworkController {
     @PostMapping("/create")
     @ApiOperation("向可信第三方请求创建网络")
     public void create(@Valid @RequestBody NetworkCreateRequest request) throws Exception {
-        networkService.create(request.getNetworkName(), request.getConsortiumName(), request.getOrdererPorts());
+        networkService.create(request.getNetworkName(), request.getConsortiumName(), request.getOrderers());
     }
 
     @Secured({Authority.ADMIN})

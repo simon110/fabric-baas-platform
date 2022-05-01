@@ -111,7 +111,7 @@ public class ChannelService {
     public void createChannel(String currentOrganizationName, String channelName, String networkName) throws Exception {
         // 检查操作的组织是否属于相应的网络
         NetworkEntity network = networkService.findNetworkOrThrowEx(networkName);
-        networkService.assertOrganizationInNetwork(network, currentOrganizationName);
+        networkService.assertOrganizationInNetwork(network, currentOrganizationName, true);
 
         // 检查相同名称的通道是否已经存在
         if (channelRepo.existsById(channelName)) {
@@ -305,11 +305,12 @@ public class ChannelService {
         // 检查组织是否是通道的合法成员
         ChannelEntity channel = findChannelOrThrowEx(channelName);
         assertOrganizationInChannel(channel, currentOrganizationName, true);
+        assertOrganizationInChannel(channel, inviteeOrganizationName, false);
 
         // 检查被邀请的组织是否是合法的网络成员
         NetworkEntity network = networkService.findNetworkOrThrowEx(channel.getNetworkName());
-        networkService.assertOrganizationInNetwork(network, currentOrganizationName);
-        networkService.assertOrganizationInNetwork(network, inviteeOrganizationName);
+        networkService.assertOrganizationInNetwork(network, currentOrganizationName, true);
+        networkService.assertOrganizationInNetwork(network, inviteeOrganizationName, true);
 
         // 生成邀请码
         Invitation invitation = new Invitation();

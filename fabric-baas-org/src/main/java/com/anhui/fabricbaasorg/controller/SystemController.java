@@ -2,6 +2,7 @@ package com.anhui.fabricbaasorg.controller;
 
 import com.anhui.fabricbaascommon.constant.Authority;
 import com.anhui.fabricbaascommon.response.ListResult;
+import com.anhui.fabricbaascommon.response.UniqueResult;
 import com.anhui.fabricbaasorg.request.SystemInitRequest;
 import com.anhui.fabricbaasorg.service.SystemService;
 import io.swagger.annotations.Api;
@@ -41,6 +42,11 @@ public class SystemController {
             @ApiParam(value = "连接Kubernetes集群的Yaml配置文件") @RequestPart MultipartFile kubernetesConfig) throws Exception {
         systemService.init(request.getOrg(), request.getRemoteUser(), request.getAdminPassword(), kubernetesConfig);
     }
+
+    @Secured({Authority.ADMIN})
+    @PostMapping("/isAvailable")
+    @ApiOperation("判断当前系统是否已经初始化")
+    public UniqueResult<Boolean> isAvailable() {
+        return new UniqueResult<>(systemService.isAvailable());
+    }
 }
-
-

@@ -3,13 +3,10 @@ package com.anhui.fabricbaasorg.service;
 
 import com.anhui.fabricbaascommon.bean.Node;
 import com.anhui.fabricbaascommon.exception.CaException;
-import com.anhui.fabricbaascommon.repository.CertfileRepo;
 import com.anhui.fabricbaascommon.service.CaClientService;
 import com.anhui.fabricbaascommon.util.SimpleFileUtils;
+import com.anhui.fabricbaasorg.entity.OrdererEntity;
 import com.anhui.fabricbaasorg.remote.TTPNetworkApi;
-import com.anhui.fabricbaasorg.remote.TTPOrganizationApi;
-import com.anhui.fabricbaasorg.repository.OrdererRepo;
-import com.anhui.fabricbaasorg.repository.PeerRepo;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,13 +26,7 @@ public class NetworkService {
     @Autowired
     private CaClientService caClientService;
     @Autowired
-    private CertfileRepo certfileRepo;
-    @Autowired
-    private OrdererRepo ordererRepo;
-    @Autowired
-    private PeerRepo peerRepo;
-    @Autowired
-    private TTPOrganizationApi ttpOrganizationApi;
+    private OrdererService orderService;
 
     private List<Node> buildOrderers(List<Integer> ordererPorts) throws CaException {
         String domain = caClientService.getCaOrganizationDomain();
@@ -49,18 +40,26 @@ public class NetworkService {
         return orderers;
     }
 
-    public void create(String networkName, String consortiumName, List<Integer> ordererPorts) throws Exception {
+    public void create(String networkName, String consortiumName, List<OrdererEntity> orderers) throws Exception {
         // 检查端口是否已经被占用
-        for (Integer port : ordererPorts) {
+        List<Integer> ordererPorts = new ArrayList<>(orderers.size());
+        for (OrdererEntity orderer : orderers) {
+            int port = orderer.getKubeNodePort();
             kubernetesService.assertNodePortAvailable(port);
+            ordererPorts.add(port);
         }
         // 生成Orderer节点的连接信息
-        List<Node> orderers = buildOrderers(ordererPorts);
+        List<Node> ordererEndpoints = buildOrderers(ordererPorts);
         // 将CA管理员的证书打包成zip
         File adminCertfileZip = SimpleFileUtils.createTempFile("zip");
         caClientService.getRootCertfileZip(adminCertfileZip);
         // 调用TTP端的接口生成网络
-        ttpNetworkApi.createNetwork(networkName, consortiumName, orderers, adminCertfileZip);
+        File sysChannelGenesis = SimpleFileUtils.createTempFile("block");
+        ttpNetworkApi.createNetwork(networkName, consortiumName, ordererEndpoints, adminCertfileZip, sysChannelGenesis);
+        // 用创世区块来启动所有预计提供的Orderer节点
+        for (OrdererEntity orderer : orderers) {
+            orderService.startOrderer(networkName, orderer, sysChannelGenesis);
+        }
         // 清除生成的临时Zip
         FileUtils.deleteQuietly(adminCertfileZip);
     }

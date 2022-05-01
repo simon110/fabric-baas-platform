@@ -121,7 +121,6 @@ public class TTPChannelApi {
         JSONObject data = new JSONObject();
         data.set("channelName", channelName);
         JSONObject response = httpClient.request("/api/v1/channel/queryPeers", data);
-        // TODO: 手动解析响应中的数据
         return JSONUtil.toList(response.getJSONArray("items"), ChannelPeer.class);
     }
 }

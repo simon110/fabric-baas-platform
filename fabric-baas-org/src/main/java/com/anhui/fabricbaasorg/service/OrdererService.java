@@ -31,11 +31,7 @@ public class OrdererService {
     @Autowired
     private TTPOrganizationApi ttpOrganizationApi;
 
-    public void startOrderer(String networkName, OrdererEntity orderer) throws Exception {
-        // 获取网络的创世区块
-        File networkGenesisBlock = SimpleFileUtils.createTempFile("block");
-        ttpNetworkApi.queryGenesisBlock(networkName, networkGenesisBlock);
-
+    public void startOrderer(String networkName, OrdererEntity orderer, File sysChannelGenesisBlock) throws Exception {
         // 获取集群域名
         String domain = caClientService.getCaOrganizationDomain();
 
@@ -49,7 +45,14 @@ public class OrdererService {
 
         // 启动Orderer节点
         String ordererOrganizationName = ttpOrganizationApi.getOrdererOrganizationName();
-        kubernetesService.startOrderer(ordererOrganizationName, orderer, certfileDir, networkGenesisBlock);
+        kubernetesService.startOrderer(ordererOrganizationName, orderer, certfileDir, sysChannelGenesisBlock);
+    }
+
+    public void startOrderer(String networkName, OrdererEntity orderer) throws Exception {
+        // 获取网络的创世区块
+        File sysChannelGenesisBlock = SimpleFileUtils.createTempFile("block");
+        ttpNetworkApi.queryGenesisBlock(networkName, sysChannelGenesisBlock);
+        startOrderer(networkName, orderer, sysChannelGenesisBlock);
     }
 
     public Page<OrdererEntity> queryOrderersInCluster(int page, int pageSize) {
