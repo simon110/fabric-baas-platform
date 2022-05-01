@@ -11,7 +11,7 @@ import javax.validation.constraints.Pattern;
 @Data
 @ApiModel(value = "链码安装请求")
 public class ChaincodeInstallRequest {
-    @Pattern(regexp = ParamPattern.NODE_NAME_REGEX, message = ParamPattern.NODE_NAME_MSG)
+    @Pattern(regexp = ParamPattern.DEPLOYMENT_NAME_REGEX, message = ParamPattern.DEPLOYMENT_NAME_MSG)
     @ApiModelProperty(value = "Peer节点名称", required = true)
     private String peerName;
 

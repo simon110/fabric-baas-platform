@@ -28,8 +28,8 @@ public class ParamPattern {
     public static final String LOCALITY_REGEX = "^[A-Za-z]+$";
     public static final String LOCALITY_MSG = "城市名必须是由大小写字母组成的非空字符串";
 
-    public static final String NODE_NAME_REGEX = "^[A-Za-z][A-Za-z0-9]+$";
-    public static final String NODE_NAME_MSG = "节点的名称只能包含大小写字母和数字（不能以数字开头且长度大于1）";
+    public static final String DEPLOYMENT_NAME_REGEX = "^[a-z][a-z0-9]+$";
+    public static final String DEPLOYMENT_NAME_MSG = "节点的名称只能包含小写字母和数字（不能以数字开头且长度大于1）";
 
     public static final String CA_USERNAME_REGEX = "^[A-Za-z][A-Za-z0-9]+$";
     public static final String CA_USERNAME_MSG = "CA账户名称只能包含大小写字母和数字（不能以数字开头且长度大于1）";
@@ -39,5 +39,11 @@ public class ParamPattern {
 
     public static final String CA_USERTYPE_REGEX = "^(admin)|(client)|(peer)|(orderer)$";
     public static final String CA_USERTYPE_MSG = "CA账户类型只能为admin、client、peer和orderer中的一种";
+
+    public static final String COUCHDB_USERNAME_REGEX = "^[A-Za-z][A-Za-z0-9]+$";
+    public static final String COUCHDB_USERNAME_MSG = "CouchDB账户名称只能包含大小写字母和数字（不能以数字开头且长度大于1）";
+
+    public static final String COUCHDB_PASSWORD_REGEX = "^[A-Za-z0-9]{8,}$";
+    public static final String COUCHDB_PASSWORD_MSG = "CouchDB账户密码只能包含大小写字母和数字（长度不小于8）";
 }
 

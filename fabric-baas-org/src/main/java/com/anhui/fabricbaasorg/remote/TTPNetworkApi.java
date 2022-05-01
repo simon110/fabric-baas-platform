@@ -169,4 +169,8 @@ public class TTPNetworkApi {
         byte[] blockData = httpClient.download((String) response.get("downloadUrl"));
         FileUtils.writeByteArrayToFile(output, blockData);
     }
+
+    public List<Node> getOrderers(String networkName) {
+        return null;
+    }
 }

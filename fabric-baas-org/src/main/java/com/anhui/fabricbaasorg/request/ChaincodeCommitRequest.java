@@ -14,5 +14,5 @@ import java.util.List;
 @ApiModel(value = "链码生效请求")
 public class ChaincodeCommitRequest extends CommittedChaincodeEntity {
     @ApiModelProperty(value = "所有背书节点（这些节点上已经安装的相应链码也会生效）")
-    private List<Node> endorsorPeers;
+    private List<Node> endorserPeers;
 }

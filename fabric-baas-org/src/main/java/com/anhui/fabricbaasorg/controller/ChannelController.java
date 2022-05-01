@@ -1,9 +1,9 @@
 package com.anhui.fabricbaasorg.controller;
 
 import com.anhui.fabricbaascommon.constant.Authority;
-import com.anhui.fabricbaascommon.response.EmptyResult;
+import com.anhui.fabricbaascommon.response.UniqueResult;
+import com.anhui.fabricbaasorg.remote.TTPChannelApi;
 import com.anhui.fabricbaasorg.request.*;
-import com.anhui.fabricbaasorg.response.InvitationGenerateResult;
 import com.anhui.fabricbaasorg.service.ChannelService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -22,44 +22,43 @@ import javax.validation.Valid;
 public class ChannelController {
     @Autowired
     private ChannelService channelService;
+    @Autowired
+    private TTPChannelApi ttpChannelApi;
 
     @Secured({Authority.ADMIN})
     @PostMapping("/create")
     @ApiOperation("创建通道")
-    public EmptyResult create(@Valid @RequestBody ChannelCreateRequest request) throws Exception {
-        channelService.create(request);
-        return new EmptyResult();
+    public void create(@Valid @RequestBody ChannelCreateRequest request) throws Exception {
+        channelService.create(request.getChannelName(), request.getNetworkName());
     }
 
     @Secured({Authority.ADMIN})
     @PostMapping("/updateAnchor")
     @ApiOperation("更新锚节点")
-    public EmptyResult updateAnchor(@Valid @RequestBody AnchorPeerUpdateRequest request) throws Exception {
-        channelService.updateAnchor(request);
-        return new EmptyResult();
+    public void updateAnchor(@Valid @RequestBody AnchorPeerUpdateRequest request) throws Exception {
+        channelService.updateAnchor(request.getChannelName(), request.getPeerName());
     }
 
     @Secured({Authority.ADMIN})
-    @PostMapping("/generateInvitation")
+    @PostMapping("/generateInvitationCode")
     @ApiOperation("生成邀请信息")
-    public InvitationGenerateResult generateInvitation(@Valid @RequestBody ChannelGenerateInvitationCodeRequest request) throws Exception {
-        return channelService.generateInvitation(request);
+    public UniqueResult<String> generateInvitationCode(@Valid @RequestBody ChannelGenerateInvitationCodeRequest request) throws Exception {
+        String invitationCode = ttpChannelApi.generateInvitationCode(request.getChannelName(), request.getInvitedOrganizationName());
+        return new UniqueResult<>(invitationCode);
     }
 
     @Secured({Authority.ADMIN})
     @PostMapping("/submitInvitations")
     @ApiOperation("生成邀请信息")
-    public EmptyResult submitInvitations(@Valid @RequestBody ChannelSubmitInvitationCodesRequest request) throws Exception {
-        channelService.submitInvitations(request);
-        return new EmptyResult();
+    public void submitInvitations(@Valid @RequestBody ChannelSubmitInvitationCodesRequest request) throws Exception {
+        ttpChannelApi.submitInvitationCodes(request.getChannelName(), request.getInvitationCodes());
     }
 
     @Secured({Authority.ADMIN})
     @PostMapping("/join")
     @ApiOperation("加入通道")
-    public EmptyResult join(@Valid @RequestBody ChannelJoinRequest request) throws Exception {
-        channelService.join(request);
-        return new EmptyResult();
+    public void join(@Valid @RequestBody ChannelJoinRequest request) throws Exception {
+        channelService.join(request.getChannelName(), request.getPeerName());
     }
 }
 

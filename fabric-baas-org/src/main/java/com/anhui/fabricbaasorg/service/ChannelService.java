@@ -2,6 +2,7 @@ package com.anhui.fabricbaasorg.service;
 
 import com.anhui.fabricbaascommon.bean.Node;
 import com.anhui.fabricbaascommon.constant.CertfileType;
+import com.anhui.fabricbaascommon.exception.ChannelException;
 import com.anhui.fabricbaascommon.exception.NodeException;
 import com.anhui.fabricbaascommon.service.CaClientService;
 import com.anhui.fabricbaascommon.util.CertfileUtils;
@@ -30,6 +31,14 @@ public class ChannelService {
     private PeerRepo peerRepo;
     @Autowired
     private ChannelRepo channelRepo;
+
+    public ChannelEntity findChannelOrThrowEx(String channelName) throws ChannelException {
+        Optional<ChannelEntity> optional = channelRepo.findById(channelName);
+        if (optional.isPresent()) {
+            return optional.get();
+        }
+        throw new ChannelException("通道不存在：" + channelName);
+    }
 
     public PeerEntity findPeerOrThrowEx(String peerName) throws NodeException {
         Optional<PeerEntity> peerOptional = peerRepo.findById(peerName);
@@ -62,7 +71,7 @@ public class ChannelService {
         CertfileUtils.assertCertfile(certfileDir);
         File peerCertfileZip = SimpleFileUtils.createTempFile("zip");
         ZipUtils.zip(peerCertfileZip, CertfileUtils.getMspDir(certfileDir), CertfileUtils.getTlsDir(certfileDir));
-        
+
         // 调用远程接口
         Node node = new Node(caClientService.getCaOrganizationDomain(), peer.getKubeNodePort());
         ttpChannelApi.joinChannel(channelName, node, peerCertfileZip);

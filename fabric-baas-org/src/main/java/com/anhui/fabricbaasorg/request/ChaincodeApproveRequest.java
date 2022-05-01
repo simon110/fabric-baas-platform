@@ -14,5 +14,5 @@ import javax.validation.constraints.NotBlank;
 public class ChaincodeApproveRequest extends CommittedChaincodeEntity {
     @NotBlank
     @ApiModelProperty(value = "链码的Package ID")
-    private String chaincodePackageId;
+    private String installedChaincodeIdentifier;
 }

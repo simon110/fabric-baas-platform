@@ -15,5 +15,5 @@ import java.util.List;
 public class ChannelSubmitInvitationCodesRequest extends BaseChannelRequest {
     @NotEmpty
     @ApiModelProperty(value = "通道内所有组织的邀请信息（如果当前组织已经有其他节点加入过通道则允许为空）", required = false)
-    private List<String> invitations;
+    private List<String> invitationCodes;
 }

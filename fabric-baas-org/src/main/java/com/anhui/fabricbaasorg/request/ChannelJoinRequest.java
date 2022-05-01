@@ -13,7 +13,7 @@ import javax.validation.constraints.Pattern;
 @Data
 @ApiModel(value = "加入通道")
 public class ChannelJoinRequest extends BaseChannelRequest {
-    @Pattern(regexp = ParamPattern.NODE_NAME_REGEX, message = ParamPattern.NODE_NAME_MSG)
+    @Pattern(regexp = ParamPattern.DEPLOYMENT_NAME_REGEX, message = ParamPattern.DEPLOYMENT_NAME_MSG)
     @ApiModelProperty(value = "节点名称", required = true)
     private String peerName;
 }

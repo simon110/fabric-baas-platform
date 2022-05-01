@@ -246,7 +246,7 @@ public class ChaincodeUtils {
     /**
      * @param ordererTlsEnv        Orderer节点的TLS连接信息
      * @param committerPeerCoreEnv 当前组织的Peer MSP和TLS信息
-     * @param endorsorPeerTlsEnvs  其他组织的Peer TLS信息
+     * @param endorserPeerTlsEnvs  其他组织的Peer TLS信息
      * @param channelName          通道名称
      * @param chaincodeProperties  链码信息
      * @throws ChaincodeException 执行完成后如果queryCommitted的结果没有发生变化都应该抛出异常
@@ -254,7 +254,7 @@ public class ChaincodeUtils {
     public static void commitChaincode(
             TlsEnv ordererTlsEnv,
             CoreEnv committerPeerCoreEnv,
-            List<TlsEnv> endorsorPeerTlsEnvs,
+            List<TlsEnv> endorserPeerTlsEnvs,
             String channelName,
             BasicChaincodeProperties chaincodeProperties)
             throws IOException, InterruptedException, CertfileException, ChaincodeException {
@@ -273,7 +273,7 @@ public class ChaincodeUtils {
                 committerPeerCoreEnv.getAddress(),
                 committerPeerCoreEnv.getTlsRootCert().getAbsolutePath()
         );
-        for (TlsEnv otherPeerTlsEnv : endorsorPeerTlsEnvs) {
+        for (TlsEnv otherPeerTlsEnv : endorserPeerTlsEnvs) {
             commandList.add(otherPeerTlsEnv.getAddress());
             commandList.add(otherPeerTlsEnv.getTlsRootCert().getAbsolutePath());
         }

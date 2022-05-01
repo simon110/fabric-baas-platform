@@ -12,20 +12,22 @@ import com.anhui.fabricbaascommon.exception.NodeException;
 import com.anhui.fabricbaascommon.fabric.ChaincodeUtils;
 import com.anhui.fabricbaascommon.service.CaClientService;
 import com.anhui.fabricbaascommon.util.CertfileUtils;
+import com.anhui.fabricbaascommon.util.RandomUtils;
 import com.anhui.fabricbaascommon.util.SimpleFileUtils;
+import com.anhui.fabricbaasorg.entity.ChannelEntity;
 import com.anhui.fabricbaasorg.entity.CommittedChaincodeEntity;
 import com.anhui.fabricbaasorg.entity.InstalledChaincodeEntity;
 import com.anhui.fabricbaasorg.entity.PeerEntity;
 import com.anhui.fabricbaasorg.remote.TTPChannelApi;
 import com.anhui.fabricbaasorg.remote.TTPNetworkApi;
-import com.anhui.fabricbaasorg.repository.*;
-import com.anhui.fabricbaasorg.request.ChaincodeApproveRequest;
-import com.anhui.fabricbaasorg.request.ChaincodeCommitRequest;
-import com.anhui.fabricbaasorg.response.CommittedChaincodeQueryResult;
-import com.anhui.fabricbaasorg.response.InstalledChaincodeQueryResult;
+import com.anhui.fabricbaasorg.repository.CommittedChaincodeRepo;
+import com.anhui.fabricbaasorg.repository.InstalledChaincodeRepo;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -40,8 +42,6 @@ public class ChaincodeService {
     private CommittedChaincodeRepo committedChaincodeRepo;
     @Autowired
     private InstalledChaincodeRepo installedChaincodeRepo;
-    @Autowired
-    private PeerRepo peerRepo;
     @Autowired
     private CaClientService caClientService;
     @Autowired
@@ -84,67 +84,63 @@ public class ChaincodeService {
      * 如果存在多个Orderer则会随机选择一个
      */
     private TlsEnv buildOrdererTlsEnv(String channelName) throws Exception {
-        return null;
+        ChannelEntity channel = channelService.findChannelOrThrowEx(channelName);
+        String networkName = channel.getNetworkName();
+        List<Node> orderers = ttpNetworkApi.getOrderers(networkName);
+        Node selectedOrderer = RandomUtils.select(orderers);
+
+        File ordererTlsCert = SimpleFileUtils.createTempFile("crt");
+        ttpNetworkApi.queryOrdererTlsCert(networkName, selectedOrderer, ordererTlsCert);
+        return new TlsEnv(selectedOrderer.getAddr(), ordererTlsCert);
     }
 
-    private TlsEnv buildEndorsorPeerTlsEnv(String channelName, Node endorsor) throws Exception {
-        File endorsorTlsCert = SimpleFileUtils.createTempFile("crt");
-        byte[] endorsorTlsCertData = ttpChannelApi.queryPeerTlsCert(channelName, endorsor);
-        FileUtils.writeByteArrayToFile(endorsorTlsCert, endorsorTlsCertData);
-
-        TlsEnv tlsEnv = new TlsEnv();
-        tlsEnv.setAddress(endorsor.getAddr());
-        tlsEnv.setTlsRootCert(endorsorTlsCert);
-        return tlsEnv;
+    private TlsEnv buildEndorserTlsEnv(String channelName, Node endorser) throws Exception {
+        File endorserTlsCert = SimpleFileUtils.createTempFile("crt");
+        ttpChannelApi.queryPeerTlsCert(channelName, endorser, endorserTlsCert);
+        return new TlsEnv(endorser.getAddr(), endorserTlsCert);
     }
 
-    public void approve(ChaincodeApproveRequest request) throws Exception {
-        // 生成Peer的环境变量
-        CoreEnv peerCoreEnv = buildPeerCoreEnv(request.getPeerName());
-
-        // 生成Orderer的环境变量
-        TlsEnv ordererTlsEnv = buildOrdererTlsEnv(request.getChannelName());
-
-        BasicChaincodeProperties chaincodeProperties = new BasicChaincodeProperties();
-        chaincodeProperties.setName(request.getName());
-        chaincodeProperties.setSequence(request.getSequence());
-        chaincodeProperties.setVersion(request.getVersion());
-        ChaincodeUtils.approveChaincode(ordererTlsEnv, peerCoreEnv, request.getChannelName(), request.getChaincodePackageId(), chaincodeProperties);
+    public void approve(String peerName, String channelName, String chaincodePackageId, BasicChaincodeProperties chaincodeProperties) throws Exception {
+        CoreEnv peerCoreEnv = buildPeerCoreEnv(peerName);
+        TlsEnv ordererTlsEnv = buildOrdererTlsEnv(channelName);
+        ChaincodeUtils.approveChaincode(ordererTlsEnv, peerCoreEnv, channelName, chaincodePackageId, chaincodeProperties);
     }
 
-    public void commit(ChaincodeCommitRequest request) throws Exception {
-        // 生成Peer的环境变量
-        CoreEnv peerCoreEnv = buildPeerCoreEnv(request.getPeerName());
+    public void commit(String peerName, String channelName, List<Node> endorsers, BasicChaincodeProperties chaincodeProperties) throws Exception {
+        CoreEnv peerCoreEnv = buildPeerCoreEnv(peerName);
+        TlsEnv ordererTlsEnv = buildOrdererTlsEnv(channelName);
 
-        // 生成Orderer的环境变量
-        TlsEnv ordererTlsEnv = buildOrdererTlsEnv(request.getChannelName());
-
-        // 生成背书Peer的环境变量
-        List<TlsEnv> endorsorPeerTlsEnvs = new ArrayList<>();
-        for (Node node : request.getEndorsorPeers()) {
-            endorsorPeerTlsEnvs.add(buildEndorsorPeerTlsEnv(request.getChannelName(), node));
+        List<TlsEnv> endorserTlsEnvs = new ArrayList<>();
+        for (Node endorser : endorsers) {
+            endorserTlsEnvs.add(buildEndorserTlsEnv(channelName, endorser));
         }
 
-        BasicChaincodeProperties chaincodeProperties = new BasicChaincodeProperties();
-        chaincodeProperties.setName(request.getName());
-        chaincodeProperties.setSequence(request.getSequence());
-        chaincodeProperties.setVersion(request.getVersion());
-        ChaincodeUtils.commitChaincode(ordererTlsEnv, peerCoreEnv, endorsorPeerTlsEnvs, request.getChannelName(), chaincodeProperties);
+        ChaincodeUtils.commitChaincode(ordererTlsEnv, peerCoreEnv, endorserTlsEnvs, channelName, chaincodeProperties);
 
         CommittedChaincodeEntity committedChaincode = new CommittedChaincodeEntity();
-        committedChaincode.setChannelName(request.getChannelName());
-        committedChaincode.setName(request.getName());
-        committedChaincode.setSequence(request.getSequence());
-        committedChaincode.setVersion(request.getVersion());
-        committedChaincode.setPeerName(request.getPeerName());
+        committedChaincode.setChannelName(channelName);
+        committedChaincode.setName(chaincodeProperties.getName());
+        committedChaincode.setSequence(chaincodeProperties.getSequence());
+        committedChaincode.setVersion(chaincodeProperties.getVersion());
+        committedChaincode.setPeerName(peerName);
         committedChaincodeRepo.save(committedChaincode);
     }
 
-    public List<InstalledChaincodeEntity> getAllInstalledChaincodes() {
-        return installedChaincodeRepo.findAll();
+    public Page<InstalledChaincodeEntity> queryInstalledChaincodes(int page, int pageSize) {
+        Pageable pageable = PageRequest.of(page - 1, pageSize);
+        return installedChaincodeRepo.findAll(pageable);
     }
 
-    public List<CommittedChaincodeEntity> getAllCommittedChaincodes() {
-        return committedChaincodeRepo.findAll();
+    public Page<CommittedChaincodeEntity> queryCommittedChaincodes(int page, int pageSize) {
+        Pageable pageable = PageRequest.of(page - 1, pageSize);
+        return committedChaincodeRepo.findAll(pageable);
+    }
+
+    public List<InstalledChaincodeEntity> getAllInstalledChaincodesOnPeer(String peerName) {
+        return installedChaincodeRepo.findAllByPeerName(peerName);
+    }
+
+    public List<CommittedChaincodeEntity> getAllCommittedChaincodesOnChannel(String channelName) {
+        return committedChaincodeRepo.findAllByChannelName(channelName);
     }
 }

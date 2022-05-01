@@ -19,7 +19,7 @@ import javax.validation.constraints.Pattern;
 @Data
 @ApiModel(value = "已生效的链码")
 public class CommittedChaincodeEntity extends CommittedChaincode {
-    @Pattern(regexp = ParamPattern.NODE_NAME_REGEX, message = ParamPattern.NODE_NAME_MSG)
+    @Pattern(regexp = ParamPattern.DEPLOYMENT_NAME_REGEX, message = ParamPattern.DEPLOYMENT_NAME_MSG)
     @ApiModelProperty(value = "链码所在的Peer", required = true)
     private String peerName;
 }
