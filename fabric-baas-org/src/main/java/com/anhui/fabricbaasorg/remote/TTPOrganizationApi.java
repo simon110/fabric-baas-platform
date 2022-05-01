@@ -2,7 +2,6 @@ package com.anhui.fabricbaasorg.remote;
 
 import cn.hutool.json.JSONObject;
 import com.anhui.fabricbaascommon.response.LoginResult;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -10,10 +9,11 @@ import java.util.Map;
 
 @Component
 public class TTPOrganizationApi {
-    @Autowired
-    private RemoteHttpClient remoteHttpClient;
-    @Autowired
-    private TTPOrganizationApi ttpOrganizationApi;
+    private final RemoteHttpClient remoteHttpClient;
+
+    public TTPOrganizationApi(RemoteHttpClient remoteHttpClient) {
+        this.remoteHttpClient = remoteHttpClient;
+    }
 
     /**
      * 调用远程服务端的login接口并调用setHeaderProperty设置Header的Authentication字段为返回token

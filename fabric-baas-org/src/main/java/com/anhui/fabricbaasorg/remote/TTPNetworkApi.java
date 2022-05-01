@@ -8,7 +8,6 @@ import com.anhui.fabricbaasorg.bean.Network;
 import com.anhui.fabricbaasorg.bean.NetworkOrderer;
 import com.anhui.fabricbaasorg.bean.Participation;
 import org.apache.commons.io.FileUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -18,8 +17,11 @@ import java.util.Map;
 
 @Component
 public class TTPNetworkApi {
-    @Autowired
-    private RemoteHttpClient httpClient;
+    private final RemoteHttpClient httpClient;
+
+    public TTPNetworkApi(RemoteHttpClient httpClient) {
+        this.httpClient = httpClient;
+    }
 
     /**
      * @param networkName    要创建的网络名称
