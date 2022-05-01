@@ -81,7 +81,7 @@ public class SystemService {
     }
 
     public boolean isAvailable() {
-        return caRepo.count() == 0;
+        return caRepo.count() != 0;
     }
 }
 
