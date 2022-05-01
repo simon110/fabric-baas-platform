@@ -12,6 +12,8 @@ import java.util.Map;
 public class TTPOrganizationApi {
     @Autowired
     private RemoteHttpClient remoteHttpClient;
+    @Autowired
+    private TTPOrganizationApi ttpOrganizationApi;
 
     /**
      * 调用远程服务端的login接口并调用setHeaderProperty设置Header的Authentication字段为返回token

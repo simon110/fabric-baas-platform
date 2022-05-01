@@ -50,7 +50,7 @@ public class ChaincodeController {
     @Secured({Authority.ADMIN})
     @PostMapping("/queryInstalledChaincodes")
     @ApiOperation("查询指定Peer上已安装的所有链码")
-    public PaginationQueryResult<InstalledChaincodeEntity> queryInstalledChaincodes(PaginationQueryRequest request) throws Exception {
+    public PaginationQueryResult<InstalledChaincodeEntity> queryInstalledChaincodes(@Valid @RequestBody PaginationQueryRequest request) throws Exception {
         Page<InstalledChaincodeEntity> page = chaincodeService.queryInstalledChaincodes(request.getPage(), request.getPageSize());
         return new PaginationQueryResult<>(page.getTotalPages(), page.getContent());
     }
@@ -58,7 +58,7 @@ public class ChaincodeController {
     @Secured({Authority.ADMIN})
     @PostMapping("/queryCommittedChaincodes")
     @ApiOperation("查询指定Peer上已生效的所有链码")
-    public PaginationQueryResult<CommittedChaincodeEntity> queryCommittedChaincodes(PaginationQueryRequest request) throws Exception {
+    public PaginationQueryResult<CommittedChaincodeEntity> queryCommittedChaincodes(@Valid @RequestBody PaginationQueryRequest request) throws Exception {
         Page<CommittedChaincodeEntity> page = chaincodeService.queryCommittedChaincodes(request.getPage(), request.getPageSize());
         return new PaginationQueryResult<>(page.getTotalPages(), page.getContent());
     }

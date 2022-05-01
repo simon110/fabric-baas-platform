@@ -1,9 +1,13 @@
 package com.anhui.fabricbaasorg.controller;
 
 import com.anhui.fabricbaascommon.constant.Authority;
+import com.anhui.fabricbaascommon.request.BaseNetworkRequest;
 import com.anhui.fabricbaascommon.request.PaginationQueryRequest;
+import com.anhui.fabricbaascommon.response.ListResult;
 import com.anhui.fabricbaascommon.response.PaginationQueryResult;
+import com.anhui.fabricbaasorg.bean.NetworkOrderer;
 import com.anhui.fabricbaasorg.entity.OrdererEntity;
+import com.anhui.fabricbaasorg.remote.TTPNetworkApi;
 import com.anhui.fabricbaasorg.request.OrdererStartRequest;
 import com.anhui.fabricbaasorg.service.OrdererService;
 import io.swagger.annotations.Api;
@@ -17,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/orderer")
@@ -24,6 +29,8 @@ import javax.validation.Valid;
 public class OrdererController {
     @Autowired
     private OrdererService ordererService;
+    @Autowired
+    private TTPNetworkApi ttpNetworkApi;
 
     @Secured({Authority.ADMIN})
     @PostMapping("/startOrderer")
@@ -36,8 +43,16 @@ public class OrdererController {
     @Secured({Authority.ADMIN})
     @PostMapping("/queryOrderersInCluster")
     @ApiOperation("获取组织所有的Orderer节点")
-    public PaginationQueryResult<OrdererEntity> queryOrderersInCluster(PaginationQueryRequest request) {
+    public PaginationQueryResult<OrdererEntity> queryOrderersInCluster(@Valid @RequestBody PaginationQueryRequest request) {
         Page<OrdererEntity> page = ordererService.queryOrderersInCluster(request.getPage(), request.getPageSize());
         return new PaginationQueryResult<>(page.getTotalPages(), page.getContent());
+    }
+
+    @Secured({Authority.ADMIN})
+    @PostMapping("/queryOrderersInNetwork")
+    @ApiOperation("获取组织所有的Orderer节点")
+    public ListResult<NetworkOrderer> queryOrderersInNetwork(@Valid @RequestBody BaseNetworkRequest request) {
+        List<NetworkOrderer> orderers = ttpNetworkApi.queryOrderers(request.getNetworkName());
+        return new ListResult<>(orderers);
     }
 }

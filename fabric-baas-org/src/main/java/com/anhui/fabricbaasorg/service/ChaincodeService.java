@@ -14,6 +14,7 @@ import com.anhui.fabricbaascommon.service.CaClientService;
 import com.anhui.fabricbaascommon.util.CertfileUtils;
 import com.anhui.fabricbaascommon.util.RandomUtils;
 import com.anhui.fabricbaascommon.util.SimpleFileUtils;
+import com.anhui.fabricbaasorg.bean.NetworkOrderer;
 import com.anhui.fabricbaasorg.entity.ChannelEntity;
 import com.anhui.fabricbaasorg.entity.CommittedChaincodeEntity;
 import com.anhui.fabricbaasorg.entity.InstalledChaincodeEntity;
@@ -86,7 +87,7 @@ public class ChaincodeService {
     private TlsEnv buildOrdererTlsEnv(String channelName) throws Exception {
         ChannelEntity channel = channelService.findChannelOrThrowEx(channelName);
         String networkName = channel.getNetworkName();
-        List<Node> orderers = ttpNetworkApi.getOrderers(networkName);
+        List<NetworkOrderer> orderers = ttpNetworkApi.queryOrderers(networkName);
         Node selectedOrderer = RandomUtils.select(orderers);
 
         File ordererTlsCert = SimpleFileUtils.createTempFile("crt");

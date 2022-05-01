@@ -2,6 +2,7 @@ package com.anhui.fabricbaasorg.remote;
 
 import cn.hutool.json.JSONObject;
 import com.anhui.fabricbaascommon.bean.Node;
+import com.anhui.fabricbaasorg.bean.ChannelPeer;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -113,7 +114,7 @@ public class TTPChannelApi {
      * @return TTP端返回的Peer节点列表
      * @throws Exception 返回请求中任何code!=200的情况都应该抛出异常
      */
-    public List<Node> queryPeers(String channelName) throws Exception {
+    public List<ChannelPeer> queryPeers(String channelName) throws Exception {
         JSONObject data = new JSONObject();
         data.set("channelName", channelName);
         JSONObject response = httpClient.request("/api/v1/channel/queryPeers", data);

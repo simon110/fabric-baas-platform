@@ -1,9 +1,13 @@
 package com.anhui.fabricbaasorg.controller;
 
 import com.anhui.fabricbaascommon.constant.Authority;
+import com.anhui.fabricbaascommon.request.BaseChannelRequest;
 import com.anhui.fabricbaascommon.request.PaginationQueryRequest;
+import com.anhui.fabricbaascommon.response.ListResult;
 import com.anhui.fabricbaascommon.response.PaginationQueryResult;
+import com.anhui.fabricbaasorg.bean.ChannelPeer;
 import com.anhui.fabricbaasorg.entity.PeerEntity;
+import com.anhui.fabricbaasorg.remote.TTPChannelApi;
 import com.anhui.fabricbaasorg.request.PeerStartRequest;
 import com.anhui.fabricbaasorg.service.PeerService;
 import io.swagger.annotations.Api;
@@ -17,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/peer")
@@ -24,6 +29,8 @@ import javax.validation.Valid;
 public class PeerController {
     @Autowired
     private PeerService peerService;
+    @Autowired
+    private TTPChannelApi ttpChannelApi;
 
     @Secured({Authority.ADMIN})
     @PostMapping("/startPeer")
@@ -32,12 +39,19 @@ public class PeerController {
         peerService.startPeer(request);
     }
 
-
     @Secured({Authority.ADMIN})
     @PostMapping("/queryPeersInCluster")
     @ApiOperation("获取组织所有的Peer节点")
-    public PaginationQueryResult<PeerEntity> queryPeersInCluster(PaginationQueryRequest request) {
+    public PaginationQueryResult<PeerEntity> queryPeersInCluster(@Valid @RequestBody PaginationQueryRequest request) {
         Page<PeerEntity> page = peerService.queryPeersInCluster(request.getPage(), request.getPageSize());
         return new PaginationQueryResult<>(page.getTotalPages(), page.getContent());
+    }
+
+    @Secured({Authority.ADMIN})
+    @PostMapping("/queryOrderersInNetwork")
+    @ApiOperation("获取组织所有的Orderer节点")
+    public ListResult<ChannelPeer> queryOrderersInNetwork(@Valid @RequestBody BaseChannelRequest request) throws Exception {
+        List<ChannelPeer> peers = ttpChannelApi.queryPeers(request.getChannelName());
+        return new ListResult<>(peers);
     }
 }

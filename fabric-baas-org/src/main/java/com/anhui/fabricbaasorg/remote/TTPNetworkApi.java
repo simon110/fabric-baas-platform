@@ -5,6 +5,7 @@ import cn.hutool.json.JSONUtil;
 import com.anhui.fabricbaascommon.bean.Node;
 import com.anhui.fabricbaascommon.response.PaginationQueryResult;
 import com.anhui.fabricbaasorg.bean.Network;
+import com.anhui.fabricbaasorg.bean.NetworkOrderer;
 import com.anhui.fabricbaasorg.bean.Participation;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -170,7 +171,7 @@ public class TTPNetworkApi {
         FileUtils.writeByteArrayToFile(output, blockData);
     }
 
-    public List<Node> getOrderers(String networkName) {
+    public List<NetworkOrderer> queryOrderers(String networkName) {
         return null;
     }
 }
