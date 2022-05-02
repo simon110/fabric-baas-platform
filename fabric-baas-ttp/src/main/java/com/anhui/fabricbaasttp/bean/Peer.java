@@ -10,7 +10,7 @@ import lombok.EqualsAndHashCode;
 @Data
 @ApiModel(value = "Peer节点信息")
 public class Peer extends Node {
-    @ApiModelProperty(value = "组织端用户定义的Peer名称（不一定是CA账户名称）")
+    @ApiModelProperty(value = "自动生成的Peer名称（不一定是CA账户名称）")
     private String name;
 
     @ApiModelProperty(value = "Peer所属的组织")

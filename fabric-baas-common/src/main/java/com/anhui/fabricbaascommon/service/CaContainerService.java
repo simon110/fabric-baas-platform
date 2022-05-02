@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -61,11 +62,14 @@ public class CaContainerService {
         CommandUtils.exec("docker-compose", "-f", FABRIC_CA_DOCKER_COMPOSE.getAbsolutePath(), "down");
         String fabricCaServerConfig = FileUtils.readFileToString(FABRIC_CA_SERVER_CONFIG, StandardCharsets.UTF_8);
 
-        File containerVolume = FABRIC_CA_SERVER_CONFIG.getParentFile();
-        assert containerVolume.isDirectory();
-        FileUtils.deleteQuietly(containerVolume);
-        boolean mkdirs = containerVolume.mkdirs();
-        FileUtils.writeStringToFile(FABRIC_CA_SERVER_CONFIG, fabricCaServerConfig, StandardCharsets.UTF_8);
+        try {
+            File containerVolume = FABRIC_CA_SERVER_CONFIG.getParentFile();
+            assert containerVolume.isDirectory();
+            FileUtils.deleteDirectory(containerVolume);
+            boolean mkdirs = containerVolume.mkdirs();
+        } finally {
+            FileUtils.writeStringToFile(FABRIC_CA_SERVER_CONFIG, fabricCaServerConfig, StandardCharsets.UTF_8);
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -120,7 +124,11 @@ public class CaContainerService {
         // 修改Fabric CA Server配置文件
         initFabricCaConfigYaml(csrConfig, adminUsername, adminPassword);
         // 运行Fabric CA Server容器（如果已经启动则更新）
-        CommandUtils.exec("docker-compose", "-f", FABRIC_CA_DOCKER_COMPOSE.getAbsolutePath(), "up", "-d");
+        Map<String, String> envs = new HashMap<>();
+        envs.put("UID", CommandUtils.exec("id", "-u").strip());
+        envs.put("GID", CommandUtils.exec("id", "-g").strip());
+        log.info("生成用户环境变量：" + envs);
+        CommandUtils.exec(envs, "docker-compose", "-f", FABRIC_CA_DOCKER_COMPOSE.getAbsolutePath(), "up", "-d");
 
         // 检查是否启动成功（通过判断tls-cert.pem是否生成）
         if (!waitFor(FABRIC_CA_SERVER_TLSCERT, 100, 2000)) {
