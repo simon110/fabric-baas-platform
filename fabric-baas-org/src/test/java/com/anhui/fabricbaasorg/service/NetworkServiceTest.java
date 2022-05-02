@@ -3,6 +3,8 @@ package com.anhui.fabricbaasorg.service;
 import cn.hutool.core.lang.Pair;
 import com.anhui.fabricbaascommon.bean.Node;
 import com.anhui.fabricbaascommon.response.PaginationQueryResult;
+import com.anhui.fabricbaascommon.util.MyFileUtils;
+import com.anhui.fabricbaascommon.util.ZipUtils;
 import com.anhui.fabricbaasorg.bean.NetworkOrderer;
 import com.anhui.fabricbaasorg.bean.Participation;
 import com.anhui.fabricbaasorg.entity.OrdererEntity;
@@ -28,16 +30,17 @@ class NetworkServiceTest {
     private TTPOrganizationApi ttpOrganizationApi;
     @Autowired
     private TTPNetworkApi ttpNetworkApi;
+    @Autowired
+    private KubernetesService kubernetesService;
+
+    private final String networkName = "TestNetwork";
+    private final Pair<String, String> testOrgA = new Pair<>("TestOrgA", "12345678");
+    private final Pair<String, String> testOrgB = new Pair<>("TestOrgB", "12345678");
+    private final Pair<String, String> testOrgC = new Pair<>("TestOrgC", "12345678");
 
     @Test
-    public void test() throws Exception {
-        String networkName = "TestNetwork";
-        String consortiumName = "TestConsortium";
-        Pair<String, String> testOrgA = new Pair<>("TestOrgA", "12345678");
-        Pair<String, String> testOrgB = new Pair<>("TestOrgB", "12345678");
-        Pair<String, String> testOrgC = new Pair<>("TestOrgC", "12345678");
-
-
+    public void createNetwork() throws Exception {
+        final String consortiumName = "TestConsortium";
         ttpOrganizationApi.login(testOrgA.getKey(), testOrgA.getValue());
         List<OrdererEntity> orderers = Arrays.asList(
                 new OrdererEntity("TestOrgAOrderer0", "kubenode1", 30500),
@@ -50,7 +53,10 @@ class NetworkServiceTest {
             System.out.println(orderer.getOrganizationName());
             System.out.println(orderer.getAddr());
         }
+    }
 
+    @Test
+    public void addOrganizations() throws Exception {
         // 模仿其他组织申请加入网络
         ttpOrganizationApi.login(testOrgB.getKey(), testOrgB.getValue());
         ttpNetworkApi.applyParticipation(networkName,
@@ -72,13 +78,39 @@ class NetworkServiceTest {
         List<String> organizationNames = ttpNetworkApi.queryOrganizations(networkName);
         System.out.println(organizationNames);
         Assertions.assertEquals(3, organizationNames.size());
+    }
+
+    @Test
+    public void addOrderers() throws Exception {
+        // 获取排序组织名称
+        String ordererOrganizationName = ttpOrganizationApi.getOrdererOrganizationName();
+        System.out.println(ordererOrganizationName);
 
         // 模拟其他组织添加Orderer节点
         ttpOrganizationApi.login(testOrgB.getKey(), testOrgB.getValue());
-        ttpNetworkApi.addOrderer(networkName, new Node("orgb.example.com", 30505));
+        Node newOrderer = new Node("orgb.example.com", 30505);
+        ttpNetworkApi.addOrderer(networkName, newOrderer);
+        File genesisBlock = MyFileUtils.createTempFile("block");
+        File newOrdererCert = MyFileUtils.createTempFile("zip");
+        ttpNetworkApi.queryGenesisBlock(networkName, genesisBlock);
+        ttpNetworkApi.queryOrdererCert(networkName, newOrderer, newOrdererCert);
+        File ordererCertfileDir = MyFileUtils.createTempDir();
+        ZipUtils.unzip(newOrdererCert, ordererCertfileDir);
+        kubernetesService.applyOrdererYaml(ordererOrganizationName,
+                new OrdererEntity("TestOrgBOrderer0", "kubenode3", newOrderer.getPort()),
+                ordererCertfileDir, genesisBlock);
+
         ttpOrganizationApi.login(testOrgC.getKey(), testOrgC.getValue());
-        ttpNetworkApi.addOrderer(networkName, new Node("orgc.example.com", 30510));
-
-
+        newOrderer = new Node("orgc.example.com", 30510);
+        ttpNetworkApi.addOrderer(networkName, newOrderer);
+        genesisBlock = MyFileUtils.createTempFile("block");
+        newOrdererCert = MyFileUtils.createTempFile("zip");
+        ttpNetworkApi.queryGenesisBlock(networkName, genesisBlock);
+        ttpNetworkApi.queryOrdererCert(networkName, newOrderer, newOrdererCert);
+        ordererCertfileDir = MyFileUtils.createTempDir();
+        ZipUtils.unzip(newOrdererCert, ordererCertfileDir);
+        kubernetesService.applyOrdererYaml(ordererOrganizationName,
+                new OrdererEntity("TestOrgCOrderer0", "kubenode1", newOrderer.getPort()),
+                ordererCertfileDir, genesisBlock);
     }
 }
