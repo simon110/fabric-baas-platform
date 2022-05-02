@@ -66,23 +66,6 @@ public class ChaincodeService {
         return coreEnv;
     }
 
-    public void install(String peerName, String chaincodeLabel, MultipartFile chaincodePackage) throws Exception {
-        // 将链码压缩包写入临时目录
-        File tempChaincodePackage = MyFileUtils.createTempFile("tar.gz");
-        FileUtils.writeByteArrayToFile(tempChaincodePackage, chaincodePackage.getBytes());
-
-        // 执行链码安装
-        String packageId = ChaincodeUtils.installChaincode(tempChaincodePackage, buildPeerCoreEnv(peerName));
-        InstalledChaincodeEntity installedChaincode = new InstalledChaincodeEntity();
-        installedChaincode.setPeerName(peerName);
-        installedChaincode.setIdentifier(packageId);
-        installedChaincode.setLabel(chaincodeLabel);
-        installedChaincodeRepo.save(installedChaincode);
-    }
-
-    /**
-     * 如果存在多个Orderer则会随机选择一个
-     */
     private TlsEnv buildOrdererTlsEnv(String channelName) throws Exception {
         ChannelEntity channel = channelService.findChannelOrThrowEx(channelName);
         String networkName = channel.getNetworkName();
@@ -99,6 +82,20 @@ public class ChaincodeService {
         File endorserTlsCert = MyFileUtils.createTempFile("crt");
         ttpChannelApi.queryPeerTlsCert(channelName, endorser, endorserTlsCert);
         return new TlsEnv(endorser.getAddr(), endorserTlsCert);
+    }
+
+    public void install(String peerName, String chaincodeLabel, MultipartFile chaincodePackage) throws Exception {
+        // 将链码压缩包写入临时目录
+        File tempChaincodePackage = MyFileUtils.createTempFile("tar.gz");
+        FileUtils.writeByteArrayToFile(tempChaincodePackage, chaincodePackage.getBytes());
+
+        // 执行链码安装
+        String packageId = ChaincodeUtils.installChaincode(tempChaincodePackage, buildPeerCoreEnv(peerName));
+        InstalledChaincodeEntity installedChaincode = new InstalledChaincodeEntity();
+        installedChaincode.setPeerName(peerName);
+        installedChaincode.setIdentifier(packageId);
+        installedChaincode.setLabel(chaincodeLabel);
+        installedChaincodeRepo.save(installedChaincode);
     }
 
     public void approve(String peerName, String channelName, String chaincodePackageId, BasicChaincodeProperties chaincodeProperties) throws Exception {
