@@ -12,7 +12,6 @@ public class TTPOrganizationApi {
         this.remoteHttpClient = remoteHttpClient;
     }
 
-
     /**
      * 调用远程服务端的login接口并调用setHeaderProperty设置Header的Authentication字段为返回token
      * 登录TTP端（即获取返回的Token）

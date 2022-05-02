@@ -7,6 +7,7 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
 @EqualsAndHashCode(callSuper = true)
@@ -17,6 +18,7 @@ public class NetworkHandleParticipationRequest extends BaseNetworkRequest {
     @ApiModelProperty(value = "组织名称", required = true)
     private String organizationName;
 
+    @NotNull
     @ApiModelProperty(value = "是否通过加入网络申请", required = true)
     private boolean isAllowed;
 }

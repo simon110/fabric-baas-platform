@@ -103,14 +103,14 @@ public class TTPNetworkApi {
      *
      * @param networkName      指定网络名称
      * @param organizationName 允许或拒绝加入网络的组织名称
-     * @param isAccepted       是否同意
+     * @param isAllowed       是否同意
      * @throws Exception 返回请求中任何code!=200的情况都应该抛出异常
      */
-    public void handleParticipation(String networkName, String organizationName, boolean isAccepted) throws Exception {
+    public void handleParticipation(String networkName, String organizationName, boolean isAllowed) throws Exception {
         JSONObject data = new JSONObject();
         data.set("networkName", networkName);
         data.set("organizationName", organizationName);
-        data.set("allowed", isAccepted);
+        data.set("allowed", isAllowed);
         httpClient.request("/api/v1/network/handleParticipation", data);
     }
 

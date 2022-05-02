@@ -7,7 +7,6 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
 
 @Data
 @ApiModel(value = "系统初始化请求")
@@ -20,7 +19,7 @@ public class SystemInitRequest {
     @ApiModelProperty(value = "可信第三方账户信息", required = true)
     private RemoteUserEntity remoteUser;
 
-    @Size(min = 8, message = "密码最小长度为8")
+    // @Size(min = 8, message = "密码最小长度为8")
     @ApiModelProperty(value = "管理员密码", required = true)
     private String adminPassword;
 }
