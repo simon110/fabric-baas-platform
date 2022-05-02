@@ -4,7 +4,7 @@ import com.anhui.fabricbaascommon.bean.ConfigtxOrderer;
 import com.anhui.fabricbaascommon.bean.ConfigtxOrganization;
 import com.anhui.fabricbaascommon.exception.ConfigtxException;
 import com.anhui.fabricbaascommon.util.CommandUtils;
-import com.anhui.fabricbaascommon.util.SimpleFileUtils;
+import com.anhui.fabricbaascommon.util.MyFileUtils;
 import com.anhui.fabricbaascommon.util.YamlUtils;
 
 import java.io.File;
@@ -91,7 +91,7 @@ public class ConfigtxUtils {
             throws IOException, ConfigtxException, InterruptedException {
         assert configtxDir.isDirectory();
         String str = CommandUtils.exec(
-                SimpleFileUtils.getWorkingDir() + "/shell/fabric-generate-genesis.sh",
+                MyFileUtils.getWorkingDir() + "/shell/fabric-generate-genesis.sh",
                 ordererGenesisName,
                 systemChannelName,
                 genesisBlock.getCanonicalPath(),
@@ -227,7 +227,7 @@ public class ConfigtxUtils {
             String organizationName)
             throws ConfigtxException, IOException, InterruptedException {
         String str = CommandUtils.exec(
-                SimpleFileUtils.getWorkingDir() + "/shell/fabric-generate-organization-config.sh",
+                MyFileUtils.getWorkingDir() + "/shell/fabric-generate-organization-config.sh",
                 organizationName,
                 configtxDir.getCanonicalPath(),
                 outputJson.getCanonicalPath());

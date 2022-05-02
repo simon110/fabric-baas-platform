@@ -13,7 +13,7 @@ import com.anhui.fabricbaascommon.fabric.ChaincodeUtils;
 import com.anhui.fabricbaascommon.service.CaClientService;
 import com.anhui.fabricbaascommon.util.CertfileUtils;
 import com.anhui.fabricbaascommon.util.RandomUtils;
-import com.anhui.fabricbaascommon.util.SimpleFileUtils;
+import com.anhui.fabricbaascommon.util.MyFileUtils;
 import com.anhui.fabricbaasorg.bean.NetworkOrderer;
 import com.anhui.fabricbaasorg.entity.ChannelEntity;
 import com.anhui.fabricbaasorg.entity.CommittedChaincodeEntity;
@@ -69,7 +69,7 @@ public class ChaincodeService {
 
     public void install(String peerName, String chaincodeLabel, MultipartFile chaincodePackage) throws Exception {
         // 将链码压缩包写入临时目录
-        File tempChaincodePackage = SimpleFileUtils.createTempFile("tar.gz");
+        File tempChaincodePackage = MyFileUtils.createTempFile("tar.gz");
         FileUtils.writeByteArrayToFile(tempChaincodePackage, chaincodePackage.getBytes());
 
         // 执行链码安装
@@ -90,13 +90,13 @@ public class ChaincodeService {
         List<NetworkOrderer> orderers = ttpNetworkApi.queryOrderers(networkName);
         Node selectedOrderer = RandomUtils.select(orderers);
 
-        File ordererTlsCert = SimpleFileUtils.createTempFile("crt");
+        File ordererTlsCert = MyFileUtils.createTempFile("crt");
         ttpNetworkApi.queryOrdererTlsCert(networkName, selectedOrderer, ordererTlsCert);
         return new TlsEnv(selectedOrderer.getAddr(), ordererTlsCert);
     }
 
     private TlsEnv buildEndorserTlsEnv(String channelName, Node endorser) throws Exception {
-        File endorserTlsCert = SimpleFileUtils.createTempFile("crt");
+        File endorserTlsCert = MyFileUtils.createTempFile("crt");
         ttpChannelApi.queryPeerTlsCert(channelName, endorser, endorserTlsCert);
         return new TlsEnv(endorser.getAddr(), endorserTlsCert);
     }

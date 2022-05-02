@@ -2,7 +2,7 @@ package com.anhui.fabricbaasorg.service;
 
 import com.anhui.fabricbaascommon.function.ThrowableSupplier;
 import com.anhui.fabricbaascommon.util.CertfileUtils;
-import com.anhui.fabricbaascommon.util.SimpleFileUtils;
+import com.anhui.fabricbaascommon.util.MyFileUtils;
 import com.anhui.fabricbaascommon.util.WatcherUtils;
 import com.anhui.fabricbaasorg.entity.OrdererEntity;
 import com.anhui.fabricbaasorg.entity.PeerEntity;
@@ -24,12 +24,11 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeoutException;
 
 @Slf4j
 @Service
 public class KubernetesService {
-    private final static File KUBERNETES_ADMIN_CONFIG = new File(SimpleFileUtils.getWorkingDir() + "/kubernetes/admin.conf");
+    private final static File KUBERNETES_ADMIN_CONFIG = new File(MyFileUtils.getWorkingDir() + "/kubernetes/admin.conf");
 
     private KubernetesClient kubernetesClient;
     @Autowired

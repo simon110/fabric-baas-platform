@@ -4,7 +4,7 @@ package com.anhui.fabricbaasorg.service;
 import com.anhui.fabricbaascommon.bean.Node;
 import com.anhui.fabricbaascommon.exception.CaException;
 import com.anhui.fabricbaascommon.service.CaClientService;
-import com.anhui.fabricbaascommon.util.SimpleFileUtils;
+import com.anhui.fabricbaascommon.util.MyFileUtils;
 import com.anhui.fabricbaasorg.entity.OrdererEntity;
 import com.anhui.fabricbaasorg.remote.TTPNetworkApi;
 import lombok.extern.slf4j.Slf4j;
@@ -51,10 +51,10 @@ public class NetworkService {
         // 生成Orderer节点的连接信息
         List<Node> ordererEndpoints = buildOrderers(ordererPorts);
         // 将CA管理员的证书打包成zip
-        File adminCertfileZip = SimpleFileUtils.createTempFile("zip");
+        File adminCertfileZip = MyFileUtils.createTempFile("zip");
         caClientService.getRootCertfileZip(adminCertfileZip);
         // 调用TTP端的接口生成网络
-        File sysChannelGenesis = SimpleFileUtils.createTempFile("block");
+        File sysChannelGenesis = MyFileUtils.createTempFile("block");
         ttpNetworkApi.createNetwork(networkName, consortiumName, ordererEndpoints, adminCertfileZip, sysChannelGenesis);
         // 用创世区块来启动所有预计提供的Orderer节点
         for (OrdererEntity orderer : orderers) {
@@ -72,7 +72,7 @@ public class NetworkService {
     }
 
     public void applyParticipation(String networkName, String description) throws Exception {
-        File adminCertfileZip = SimpleFileUtils.createTempFile("zip");
+        File adminCertfileZip = MyFileUtils.createTempFile("zip");
         caClientService.getRootCertfileZip(adminCertfileZip);
         // 调用TTP端的接口发送加入网络申请
         ttpNetworkApi.applyParticipation(networkName, description, adminCertfileZip);

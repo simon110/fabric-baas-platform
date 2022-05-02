@@ -6,7 +6,7 @@ import com.anhui.fabricbaascommon.exception.ChannelException;
 import com.anhui.fabricbaascommon.exception.NodeException;
 import com.anhui.fabricbaascommon.service.CaClientService;
 import com.anhui.fabricbaascommon.util.CertfileUtils;
-import com.anhui.fabricbaascommon.util.SimpleFileUtils;
+import com.anhui.fabricbaascommon.util.MyFileUtils;
 import com.anhui.fabricbaascommon.util.ZipUtils;
 import com.anhui.fabricbaasorg.entity.ChannelEntity;
 import com.anhui.fabricbaasorg.entity.PeerEntity;
@@ -69,7 +69,7 @@ public class ChannelService {
         // 如果Peer节点已经启动必然存在证书
         File certfileDir = CertfileUtils.getCertfileDir(peer.getCaUsername(), CertfileType.PEER);
         CertfileUtils.assertCertfile(certfileDir);
-        File peerCertfileZip = SimpleFileUtils.createTempFile("zip");
+        File peerCertfileZip = MyFileUtils.createTempFile("zip");
         ZipUtils.zip(peerCertfileZip, CertfileUtils.getMspDir(certfileDir), CertfileUtils.getTlsDir(certfileDir));
 
         // 调用远程接口

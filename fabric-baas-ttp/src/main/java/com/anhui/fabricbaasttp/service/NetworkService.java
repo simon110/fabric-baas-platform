@@ -122,14 +122,14 @@ public class NetworkService {
 
     private void addOrganizationToConsortium(NetworkEntity network, String newOrgName) throws Exception {
         // 从Orderer拉取通道配置
-        File oldConfig = SimpleFileUtils.createTempFile("json");
-        File newConfig = SimpleFileUtils.createTempFile("json");
-        File orgConfig = SimpleFileUtils.createTempFile("json");
-        File newOrgConfigtxDir = SimpleFileUtils.createTempDir();
+        File oldConfig = MyFileUtils.createTempFile("json");
+        File newConfig = MyFileUtils.createTempFile("json");
+        File orgConfig = MyFileUtils.createTempFile("json");
+        File newOrgConfigtxDir = MyFileUtils.createTempDir();
         File newOrgConfigtxYaml = new File(newOrgConfigtxDir + "/configtx.yaml");
-        File newOrgCertfileZip = SimpleFileUtils.createTempFile("zip");
-        File newOrgCertfileDir = SimpleFileUtils.createTempDir();
-        File envelope = SimpleFileUtils.createTempFile("pb");
+        File newOrgCertfileZip = MyFileUtils.createTempFile("zip");
+        File newOrgCertfileDir = MyFileUtils.createTempDir();
+        File envelope = MyFileUtils.createTempFile("pb");
 
         // 拉取网络系统通道的配置文件
         CoreEnv ordererCoreEnv = fetchSystemChannelConfig(network, oldConfig);
@@ -182,7 +182,7 @@ public class NetworkService {
         File ordererCertfileDir = CertfileUtils.getCertfileDir(ordererId, CertfileType.ORDERER);
         CertfileUtils.assertCertfile(ordererCertfileDir);
         File ordererTlsCert = CertfileUtils.getTlsCaCert(ordererCertfileDir);
-        return ResourceUtils.release(ordererTlsCert, "crt");
+        return MyResourceUtils.release(ordererTlsCert, "crt");
     }
 
     public String queryOrdererCert(String currentOrganizationName, String networkName, Node orderer) throws Exception {
@@ -201,12 +201,12 @@ public class NetworkService {
         // 检查Orderer证书
         File ordererCertfileDir = CertfileUtils.getCertfileDir(ordererId, CertfileType.ORDERER);
         CertfileUtils.assertCertfile(ordererCertfileDir);
-        File ordererCertfileZip = SimpleFileUtils.createTempFile("zip");
+        File ordererCertfileZip = MyFileUtils.createTempFile("zip");
         ZipUtils.zip(ordererCertfileZip,
                 CertfileUtils.getMspDir(ordererCertfileDir),
                 CertfileUtils.getTlsDir(ordererCertfileDir)
         );
-        return ResourceUtils.release(ordererCertfileZip, "zip");
+        return MyResourceUtils.release(ordererCertfileZip, "zip");
     }
 
     public String addOrderer(String currentOrganizationName, String networkName, Node orderer) throws Exception {
@@ -223,11 +223,11 @@ public class NetworkService {
         caClientService.register(caUsername, caPassword, CertfileType.ORDERER);
 
         List<String> csrHosts = CaUtils.buildCsrHosts(orderer.getHost());
-        File newOrdererCertfileDir = SimpleFileUtils.createTempDir();
+        File newOrdererCertfileDir = MyFileUtils.createTempDir();
         caClientService.enroll(newOrdererCertfileDir, caUsername, csrHosts);
         log.info("将证书登记到临时目录：" + newOrdererCertfileDir.getAbsolutePath());
 
-        File oldChannelConfig = SimpleFileUtils.createTempFile("json");
+        File oldChannelConfig = MyFileUtils.createTempFile("json");
         CoreEnv selectedOrdererCoreEnv = fetchSystemChannelConfig(network, oldChannelConfig);
 
         // 向通道配置文件中添加新Orderer的定义
@@ -239,13 +239,13 @@ public class NetworkService {
         configtxOrderer.setServerTlsCert(newOrdererTlsServerCert);
         log.info("生成新Orderer节点：" + configtxOrderer);
 
-        File newChannelConfig = SimpleFileUtils.createTempFile("json");
+        File newChannelConfig = MyFileUtils.createTempFile("json");
         FileUtils.copyFile(oldChannelConfig, newChannelConfig);
         ChannelUtils.appendOrdererToChannelConfig(configtxOrderer, newChannelConfig);
         log.info("将新的Orderer信息添加到通道配置：" + newChannelConfig.getAbsolutePath());
 
         // 计算新旧JSON配置文件之间的差异得到Envelope，并对其进行签名
-        File envelope = SimpleFileUtils.createTempFile("pb");
+        File envelope = MyFileUtils.createTempFile("pb");
         ChannelUtils.generateEnvelope(fabricConfig.getSystemChannelName(), envelope, oldChannelConfig, newChannelConfig);
         // ChannelUtils.signEnvelope(selectedOrdererCoreEnv.getMspEnv(), envelope);
         log.info("生成并使用Orderer身份对Envelope文件进行签名：" + envelope.getAbsolutePath());
@@ -259,7 +259,7 @@ public class NetworkService {
         );
 
         // 将新Orderer的分别保存到MinIO并复制到证书目录下
-        File ordererCertfileZip = SimpleFileUtils.createTempFile("zip");
+        File ordererCertfileZip = MyFileUtils.createTempFile("zip");
         ZipUtils.zip(ordererCertfileZip,
                 CertfileUtils.getMspDir(newOrdererCertfileDir),
                 CertfileUtils.getTlsDir(newOrdererCertfileDir)
@@ -283,7 +283,7 @@ public class NetworkService {
         networkRepo.save(network);
         log.info("更新网络的信息：" + network);
 
-        return ResourceUtils.release(ordererCertfileZip, "zip");
+        return MyResourceUtils.release(ordererCertfileZip, "zip");
     }
 
     public String createNetwork(
@@ -301,8 +301,8 @@ public class NetworkService {
             throw new NetworkException("相同名称的网络已经存在：" + networkName);
         }
 
-        File orgCertfileDir = SimpleFileUtils.createTempDir();
-        File organizationCertfileZip = SimpleFileUtils.createTempFile("zip");
+        File orgCertfileDir = MyFileUtils.createTempDir();
+        File organizationCertfileZip = MyFileUtils.createTempFile("zip");
         log.info("正在将组织{}上传的网络管理员证书写入到：{}", currentOrganizationName, organizationCertfileZip.getAbsolutePath());
         FileUtils.writeByteArrayToFile(organizationCertfileZip, adminCertZip.getBytes());
         log.info("正在将组织{}上传的网络管理员证书解压到：{}", currentOrganizationName, orgCertfileDir.getAbsolutePath());
@@ -323,7 +323,7 @@ public class NetworkService {
             caClientService.register(caUsername, caPassword, CertfileType.ORDERER);
 
             List<String> csrHosts = CaUtils.buildCsrHosts(orderer.getHost());
-            File ordererCertfileDir = SimpleFileUtils.createTempDir();
+            File ordererCertfileDir = MyFileUtils.createTempDir();
             ordererCertfileDirs.add(ordererCertfileDir);
             caClientService.enroll(ordererCertfileDir, caUsername, csrHosts);
 
@@ -351,12 +351,12 @@ public class NetworkService {
         List<ConfigtxOrganization> configtxOrganizations = Collections.singletonList(currentConfigtxOrg);
         log.info("生成组织配置：" + configtxOrganizations);
 
-        File configtxDir = SimpleFileUtils.createTempDir();
+        File configtxDir = MyFileUtils.createTempDir();
         File configtxYaml = new File(configtxDir + "/configtx.yaml");
         ConfigtxUtils.generateConfigtx(configtxYaml, consortiumName, configtxOrderers, ordererConfigtxOrg, configtxOrganizations);
         log.info("生成配置文件：" + configtxYaml.getAbsolutePath());
 
-        File sysChannelGenesis = SimpleFileUtils.createTempFile("block");
+        File sysChannelGenesis = MyFileUtils.createTempFile("block");
         ConfigtxUtils.generateGenesisBlock(ConfigtxUtils.ORDERER_GENESIS_NAME, fabricConfig.getSystemChannelName(), sysChannelGenesis, configtxDir);
         log.info("生成创世区块：" + sysChannelGenesis.getAbsolutePath());
 
@@ -369,7 +369,7 @@ public class NetworkService {
         for (int i = 0, size = ordererCertfileDirs.size(); i < size; i++) {
             // 将证书压缩
             File ordererCertfileDir = ordererCertfileDirs.get(i);
-            File ordererCertZip = SimpleFileUtils.createTempFile("zip");
+            File ordererCertZip = MyFileUtils.createTempFile("zip");
             ZipUtils.zip(ordererCertZip,
                     CertfileUtils.getMspDir(ordererCertfileDir),
                     CertfileUtils.getTlsDir(ordererCertfileDir)
@@ -402,7 +402,7 @@ public class NetworkService {
         participationRepo.save(participation);
 
         // 返回创世区块下载路径
-        return ResourceUtils.release(sysChannelGenesis, "block");
+        return MyResourceUtils.release(sysChannelGenesis, "block");
     }
 
     public Page<NetworkEntity> queryNetworks(String networkNameKeyword, String organizationNameKeyword, int page, int pageSize) {
@@ -500,7 +500,7 @@ public class NetworkService {
                 participation.setStatus(ApplStatus.ACCEPTED);
                 participation.setTimestamp(System.currentTimeMillis());
                 // 将证书解压到指定目录
-                File certfileZip = SimpleFileUtils.createTempFile("zip");
+                File certfileZip = MyFileUtils.createTempFile("zip");
                 String certfileId = IdentifierGenerator.generateCertfileId(network.getName(), applierOrganizationName);
                 minioService.getAsFile(MinioBucket.ADMIN_CERTFILE_BUCKET_NAME, certfileId, certfileZip);
                 ZipUtils.unzip(certfileZip, CertfileUtils.getCertfileDir(certfileId, CertfileType.ADMIN));
@@ -534,9 +534,9 @@ public class NetworkService {
         Orderer orderer = network.getOrderers().get(0);
         CoreEnv ordererCoreEnv = fabricEnvService.buildOrdererCoreEnv(orderer);
 
-        File block = SimpleFileUtils.createTempFile("block");
+        File block = MyFileUtils.createTempFile("block");
         ChannelUtils.fetchGenesisBlock(ordererCoreEnv, fabricConfig.getSystemChannelName(), block);
-        return ResourceUtils.release(block, "block");
+        return MyResourceUtils.release(block, "block");
     }
 
     public List<String> queryOrganizations(String networkName) throws NetworkException {

@@ -9,7 +9,7 @@ import com.anhui.fabricbaascommon.exception.CaException;
 import com.anhui.fabricbaascommon.exception.CertfileException;
 import com.anhui.fabricbaascommon.util.CertfileUtils;
 import com.anhui.fabricbaascommon.util.CommandUtils;
-import com.anhui.fabricbaascommon.util.SimpleFileUtils;
+import com.anhui.fabricbaascommon.util.MyFileUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -32,10 +32,10 @@ public class CaUtils {
         assert !StringUtils.isBlank(certfile.getCaPassword());
         assert CertfileType.exists(certfile.getCaUsertype());
 
-        SimpleFileUtils.assertFileExists(caTlsCert);
+        MyFileUtils.assertFileExists(caTlsCert);
         CertfileUtils.assertCertfile(adminCertfileDir);
         String str = CommandUtils.exec(
-                SimpleFileUtils.getWorkingDir() + "/shell/fabric-ca-register.sh",
+                MyFileUtils.getWorkingDir() + "/shell/fabric-ca-register.sh",
                 adminCertfileDir.getCanonicalPath(),
                 caTlsCert.getCanonicalPath(), caName,
                 certfile.getCaUsername(),
@@ -58,9 +58,9 @@ public class CaUtils {
         assert !StringUtils.isBlank(certfile.getCaPassword());
         assert csrHosts.size() >= 2;
 
-        SimpleFileUtils.assertFileExists(caTlsCert);
+        MyFileUtils.assertFileExists(caTlsCert);
         CommandUtils.exec(
-                SimpleFileUtils.getWorkingDir() + "/shell/fabric-ca-enroll.sh",
+                MyFileUtils.getWorkingDir() + "/shell/fabric-ca-enroll.sh",
                 certfileDir.getCanonicalPath(),
                 caName, caAddr,
                 caTlsCert.getCanonicalPath(),

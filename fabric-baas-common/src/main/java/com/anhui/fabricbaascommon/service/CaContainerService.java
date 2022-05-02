@@ -3,7 +3,7 @@ package com.anhui.fabricbaascommon.service;
 import com.anhui.fabricbaascommon.bean.CsrConfig;
 import com.anhui.fabricbaascommon.function.ThrowableSupplier;
 import com.anhui.fabricbaascommon.util.CommandUtils;
-import com.anhui.fabricbaascommon.util.SimpleFileUtils;
+import com.anhui.fabricbaascommon.util.MyFileUtils;
 import com.anhui.fabricbaascommon.util.WatcherUtils;
 import com.anhui.fabricbaascommon.util.YamlUtils;
 import com.spotify.docker.client.DockerClient;
@@ -23,9 +23,9 @@ import java.util.Map;
 @Slf4j
 @Service
 public class CaContainerService {
-    private final static File FABRIC_CA_DOCKER_COMPOSE = new File(SimpleFileUtils.getWorkingDir() + "/docker/docker-compose-fabric-ca.yaml");
-    private final static File FABRIC_CA_SERVER_CONFIG = new File(SimpleFileUtils.getWorkingDir() + "/docker/fabric-ca/fabric-ca-server-config.yaml");
-    private final static File FABRIC_CA_SERVER_TLSCERT = new File(SimpleFileUtils.getWorkingDir() + "/docker/fabric-ca/tls-cert.pem");
+    private final static File FABRIC_CA_DOCKER_COMPOSE = new File(MyFileUtils.getWorkingDir() + "/docker/docker-compose-fabric-ca.yaml");
+    private final static File FABRIC_CA_SERVER_CONFIG = new File(MyFileUtils.getWorkingDir() + "/docker/fabric-ca/fabric-ca-server-config.yaml");
+    private final static File FABRIC_CA_SERVER_TLSCERT = new File(MyFileUtils.getWorkingDir() + "/docker/fabric-ca/tls-cert.pem");
 
     private final DockerClient dockerClient;
 

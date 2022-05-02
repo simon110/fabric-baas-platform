@@ -12,7 +12,7 @@ import com.anhui.fabricbaascommon.repository.CaRepo;
 import com.anhui.fabricbaascommon.repository.UserRepo;
 import com.anhui.fabricbaascommon.service.CaClientService;
 import com.anhui.fabricbaascommon.service.CaContainerService;
-import com.anhui.fabricbaascommon.util.SimpleFileUtils;
+import com.anhui.fabricbaascommon.util.MyFileUtils;
 import com.anhui.fabricbaasorg.entity.RemoteUserEntity;
 import com.anhui.fabricbaasorg.remote.RemoteHttpClient;
 import com.anhui.fabricbaasorg.remote.TTPOrganizationApi;
@@ -86,7 +86,7 @@ public class SystemService {
 
     public void initKubernetesService(MultipartFile kubernetesConfig) throws IOException {
         // 将证书导入到KubernetesService中
-        File tempKubernetesConfig = SimpleFileUtils.createTempFile("yaml");
+        File tempKubernetesConfig = MyFileUtils.createTempFile("yaml");
         FileUtils.writeByteArrayToFile(tempKubernetesConfig, kubernetesConfig.getBytes());
         kubernetesService.importAdminConfig(tempKubernetesConfig);
     }

@@ -4,7 +4,7 @@ import com.anhui.fabricbaascommon.bean.*;
 import com.anhui.fabricbaascommon.exception.CertfileException;
 import com.anhui.fabricbaascommon.exception.ChaincodeException;
 import com.anhui.fabricbaascommon.util.CommandUtils;
-import com.anhui.fabricbaascommon.util.SimpleFileUtils;
+import com.anhui.fabricbaascommon.util.MyFileUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,7 +26,7 @@ public class ChaincodeUtils {
         peerCoreEnv.selfAssert();
 
         String str = CommandUtils.exec(
-                SimpleFileUtils.getWorkingDir() + "/shell/fabric-chaincode-query-committed.sh",
+                MyFileUtils.getWorkingDir() + "/shell/fabric-chaincode-query-committed.sh",
                 peerCoreEnv.getMspId(),
                 peerCoreEnv.getTlsRootCert().getAbsolutePath(),
                 peerCoreEnv.getMspConfig().getAbsolutePath(),
@@ -71,7 +71,7 @@ public class ChaincodeUtils {
         peerCoreEnv.selfAssert();
 
         String str = CommandUtils.exec(
-                SimpleFileUtils.getWorkingDir() + "/shell/fabric-chaincode-query-installed.sh",
+                MyFileUtils.getWorkingDir() + "/shell/fabric-chaincode-query-installed.sh",
                 peerCoreEnv.getMspId(),
                 peerCoreEnv.getTlsRootCert().getAbsolutePath(),
                 peerCoreEnv.getMspConfig().getAbsolutePath(),
@@ -106,18 +106,18 @@ public class ChaincodeUtils {
             File srcCodeDir,
             String chaincodeLabel,
             File outputPackage) throws ChaincodeException, IOException, InterruptedException {
-        if (!srcCodeDir.exists() && SimpleFileUtils.exists(srcCodeDir.getAbsolutePath() + "/go.mod")) {
+        if (!srcCodeDir.exists() && MyFileUtils.exists(srcCodeDir.getAbsolutePath() + "/go.mod")) {
             throw new ChaincodeException("未找到Chaincode源代码");
         }
         if (outputPackage.exists()) {
             throw new ChaincodeException("目标路径已存在文件");
         }
         CommandUtils.exec(
-                SimpleFileUtils.getWorkingDir() + "/shell/fabric-chaincode-package.sh",
+                MyFileUtils.getWorkingDir() + "/shell/fabric-chaincode-package.sh",
                 srcCodeDir.getCanonicalPath(),
                 chaincodeLabel,
                 outputPackage.getCanonicalPath());
-        if (!SimpleFileUtils.exists(outputPackage.getAbsolutePath())) {
+        if (!MyFileUtils.exists(outputPackage.getAbsolutePath())) {
             throw new ChaincodeException("链码打包失败：" + outputPackage.getAbsolutePath());
         }
     }
@@ -140,7 +140,7 @@ public class ChaincodeUtils {
         // 查询installed链码
         List<InstalledChaincode> oldInstalledChaincodes = queryInstalledChaincodes(peerCoreEnv);
         String str = CommandUtils.exec(
-                SimpleFileUtils.getWorkingDir() + "/shell/fabric-chaincode-install.sh",
+                MyFileUtils.getWorkingDir() + "/shell/fabric-chaincode-install.sh",
                 peerCoreEnv.getMspId(),
                 peerCoreEnv.getTlsRootCert().getAbsolutePath(),
                 peerCoreEnv.getMspConfig().getAbsolutePath(),
@@ -174,7 +174,7 @@ public class ChaincodeUtils {
         //检查链码批准情况
         List<ChaincodeApproval> oldCheckCommitReadiness = checkCommittedReadiness(ordererTlsEnv, peerCoreEnv, channelName, chaincodeProperties);
         String str = CommandUtils.exec(
-                SimpleFileUtils.getWorkingDir() + "/shell/fabric-chaincode-approve.sh",
+                MyFileUtils.getWorkingDir() + "/shell/fabric-chaincode-approve.sh",
                 peerCoreEnv.getMspId(),
                 peerCoreEnv.getTlsRootCert().getAbsolutePath(),
                 peerCoreEnv.getMspConfig().getAbsolutePath(),
@@ -209,7 +209,7 @@ public class ChaincodeUtils {
         ordererTlsEnv.assertTlsCert();
 
         String str = CommandUtils.exec(
-                SimpleFileUtils.getWorkingDir() + "/shell/fabric-chaincode-check-readiness.sh",
+                MyFileUtils.getWorkingDir() + "/shell/fabric-chaincode-check-readiness.sh",
                 peerCoreEnv.getMspId(),
                 peerCoreEnv.getMspConfig().getAbsolutePath(),
                 peerCoreEnv.getAddress(),
@@ -261,7 +261,7 @@ public class ChaincodeUtils {
         committerPeerCoreEnv.selfAssert();
         ordererTlsEnv.assertTlsCert();
         List<String> commandList = Arrays.asList(
-                SimpleFileUtils.getWorkingDir() + "/shell/fabric-chaincode-commit.sh",
+                MyFileUtils.getWorkingDir() + "/shell/fabric-chaincode-commit.sh",
                 chaincodeProperties.getName(),
                 chaincodeProperties.getVersion(),
                 chaincodeProperties.getSequence().toString(),

@@ -11,7 +11,7 @@ import com.anhui.fabricbaascommon.fabric.CaUtils;
 import com.anhui.fabricbaascommon.repository.CaRepo;
 import com.anhui.fabricbaascommon.repository.CertfileRepo;
 import com.anhui.fabricbaascommon.util.CertfileUtils;
-import com.anhui.fabricbaascommon.util.SimpleFileUtils;
+import com.anhui.fabricbaascommon.util.MyFileUtils;
 import com.anhui.fabricbaascommon.util.ZipUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,8 +25,8 @@ import java.util.Optional;
 @Service
 @Slf4j
 public class CaClientService {
-    private final static File FABRIC_CA_ROOT_CERTFILE_DIR = new File(SimpleFileUtils.getWorkingDir() + "/fabric/root");
-    private final static File FABRIC_CA_SERVER_CERT = new File(SimpleFileUtils.getWorkingDir() + "/docker/fabric-ca/tls-cert.pem");
+    private final static File FABRIC_CA_ROOT_CERTFILE_DIR = new File(MyFileUtils.getWorkingDir() + "/fabric/root");
+    private final static File FABRIC_CA_SERVER_CERT = new File(MyFileUtils.getWorkingDir() + "/docker/fabric-ca/tls-cert.pem");
     private final static String FABRIC_CA_SERVER_ADDR = "localhost:7054";
 
     @Autowired

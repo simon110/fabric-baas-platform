@@ -140,7 +140,7 @@ public class ChannelService {
         log.info("生成通道的Orderer节点配置：" + configtxOrderers);
 
         // 生成configtx.yaml配置文件
-        File configtxDir = SimpleFileUtils.createTempDir();
+        File configtxDir = MyFileUtils.createTempDir();
         File configtxYaml = new File(configtxDir + "/configtx.yaml");
         ConfigtxUtils.generateConfigtx(configtxYaml, network.getConsortiumName(), configtxOrderers, ordererConfigtxOrg, configtxOrganizations);
         log.info("生成基本通道配置文件：" + configtxYaml.getAbsolutePath());
@@ -157,7 +157,7 @@ public class ChannelService {
         TlsEnv ordererTlsEnv = fabricEnvService.buildOrdererTlsEnv(orderer);
         log.info("生成组织的MSP环境变量：" + organizationMspEnv);
         log.info("生成Orderer的TLS环境变量：" + ordererTlsEnv);
-        File appChannelGenesis = SimpleFileUtils.createTempFile("block");
+        File appChannelGenesis = MyFileUtils.createTempFile("block");
         ChannelUtils.createChannel(organizationMspEnv, ordererTlsEnv, configtxDir, channelName, appChannelGenesis);
 
         // 将通道信息保存至MongoDB
@@ -205,13 +205,13 @@ public class ChannelService {
         assertInvitationCodes(invitationCodes, channel.getOrganizationNames(), currentOrganizationName, channel.getName());
 
         // 拉取指定通道的配置
-        File oldChannelConfig = SimpleFileUtils.createTempFile("json");
+        File oldChannelConfig = MyFileUtils.createTempFile("json");
         CoreEnv ordererCoreEnv = fetchChannelConfig(channel, oldChannelConfig);
 
         // 生成新组织的配置
-        File newOrgConfigtxDir = SimpleFileUtils.createTempDir();
+        File newOrgConfigtxDir = MyFileUtils.createTempDir();
         File newOrgConfigtxYaml = new File(newOrgConfigtxDir + "/configtx.yaml");
-        File newOrgConfigtxJson = SimpleFileUtils.createTempFile("json");
+        File newOrgConfigtxJson = MyFileUtils.createTempFile("json");
         String newOrgCertfileId = IdentifierGenerator.generateCertfileId(channel.getNetworkName(), currentOrganizationName);
         File newOrgCertfileDir = CertfileUtils.getCertfileDir(newOrgCertfileId, CertfileType.ADMIN);
 
@@ -225,11 +225,11 @@ public class ChannelService {
         log.info("将新组织的转换为：" + newOrgConfigtxJson.getAbsolutePath());
 
         // 对通道配置文件进行更新并生成Envelope
-        File newChannelConfig = SimpleFileUtils.createTempFile("json");
+        File newChannelConfig = MyFileUtils.createTempFile("json");
         FileUtils.copyFile(oldChannelConfig, newChannelConfig);
         ChannelUtils.appendOrganizationToAppChannelConfig(currentOrganizationName, newOrgConfigtxJson, newChannelConfig);
         log.info("将新组织添加到现有的通道配置中：" + newChannelConfig.getAbsolutePath());
-        File envelope = SimpleFileUtils.createTempFile("pb");
+        File envelope = MyFileUtils.createTempFile("pb");
         ChannelUtils.generateEnvelope(channel.getName(), envelope, oldChannelConfig, newChannelConfig);
         log.info("生成向通道添加组织的Envelope：" + envelope.getAbsolutePath());
 
@@ -270,14 +270,14 @@ public class ChannelService {
         newPeer.setOrganizationName(currentOrganizationName);
         log.info("生成新Peer信息：" + newPeer);
 
-        File channelGenesisBlock = SimpleFileUtils.createTempFile("block");
+        File channelGenesisBlock = MyFileUtils.createTempFile("block");
         fetchChannelGenesis(channel, channelGenesisBlock);
 
         // 解压Peer证书到临时目录
-        File peerCertfileZip = SimpleFileUtils.createTempFile("zip");
+        File peerCertfileZip = MyFileUtils.createTempFile("zip");
         FileUtils.writeByteArrayToFile(peerCertfileZip, peerCertZip.getBytes());
         log.info("将用户上传的Peer证书保存至：" + peerCertfileZip.getAbsolutePath());
-        File peerCertfileDir = SimpleFileUtils.createTempDir();
+        File peerCertfileDir = MyFileUtils.createTempDir();
         ZipUtils.unzip(peerCertfileZip, peerCertfileDir);
         log.info("将Peer证书解压到：" + peerCertfileDir.getAbsolutePath());
         CertfileUtils.assertCertfile(peerCertfileDir);
@@ -338,16 +338,16 @@ public class ChannelService {
         log.info("随机选择Orderer节点：" + orderer);
 
         // 拉取指定通道的配置
-        File oldChannelConfig = SimpleFileUtils.createTempFile("json");
+        File oldChannelConfig = MyFileUtils.createTempFile("json");
         CoreEnv ordererCoreEnv = fetchChannelConfig(channel, oldChannelConfig);
 
         // 对通道配置文件进行更新并生成Envelope
-        File newChannelConfig = SimpleFileUtils.createTempFile("json");
+        File newChannelConfig = MyFileUtils.createTempFile("json");
         FileUtils.copyFile(oldChannelConfig, newChannelConfig);
         ChannelUtils.appendAnchorPeerToChannelConfig(peer, currentOrganizationName, oldChannelConfig);
         log.info("将锚节点添加到通道配置中：" + newChannelConfig.getAbsolutePath());
 
-        File envelope = SimpleFileUtils.createTempFile("pb");
+        File envelope = MyFileUtils.createTempFile("pb");
         ChannelUtils.generateEnvelope(channel.getName(), envelope, oldChannelConfig, newChannelConfig);
         log.info("生成更新锚节点的Envelope：" + envelope.getAbsolutePath());
 
@@ -367,7 +367,7 @@ public class ChannelService {
         File ordererCertfileDir = CertfileUtils.getCertfileDir(peerId, CertfileType.PEER);
         CertfileUtils.assertCertfile(ordererCertfileDir);
         File ordererTlsCert = CertfileUtils.getTlsCaCert(ordererCertfileDir);
-        return ResourceUtils.release(ordererTlsCert, "crt");
+        return MyResourceUtils.release(ordererTlsCert, "crt");
     }
 
     public List<Peer> queryPeers(String channelName) throws Exception {

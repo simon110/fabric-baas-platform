@@ -1,10 +1,14 @@
 package com.anhui.fabricbaascommon.util;
 
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.web.multipart.MultipartFile;
+
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.UUID;
 
-public class SimpleFileUtils {
+public class MyFileUtils {
     public static void assertFileExists(File file) throws IOException {
         if (!file.exists() || !file.isFile()) {
             throw new IOException("文件不存在：" + file.getAbsolutePath());
@@ -67,5 +71,10 @@ public class SimpleFileUtils {
      */
     public static String toCanonicalPath(String path) throws IOException {
         return new File(path).getCanonicalPath();
+    }
+
+    public static MultipartFile toMultipartFile(File file) throws IOException {
+        FileInputStream fileInputStream = new FileInputStream(file);
+        return new MockMultipartFile(file.getName(), fileInputStream);
     }
 }

@@ -42,8 +42,8 @@ public class CertfileUtils {
      */
     public static void assertCertfileZip(MultipartFile zip) throws IOException, CertfileException {
         // 创建临时文件
-        File tempDir = SimpleFileUtils.createTempDir();
-        File certfileZip = SimpleFileUtils.createTempFile("zip");
+        File tempDir = MyFileUtils.createTempDir();
+        File certfileZip = MyFileUtils.createTempFile("zip");
 
         // 将文件写入临时目录并解压
         log.info("正在将证书文件写入：" + certfileZip.getAbsoluteFile());
@@ -73,7 +73,7 @@ public class CertfileUtils {
                 type.equals(CertfileType.ADMIN) ||
                 type.equals(CertfileType.CLIENT) ||
                 type.equals(CertfileType.PEER);
-        return new File(String.format("%s/fabric/certfile/%s/%s", SimpleFileUtils.getWorkingDir(), type, name));
+        return new File(String.format("%s/fabric/certfile/%s/%s", MyFileUtils.getWorkingDir(), type, name));
     }
 
     public static File getMspDir(File certfileDir) {

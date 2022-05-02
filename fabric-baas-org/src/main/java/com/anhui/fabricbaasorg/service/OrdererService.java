@@ -5,7 +5,7 @@ import com.anhui.fabricbaascommon.bean.Node;
 import com.anhui.fabricbaascommon.constant.CertfileType;
 import com.anhui.fabricbaascommon.service.CaClientService;
 import com.anhui.fabricbaascommon.util.CertfileUtils;
-import com.anhui.fabricbaascommon.util.SimpleFileUtils;
+import com.anhui.fabricbaascommon.util.MyFileUtils;
 import com.anhui.fabricbaasorg.entity.OrdererEntity;
 import com.anhui.fabricbaasorg.remote.TTPNetworkApi;
 import com.anhui.fabricbaasorg.remote.TTPOrganizationApi;
@@ -37,7 +37,7 @@ public class OrdererService {
 
         // 获取Orderer的证书并解压
         Node node = new Node(domain, orderer.getKubeNodePort());
-        File ordererCertfileZip = SimpleFileUtils.createTempFile("zip");
+        File ordererCertfileZip = MyFileUtils.createTempFile("zip");
         ttpNetworkApi.queryOrdererCert(networkName, node, ordererCertfileZip);
         File certfileDir = CertfileUtils.getCertfileDir(orderer.getName(), CertfileType.ORDERER);
         boolean mkdirs = certfileDir.mkdirs();
@@ -50,7 +50,7 @@ public class OrdererService {
 
     public void startOrderer(String networkName, OrdererEntity orderer) throws Exception {
         // 获取网络的创世区块
-        File sysChannelGenesisBlock = SimpleFileUtils.createTempFile("block");
+        File sysChannelGenesisBlock = MyFileUtils.createTempFile("block");
         ttpNetworkApi.queryGenesisBlock(networkName, sysChannelGenesisBlock);
         startOrderer(networkName, orderer, sysChannelGenesisBlock);
     }

@@ -1,6 +1,6 @@
 package com.anhui.fabricbaasorg.util;
 
-import com.anhui.fabricbaascommon.util.SimpleFileUtils;
+import com.anhui.fabricbaascommon.util.MyFileUtils;
 import com.anhui.fabricbaasorg.entity.OrdererEntity;
 import com.anhui.fabricbaasorg.entity.PeerEntity;
 import org.apache.commons.io.FileUtils;
@@ -96,10 +96,10 @@ public class FabricYamlUtils {
     }
 
     public static File getOrdererYaml(String ordererName) {
-        return new File(String.format("%s/kubernetes/orderer/%s.yaml", SimpleFileUtils.getWorkingDir(), ordererName));
+        return new File(String.format("%s/kubernetes/orderer/%s.yaml", MyFileUtils.getWorkingDir(), ordererName));
     }
 
     public static File getPeerYaml(String peerName) {
-        return new File(String.format("%s/kubernetes/peer/%s.yaml", SimpleFileUtils.getWorkingDir(), peerName));
+        return new File(String.format("%s/kubernetes/peer/%s.yaml", MyFileUtils.getWorkingDir(), peerName));
     }
 }
