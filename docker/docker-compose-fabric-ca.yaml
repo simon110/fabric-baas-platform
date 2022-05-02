@@ -2,6 +2,7 @@ version: '3.7'
 
 services:
   fabric-baas-platform-ca:
+    user: ${UID}:${GID}
     container_name: fabric-baas-platform-ca
     restart: always
     image: hyperledger/fabric-ca:1.4.10
