@@ -15,7 +15,7 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: aDqKVcITnoVYwhzA
 
   ttp-mongo-express:
-    container_name: fabric-baas-platform-mongo-express
+    # container_name: fabric-baas-platform-mongo-express
     image: mongo-express:1.0.0-alpha
     restart: always
     depends_on:
