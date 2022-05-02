@@ -27,7 +27,6 @@ import java.util.Optional;
 public class CaClientService {
     private final static File FABRIC_CA_ROOT_CERTFILE_DIR = new File(MyFileUtils.getWorkingDir() + "/fabric/root");
     private final static File FABRIC_CA_SERVER_CERT = new File(MyFileUtils.getWorkingDir() + "/docker/fabric-ca/tls-cert.pem");
-    private final static String FABRIC_CA_SERVER_ADDR = "localhost:7054";
 
     @Autowired
     private CertfileRepo certfileRepo;
@@ -50,7 +49,8 @@ public class CaClientService {
 
     public void enroll(File targetCertfileDir, String username, List<String> csrHosts) throws CertfileException, CaException, IOException, InterruptedException {
         CertfileEntity certfile = findCertfileOrThrowEx(username);
-        CaUtils.enroll(targetCertfileDir, FABRIC_CA_SERVER_CERT, getCaName(), FABRIC_CA_SERVER_ADDR, certfile, csrHosts);
+        String caServerAddr = "localhost:" + fabricConfig.getCaServerPort();
+        CaUtils.enroll(targetCertfileDir, FABRIC_CA_SERVER_CERT, getCaName(), caServerAddr, certfile, csrHosts);
     }
 
 
@@ -81,15 +81,15 @@ public class CaClientService {
     public String getCaName() throws CaException {
         return getCaOrganizationName() + "CA";
     }
-
-
+    
     public void initRootCertfile(CsrConfig csrConfig) throws IOException, InterruptedException, CaException {
         boolean mkdirs = FABRIC_CA_ROOT_CERTFILE_DIR.mkdirs();
         CertfileEntity rootCertfile = new CertfileEntity();
         rootCertfile.setCaUsername(fabricConfig.getRootCaUsername());
         rootCertfile.setCaPassword(fabricConfig.getRootCaPassword());
         rootCertfile.setCaUsertype(CertfileType.ADMIN);
-        CaUtils.enroll(FABRIC_CA_ROOT_CERTFILE_DIR, FABRIC_CA_SERVER_CERT, csrConfig.getCaName(), FABRIC_CA_SERVER_ADDR, rootCertfile, csrConfig.getCsrHosts());
+        String caServerAddr = "localhost:" + fabricConfig.getCaServerPort();
+        CaUtils.enroll(FABRIC_CA_ROOT_CERTFILE_DIR, FABRIC_CA_SERVER_CERT, csrConfig.getCaName(), caServerAddr, rootCertfile, csrConfig.getCsrHosts());
         log.info("CA服务管理员证书初始化成功");
     }
 

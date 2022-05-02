@@ -1,6 +1,7 @@
 package com.anhui.fabricbaascommon.service;
 
 import com.anhui.fabricbaascommon.bean.CsrConfig;
+import com.anhui.fabricbaascommon.configuration.FabricConfiguration;
 import com.anhui.fabricbaascommon.function.ThrowableSupplier;
 import com.anhui.fabricbaascommon.util.CommandUtils;
 import com.anhui.fabricbaascommon.util.MyFileUtils;
@@ -11,6 +12,7 @@ import com.spotify.docker.client.exceptions.DockerException;
 import com.spotify.docker.client.messages.Container;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -27,11 +29,10 @@ public class CaContainerService {
     private final static File FABRIC_CA_SERVER_CONFIG = new File(MyFileUtils.getWorkingDir() + "/docker/fabric-ca/fabric-ca-server-config.yaml");
     private final static File FABRIC_CA_SERVER_TLSCERT = new File(MyFileUtils.getWorkingDir() + "/docker/fabric-ca/tls-cert.pem");
 
-    private final DockerClient dockerClient;
-
-    public CaContainerService(DockerClient dockerClient) {
-        this.dockerClient = dockerClient;
-    }
+    @Autowired
+    private DockerClient dockerClient;
+    @Autowired
+    private FabricConfiguration fabricConfig;
 
     /**
      * @return 当前服务器是否存在已经启动的CA服务容器
@@ -42,10 +43,11 @@ public class CaContainerService {
         // 以下代码可以获取所有容器
         List<Container> containers = dockerClient.listContainers(DockerClient.ListContainersParam.allContainers());
         boolean result = false;
+        String containerPort = Integer.toString(fabricConfig.getCaServerPort());
         for (int i = 0; i < containers.size() && !result; i++) {
             Container container = containers.get(i);
             String image = container.image();
-            result = image.contains("hyperledger/fabric-ca") && container.portsAsString().contains("7054");
+            result = image.contains("hyperledger/fabric-ca") && container.portsAsString().contains(containerPort);
         }
         return result;
     }
@@ -75,8 +77,14 @@ public class CaContainerService {
             String var = environmentVars.get(i);
             if (var.startsWith("FABRIC_CA_SERVER_CA_NAME=")) {
                 environmentVars.set(i, "FABRIC_CA_SERVER_CA_NAME=" + csrConfig.getCaName());
+            } else if (var.startsWith("FABRIC_CA_SERVER_PORT=")) {
+                environmentVars.set(i, "FABRIC_CA_SERVER_PORT=" + fabricConfig.getCaServerPort());
             }
         }
+        List<String> ports = (List<String>) container.get("ports");
+        assert ports.size() == 1;
+        ports.clear();
+        ports.add(fabricConfig.getCaServerPort() + ":7054");
         String dockerCommand = String.format("sh -c 'fabric-ca-server start -b %s:%s -d'", adminUsername, adminPassword);
         container.put("command", dockerCommand);
         String dockerComposeContent = YamlUtils.save(dockerComposeYaml, FABRIC_CA_DOCKER_COMPOSE);

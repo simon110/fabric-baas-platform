@@ -24,6 +24,7 @@ public class FabricConfiguration {
     private String systemChannelName;
     private String rootCaUsername;
     private String rootCaPassword;
+    private int caServerPort;
 
     @Autowired
     private CertfileRepo certfileRepo;
