@@ -1,7 +1,9 @@
 package com.anhui.fabricbaasorg.service;
 
+import com.anhui.fabricbaascommon.function.ThrowableSupplier;
 import com.anhui.fabricbaascommon.util.CertfileUtils;
 import com.anhui.fabricbaascommon.util.SimpleFileUtils;
+import com.anhui.fabricbaascommon.util.WatcherUtils;
 import com.anhui.fabricbaasorg.entity.OrdererEntity;
 import com.anhui.fabricbaasorg.entity.PeerEntity;
 import com.anhui.fabricbaasorg.exception.KubernetesException;
@@ -22,7 +24,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 @Slf4j
 @Service
@@ -61,9 +63,7 @@ public class KubernetesService {
     }
 
     private void waitFor(String podName, int sleepMs, int timeoutMs) throws InterruptedException, KubernetesException {
-        while (timeoutMs > 0) {
-            TimeUnit.MILLISECONDS.sleep(sleepMs);
-            timeoutMs -= sleepMs;
+        ThrowableSupplier<Boolean, Exception> supplier = () -> {
             List<Pod> pods = kubernetesClient.findPodsByKeyword(podName);
             if (pods.isEmpty()) {
                 throw new KubernetesException("未找到相应名称的Pod：" + podName);
@@ -79,12 +79,15 @@ public class KubernetesService {
                         isAllContainersReady = false;
                     }
                 }
-                if (isAllContainersReady) {
-                    return;
-                }
+                return isAllContainersReady;
             }
+            return false;
+        };
+        try {
+            WatcherUtils.waitFor(supplier, sleepMs, timeoutMs);
+        } catch (Exception e) {
+            throw new KubernetesException("等待Pod内的容器启动超时：" + podName);
         }
-        throw new KubernetesException("等待Pod内的容器启动超时：" + podName);
     }
 
     public void assertDeploymentNameAvailable(String name) throws KubernetesException {

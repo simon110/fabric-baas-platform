@@ -1,8 +1,10 @@
 package com.anhui.fabricbaascommon.service;
 
 import com.anhui.fabricbaascommon.bean.CsrConfig;
+import com.anhui.fabricbaascommon.function.ThrowableSupplier;
 import com.anhui.fabricbaascommon.util.CommandUtils;
 import com.anhui.fabricbaascommon.util.SimpleFileUtils;
+import com.anhui.fabricbaascommon.util.WatcherUtils;
 import com.anhui.fabricbaascommon.util.YamlUtils;
 import com.spotify.docker.client.DockerClient;
 import com.spotify.docker.client.exceptions.DockerException;
@@ -17,7 +19,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
@@ -30,15 +31,6 @@ public class CaContainerService {
 
     public CaContainerService(DockerClient dockerClient) {
         this.dockerClient = dockerClient;
-    }
-
-    private static boolean waitFor(File file, int sleepMs, int timeoutMs) throws InterruptedException {
-        int time = 0;
-        while (!file.exists() && time < timeoutMs) {
-            TimeUnit.MILLISECONDS.sleep(sleepMs);
-            time += sleepMs;
-        }
-        return file.exists();
     }
 
     /**
@@ -131,8 +123,10 @@ public class CaContainerService {
         CommandUtils.exec(envs, "docker-compose", "-f", FABRIC_CA_DOCKER_COMPOSE.getAbsolutePath(), "up", "-d");
 
         // 检查是否启动成功（通过判断tls-cert.pem是否生成）
-        if (!waitFor(FABRIC_CA_SERVER_TLSCERT, 100, 2000)) {
-            // 如果启动失败则删除容器并抛出异常
+        try {
+            ThrowableSupplier<Boolean, Exception> supplier = FABRIC_CA_SERVER_TLSCERT::exists;
+            WatcherUtils.waitFor(supplier, 100, 2000);
+        } catch (Exception e) {
             log.info("CA服务启动失败，即将清除容器");
             cleanCaContainer();
             throw new DockerException("CA服务容器启动失败");
