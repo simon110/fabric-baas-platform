@@ -61,7 +61,7 @@ public class KubernetesService {
         return nodeNames;
     }
 
-    private void waitFor(String podName, int sleepMs, int timeoutMs) throws InterruptedException, KubernetesException {
+    private void waitFor(String podName, int sleepMs, int timeoutMs) throws KubernetesException {
         ThrowableSupplier<Boolean, Exception> supplier = () -> {
             List<Pod> pods = kubernetesClient.findPodsByKeyword(podName);
             if (pods.isEmpty()) {
@@ -71,12 +71,13 @@ public class KubernetesService {
             PodStatus podStatus = pods.get(0).getStatus();
             if ("Running".equals(podStatus.getPhase())) {
                 List<ContainerStatus> containerStatuses = podStatus.getContainerStatuses();
+                if (containerStatuses.isEmpty()) {
+                    return false;
+                }
                 boolean isAllContainersReady = true;
                 for (int i = 0; i < containerStatuses.size() && isAllContainersReady; i++) {
                     ContainerStatus status = containerStatuses.get(i);
-                    if (Boolean.FALSE.equals(status.getReady())) {
-                        isAllContainersReady = false;
-                    }
+                    isAllContainersReady = status.getReady();
                 }
                 return isAllContainersReady;
             }
@@ -119,11 +120,11 @@ public class KubernetesService {
             kubernetesClient.applyYaml(peerYaml);
 
             List<Pod> podList = kubernetesClient.findPodsByKeyword(peer.getName());
-
             assert podList.size() == 1;
             Pod pod = podList.get(0);
             String podName = pod.getMetadata().getName();
             waitFor(podName, 3000, 30000);
+            pod = kubernetesClient.findPodsByKeyword(podName).get(0);
             List<ContainerStatus> containerStatuses = pod.getStatus().getContainerStatuses();
             String containerName = null;
             for (int i = 0; i < containerStatuses.size() && containerName == null; i++) {
@@ -176,20 +177,21 @@ public class KubernetesService {
         peerRepo.deleteById(peerName);
     }
 
-    public void applyOrdererYaml(String ttpOrgName, OrdererEntity orderer, File ordererCertfileDir, File genesisBlock) throws Exception {
+    public void applyOrdererYaml(String ordererOrganizationName, OrdererEntity orderer, File ordererCertfileDir, File genesisBlock) throws Exception {
         CertfileUtils.assertCertfile(ordererCertfileDir);
         assertAdminConfig();
         File ordererYaml = FabricYamlUtils.getOrdererYaml(orderer.getName());
-        FabricYamlUtils.generateOrdererYaml(ttpOrgName, orderer, ordererYaml);
+        FabricYamlUtils.generateOrdererYaml(ordererOrganizationName, orderer, ordererYaml);
         try {
             kubernetesClient.applyYaml(ordererYaml);
 
-            // 等待容器启动完成
+            // 等待容器启动完成（Pod需要在等待结束后被刷新一次）
             List<Pod> podList = kubernetesClient.findPodsByKeyword(orderer.getName());
             assert podList.size() == 1;
             Pod pod = podList.get(0);
             String podName = pod.getMetadata().getName();
             waitFor(podName, 5000, 60000);
+            pod = kubernetesClient.findPodsByKeyword(podName).get(0);
             List<ContainerStatus> containerStatuses = pod.getStatus().getContainerStatuses();
             String containerName = containerStatuses.get(0).getName();
 
@@ -206,7 +208,7 @@ public class KubernetesService {
         }
     }
 
-    public void startOrderer(String ttpOrgName, OrdererEntity orderer, File ordererCertfileDir, File genesisBlock) throws Exception {
+    public void startOrderer(String ordererOrganizationName, OrdererEntity orderer, File ordererCertfileDir, File genesisBlock) throws Exception {
         // 检查端口是否冲突
         assertNodePortAvailable(orderer.getKubeNodePort());
         // 检查Orderer是否已经存在
@@ -214,7 +216,7 @@ public class KubernetesService {
         // 检查物理主机是否存在
         assertNodeExists(orderer.getKubeNodeName());
 
-        applyOrdererYaml(ttpOrgName, orderer, ordererCertfileDir, genesisBlock);
+        applyOrdererYaml(ordererOrganizationName, orderer, ordererCertfileDir, genesisBlock);
         log.info("保存Orderer信息：" + orderer);
         ordererRepo.save(orderer);
     }

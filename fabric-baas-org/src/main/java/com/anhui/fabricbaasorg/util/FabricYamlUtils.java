@@ -67,7 +67,6 @@ public class FabricYamlUtils {
     public static void generateOrdererYaml(String organizationName, OrdererEntity orderer, File output) throws IOException {
         String templatePath = "fabric/template/fabric-orderer.yaml";
         String config = FileUtils.readFileToString(new File(templatePath), StandardCharsets.UTF_8);
-        // TODO: 替换模板中的OrdererMSP
         String[][] replacements = new String[][]{
                 {"orderer-example-com", orderer.getName().toLowerCase()},
                 {"OrdererMSP", organizationName},

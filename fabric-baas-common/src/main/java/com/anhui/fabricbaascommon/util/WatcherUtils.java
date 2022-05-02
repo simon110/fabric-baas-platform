@@ -10,7 +10,7 @@ public class WatcherUtils {
         while (timeoutMs > 0) {
             TimeUnit.MILLISECONDS.sleep(sleepMs);
             timeoutMs -= sleepMs;
-            if (supplier.get() == Boolean.TRUE) {
+            if (supplier.get()) {
                 return;
             }
         }
