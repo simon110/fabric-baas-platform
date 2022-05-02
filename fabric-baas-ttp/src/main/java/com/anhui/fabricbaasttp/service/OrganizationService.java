@@ -129,12 +129,6 @@ public class OrganizationService {
         }
 
         if (isAllowed) {
-            try {
-                mailService.send(registration.getEmail(), "注册申请处理结果", "通过");
-            } catch (MailException e) {
-                log.warn("发送邮件失败：" + registration.getEmail());
-            }
-
             registration.setStatus(ApplStatus.ACCEPTED);
             assert !organizationRepo.existsById(organizationName);
             assert !userRepo.existsById(organizationName);
@@ -153,15 +147,17 @@ public class OrganizationService {
             userRepo.save(user);
             log.info("生成账户信息：" + user);
         } else {
-            try {
-                mailService.send(registration.getEmail(), "Fabric BaaS Platform 注册申请处理结果", "拒绝");
-            } catch (MailException e) {
-                log.warn("发送邮件失败：" + registration.getEmail());
-            }
             registration.setStatus(ApplStatus.REJECTED);
         }
         registrationRepo.save(registration);
         log.info("更新注册信息：" + registration);
+
+        try {
+            String messageText = isAllowed ? "组织申请加入Fabric BaaS平台的申请已通过" : "组织申请加入Fabric BaaS平台的申请被拒绝";
+            mailService.send(registration.getEmail(), "Fabric BaaS Platform 注册申请处理结果", messageText);
+        } catch (MailException e) {
+            log.warn("发送邮件失败：" + registration.getEmail());
+        }
     }
 
     public Page<RegistrationEntity> queryRegistrations(int status, int page, int pageSize) {
