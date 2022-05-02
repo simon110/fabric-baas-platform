@@ -65,6 +65,7 @@ public class NetworkService {
     }
 
     public void addOrderer(String networkName, int ordererPort) throws Exception {
+        kubernetesService.assertNodePortAvailable(ordererPort);
         // 获取集群域名
         String domain = caClientService.getCaOrganizationDomain();
         Node orderer = new Node(domain, ordererPort);

@@ -186,8 +186,9 @@ public class ChannelService {
     public CoreEnv fetchChannelGenesis(ChannelEntity channel, File genesis) throws NetworkException, IOException, InterruptedException, ChannelException, CaException {
         // 随机选择一个Orderer
         List<Orderer> orderers = networkService.getNetworkOrderers(channel.getNetworkName());
-        Orderer orderer = RandomUtils.select(orderers);
-        log.info("随机选择Orderer节点：" + orderer);
+        // Orderer orderer = RandomUtils.select(orderers);
+        Orderer orderer = orderers.get(0);
+        log.info("选择Orderer节点：" + orderer);
 
         // 拉取通道的启动区块
         CoreEnv ordererCoreEnv = fabricEnvService.buildOrdererCoreEnv(orderer);
@@ -334,8 +335,10 @@ public class ChannelService {
         assertPeerOwnership(channel, peer, currentOrganizationName);
 
         // 从通道中随机选择一个Orderer
-        Orderer orderer = RandomUtils.select(networkService.getNetworkOrderers(channel.getNetworkName()));
-        log.info("随机选择Orderer节点：" + orderer);
+        List<Orderer> networkOrderers = networkService.getNetworkOrderers(channel.getNetworkName());
+        // Orderer orderer = RandomUtils.select(networkOrderers);
+        Orderer orderer = networkOrderers.get(0);
+        log.info("选择Orderer节点：" + orderer);
 
         // 拉取指定通道的配置
         File oldChannelConfig = MyFileUtils.createTempFile("json");

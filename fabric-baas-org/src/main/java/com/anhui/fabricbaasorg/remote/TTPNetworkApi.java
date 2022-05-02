@@ -103,7 +103,7 @@ public class TTPNetworkApi {
      *
      * @param networkName      指定网络名称
      * @param organizationName 允许或拒绝加入网络的组织名称
-     * @param isAllowed       是否同意
+     * @param isAllowed        是否同意
      * @throws Exception 返回请求中任何code!=200的情况都应该抛出异常
      */
     public void handleParticipation(String networkName, String organizationName, boolean isAllowed) throws Exception {
@@ -182,5 +182,12 @@ public class TTPNetworkApi {
         data.set("networkName", networkName);
         JSONObject response = httpClient.request("/api/v1/network/queryOrderers", data);
         return JSONUtil.toList(response.getJSONArray("items"), NetworkOrderer.class);
+    }
+
+    public List<String> queryOrganizations(String networkName) throws Exception {
+        JSONObject data = new JSONObject();
+        data.set("networkName", networkName);
+        JSONObject response = httpClient.request("/api/v1/network/queryOrganizations", data);
+        return JSONUtil.toList(response.getJSONArray("items"), String.class);
     }
 }

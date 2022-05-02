@@ -111,8 +111,9 @@ public class NetworkService {
     }
 
     public CoreEnv fetchSystemChannelConfig(NetworkEntity network, File config) throws CaException, IOException, InterruptedException, ChannelException {
-        Orderer orderer = RandomUtils.select(network.getOrderers());
-        log.info("随机从网络中选择了Orderer：" + orderer.getAddr());
+        // Orderer orderer = RandomUtils.select(network.getOrderers());
+        Orderer orderer = network.getOrderers().get(0);
+        log.info("从网络中选择了Orderer：" + orderer.getAddr());
         CoreEnv ordererCoreEnv = fabricEnvService.buildOrdererCoreEnv(orderer);
         log.info("生成Orderer的环境变量：" + ordererCoreEnv);
         ChannelUtils.fetchConfig(ordererCoreEnv, fabricConfig.getSystemChannelName(), config);
