@@ -10,6 +10,7 @@ import com.anhui.fabricbaascommon.util.CertfileUtils;
 import com.anhui.fabricbaasorg.entity.PeerEntity;
 import com.anhui.fabricbaasorg.exception.KubernetesException;
 import com.anhui.fabricbaasorg.repository.PeerRepo;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -19,6 +20,8 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.util.List;
 
+
+@Slf4j
 @Service
 public class PeerService {
     @Autowired
@@ -54,6 +57,10 @@ public class PeerService {
 
         // 启动Peer节点
         kubernetesService.startPeer(caEntity.getOrganizationName(), peer, domain, peerCertfileDir);
+    }
+
+    public void stopPeer(String peerName) throws Exception {
+        kubernetesService.stopPeer(peerName);
     }
 
     public Page<PeerEntity> queryPeersInCluster(int page, int pageSize) {

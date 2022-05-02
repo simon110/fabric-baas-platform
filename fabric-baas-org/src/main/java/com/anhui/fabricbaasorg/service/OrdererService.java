@@ -10,6 +10,7 @@ import com.anhui.fabricbaasorg.entity.OrdererEntity;
 import com.anhui.fabricbaasorg.remote.TTPNetworkApi;
 import com.anhui.fabricbaasorg.remote.TTPOrganizationApi;
 import com.anhui.fabricbaasorg.repository.OrdererRepo;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.File;
 
+@Slf4j
 @Service
 public class OrdererService {
     @Autowired
@@ -55,10 +57,12 @@ public class OrdererService {
         startOrderer(networkName, orderer, sysChannelGenesisBlock);
     }
 
+    public void stopOrderer(String ordererName) throws Exception {
+        kubernetesService.stopOrderer(ordererName);
+    }
+
     public Page<OrdererEntity> queryOrderersInCluster(int page, int pageSize) {
         Pageable pageable = PageRequest.of(page - 1, pageSize);
         return ordererRepo.findAll(pageable);
     }
-
-
 }
