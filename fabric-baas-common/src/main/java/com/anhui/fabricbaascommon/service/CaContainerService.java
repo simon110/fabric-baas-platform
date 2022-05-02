@@ -77,8 +77,6 @@ public class CaContainerService {
             String var = environmentVars.get(i);
             if (var.startsWith("FABRIC_CA_SERVER_CA_NAME=")) {
                 environmentVars.set(i, "FABRIC_CA_SERVER_CA_NAME=" + csrConfig.getCaName());
-            } else if (var.startsWith("FABRIC_CA_SERVER_PORT=")) {
-                environmentVars.set(i, "FABRIC_CA_SERVER_PORT=" + fabricConfig.getCaServerPort());
             }
         }
         List<String> ports = (List<String>) container.get("ports");
