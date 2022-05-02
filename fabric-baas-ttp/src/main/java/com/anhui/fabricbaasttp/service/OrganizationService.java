@@ -22,6 +22,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.mail.MailException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -128,7 +129,11 @@ public class OrganizationService {
         }
 
         if (isAllowed) {
-            mailService.send(registration.getEmail(), "注册申请处理结果", "通过");
+            try {
+                mailService.send(registration.getEmail(), "注册申请处理结果", "通过");
+            } catch (MailException e) {
+                log.warn("发送邮件失败：" + registration.getEmail());
+            }
 
             registration.setStatus(ApplStatus.ACCEPTED);
             assert !organizationRepo.existsById(organizationName);
@@ -148,7 +153,11 @@ public class OrganizationService {
             userRepo.save(user);
             log.info("生成账户信息：" + user);
         } else {
-            mailService.send(registration.getEmail(), "Fabric BaaS Platform 注册申请处理结果", "拒绝");
+            try {
+                mailService.send(registration.getEmail(), "Fabric BaaS Platform 注册申请处理结果", "拒绝");
+            } catch (MailException e) {
+                log.warn("发送邮件失败：" + registration.getEmail());
+            }
             registration.setStatus(ApplStatus.REJECTED);
         }
         registrationRepo.save(registration);
