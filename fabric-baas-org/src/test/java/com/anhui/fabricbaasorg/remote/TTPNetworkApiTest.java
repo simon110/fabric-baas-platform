@@ -1,7 +1,9 @@
 package com.anhui.fabricbaasorg.remote;
 
 import com.anhui.fabricbaascommon.bean.Node;
+import com.anhui.fabricbaascommon.util.MyFileUtils;
 import com.anhui.fabricbaasorg.bean.NetworkOrderer;
+import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -10,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
@@ -37,12 +40,12 @@ class TTPNetworkApiTest {
                 new Node("orga.example.com", 30501)
         );
 
-//        File adminCertZip = new File("example/fabric/TestOrgA/root.zip");
-//        File sysChannelGenesisBlock = SimpleFileUtils.createTempFile("block");
-//        ttpNetworkApi.createNetwork("FirstNetwork", "FirstConsortium", orderers, adminCertZip, sysChannelGenesisBlock);
-//        Assertions.assertTrue(sysChannelGenesisBlock.exists());
-//        System.out.println(FileUtils.readFileToByteArray(sysChannelGenesisBlock).length);
-//        FileUtils.deleteQuietly(sysChannelGenesisBlock);
+        File adminCertZip = new File("example/fabric/TestOrgA/root.zip");
+        File sysChannelGenesisBlock = MyFileUtils.createTempFile("block");
+        ttpNetworkApi.createNetwork("FirstNetwork", "FirstConsortium", orderers, adminCertZip, sysChannelGenesisBlock);
+        Assertions.assertTrue(sysChannelGenesisBlock.exists());
+        System.out.println(FileUtils.readFileToByteArray(sysChannelGenesisBlock).length);
+        FileUtils.deleteQuietly(sysChannelGenesisBlock);
 
         List<NetworkOrderer> networkOrderers = ttpNetworkApi.queryOrderers("FirstNetwork");
         Assertions.assertEquals(orderers.size(), networkOrderers.size());

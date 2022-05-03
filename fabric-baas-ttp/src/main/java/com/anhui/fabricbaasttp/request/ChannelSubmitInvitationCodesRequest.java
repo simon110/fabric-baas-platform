@@ -6,6 +6,7 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import java.util.List;
 
@@ -13,6 +14,7 @@ import java.util.List;
 @Data
 @ApiModel(value = "提交邀请码加入通道请求")
 public class ChannelSubmitInvitationCodesRequest extends BaseChannelRequest {
+    @Valid
     @NotEmpty
     @ApiModelProperty(value = "邀请信息（通道中所有组织的）", required = true)
     private List<String> invitationCodes;

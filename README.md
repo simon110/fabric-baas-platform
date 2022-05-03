@@ -1111,3 +1111,46 @@ token用于身份验证，需要将其设置为Http请求Header的`Authorization
 eyJhbGciOiJSUzI1NiIsImtpZCI6IndnQVpfTGR0d1pOSHd0V3Nsc1FJRUE5UmhGektzYjRUcHRnYVJ1cmtFUDgifQ.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJrdWJlLXN5c3RlbSIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VjcmV0Lm5hbWUiOiJkYXNoYm9hcmQtYWRtaW4tdG9rZW4tMnp3bHEiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC5uYW1lIjoiZGFzaGJvYXJkLWFkbWluIiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZXJ2aWNlLWFjY291bnQudWlkIjoiMmU5NDUzNTItNWRmMC00YWExLTk2MTUtYTIxZTI4MTNiN2NkIiwic3ViIjoic3lzdGVtOnNlcnZpY2VhY2NvdW50Omt1YmUtc3lzdGVtOmRhc2hib2FyZC1hZG1pbiJ9.WM45cxmV4B9hYc2VKle8tnfu7ibceWLKub-El9EqkhtuMMQkD9pi-ohJcmZnavljxsLBdPP6_heBVmV8mpFMgfl6GWKyCsxUr-VdPyjAQ3Ktq3-aa2Ix6maV4TWerER-UUXSZpE9eK4akJRicdni7WsmJqjOgPUK-ywzJMjyYYrAj60CC4cP_lpm0iTsfnLC0YjewWiIaV1Y8zsMzTMsejJY0zNflzkghNUjloDyXTfL6efFHTPM0WtkGiLw18h6Rd-DO8QqSptZ4hejasLuAKLpLAneiBfc244NOZ9UtR6JAmBQLFpLeJjc9APIrihpXFYfeeflEic-cHZhloUn9A
 ```
 
+
+
+### 3.2 申请加入网络
+
+该接口直接将请求转发到TTP端，此处我们假设TestOrgB向TTP申请加入上面创建的`HaloNetwork`，调用`/api/v1/network/applyParticipation`接口即可，该接口会自动将当前组织端的证书打包上传：
+
+```json
+{
+  "description": "This is TestOrgB trying to take part in HaloNetwork",
+  "networkName": "HaloNetwork"
+}
+```
+
+
+
+### 3.3 查询加入网络申请
+
+在组织端可以通过`/api/v1/network/queryParticipations`来查询特定网络加入组织的申请：
+
+```json
+{
+  "networkName": "HaloNetwork",
+  "page": 1,
+  "pageSize": 10,
+  "status": 0
+}
+```
+
+
+
+### 3.4 同意加入网络申请
+
+在其他组织提交了加入网络的申请后，TestOrgA可以通过`/api/v1/network/handleParticipation`来处理其他组织的申请，例如：
+
+```json
+{
+  "accepted": true,
+  "networkName": "HaloNetwork",
+  "organizationName": "TestOrgB"
+}
+```
+
+需要所有在`HaloNetwork`中的组织同意。
