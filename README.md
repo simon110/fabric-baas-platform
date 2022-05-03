@@ -42,7 +42,7 @@ token用于身份验证，需要将其设置为Http请求Header的`Authorization
   "adminPassword": "12345678",
   "ttp": {
     "countryCode": "CN",
-    "domain": "ttp.example.com",
+    "domain": "anhui.example.com",
     "locality": "Guilin",
     "organizationName": "GXNU",
     "stateOrProvince": "Guangxi"
