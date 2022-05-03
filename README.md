@@ -1425,7 +1425,7 @@ CouchDB的用户密码为自定义，每个Peer维护一个独立的CouchDB。�
 
 ```json
 {
-  "channelName": "string",
+  "channelName": "halochannel",
   "invitationCodes": [
     "iuvvlFfBnaJhW2ZQAAe7kNhrDAfPreeIuPqudl5Y1JrE5/tRdp1g4TS3M+/4xAayJGlR/GlHCkRyJ3adBxwqYQ=="
   ]
