@@ -1086,8 +1086,8 @@ token用于身份验证，需要将其设置为Http请求Header的`Authorization
 
 ```json
 {
-  "consortiumName": "TestConsortium",
-  "networkName": "TestNetwork",
+  "consortiumName": "SampleConsortium",
+  "networkName": "SampleNetwork",
   "orderers": [
     {
       "kubeNodeName": "kubenode1",
@@ -1104,3 +1104,10 @@ token用于身份验证，需要将其设置为Http请求Header的`Authorization
 ```
 
 该接口会自动从TTP端下载创世区块和Orderer证书，并将Orderer部署到指定的节点上。kubeNodeName为集群中任意非Master节点的名称，kubeNodePort为Orderer节点与外部通信的接口。外界访问本组织的地址为初始化系统时填入的domain加上kubeNodePort，例如此处访问TestOrgAOrderer0的地址为`orga.example.com:30500`。
+
+如果确认集群中是否已经成功部署Orderer可以访问 https://172.18.118.185:30000/#/login 后进行确认，登录Token为：
+
+```
+eyJhbGciOiJSUzI1NiIsImtpZCI6IndnQVpfTGR0d1pOSHd0V3Nsc1FJRUE5UmhGektzYjRUcHRnYVJ1cmtFUDgifQ.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJrdWJlLXN5c3RlbSIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VjcmV0Lm5hbWUiOiJkYXNoYm9hcmQtYWRtaW4tdG9rZW4tMnp3bHEiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC5uYW1lIjoiZGFzaGJvYXJkLWFkbWluIiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZXJ2aWNlLWFjY291bnQudWlkIjoiMmU5NDUzNTItNWRmMC00YWExLTk2MTUtYTIxZTI4MTNiN2NkIiwic3ViIjoic3lzdGVtOnNlcnZpY2VhY2NvdW50Omt1YmUtc3lzdGVtOmRhc2hib2FyZC1hZG1pbiJ9.WM45cxmV4B9hYc2VKle8tnfu7ibceWLKub-El9EqkhtuMMQkD9pi-ohJcmZnavljxsLBdPP6_heBVmV8mpFMgfl6GWKyCsxUr-VdPyjAQ3Ktq3-aa2Ix6maV4TWerER-UUXSZpE9eK4akJRicdni7WsmJqjOgPUK-ywzJMjyYYrAj60CC4cP_lpm0iTsfnLC0YjewWiIaV1Y8zsMzTMsejJY0zNflzkghNUjloDyXTfL6efFHTPM0WtkGiLw18h6Rd-DO8QqSptZ4hejasLuAKLpLAneiBfc244NOZ9UtR6JAmBQLFpLeJjc9APIrihpXFYfeeflEic-cHZhloUn9A
+```
+

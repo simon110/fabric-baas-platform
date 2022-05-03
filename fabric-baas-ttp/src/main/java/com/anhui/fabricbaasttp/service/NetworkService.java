@@ -321,7 +321,11 @@ public class NetworkService {
             // 账户密码例如13473cf3bc515bccbb81fa235ed33ff9
             String caUsername = IdentifierGenerator.generateOrdererId(networkName, orderer);
             String caPassword = PasswordUtils.generate();
-            caClientService.register(caUsername, caPassword, CertfileType.ORDERER);
+            try {
+                caClientService.register(caUsername, caPassword, CertfileType.ORDERER);
+            } catch (Exception e) {
+                log.warn("Orderer证书已注册：" + caUsername);
+            }
 
             List<String> csrHosts = CaUtils.buildCsrHosts(orderer.getHost());
             File ordererCertfileDir = MyFileUtils.createTempDir();
