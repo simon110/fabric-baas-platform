@@ -1287,7 +1287,7 @@ eyJhbGciOiJSUzI1NiIsImtpZCI6IndnQVpfTGR0d1pOSHd0V3Nsc1FJRUE5UmhGektzYjRUcHRnYVJ1
 
 ### 4.1 创建通道
 
-在没有启动Peer的情况下，可以先通过`/api/v1/channel/create`创建一个新的通道，一个通道只属于一个网络，每个网络可以包含多个通道。注意通道名只能包含小写字母和数字，且以小写字母开头，例如：
+在没有启动Peer的情况下，可以先通过`/api/v1/channel/create`创建一个新的通道，一个通道只属于一个网络，每个网络可以包含多个通道，通道创建时只包含创建组织。注意通道名只能包含小写字母和数字，且以小写字母开头，例如：
 
 ```json
 {
@@ -1391,6 +1391,59 @@ CouchDB的用户密码为自定义，每个Peer维护一个独立的CouchDB。�
       }
     ]
   }
+}
+```
+
+
+
+### 4.6 生成邀请码
+
+通过`/api/v1/channel/generateInvitationCode`可以生成邀请特定组织进入通道的邀请码：
+
+```json
+{
+  "channelName": "halochannel",
+  "invitedOrganizationName": "TestOrgB"
+}
+```
+
+```json
+{
+  "code": 200,
+  "message": "成功调用服务",
+  "data": {
+    "result": "iuvvlFfBnaJhW2ZQAAe7kNhrDAfPreeIuPqudl5Y1JrE5/tRdp1g4TS3M+/4xAayJGlR/GlHCkRyJ3adBxwqYQ=="
+  }
+}
+```
+
+
+
+### 4.7 提交邀请码
+
+通过`/api/v1/channel/submitInvitationCodes`可以将从其他全部组织处获得的邀请码提交以加入特定的通道，例如被邀请的组织TestOrgB应提交：
+
+```json
+{
+  "channelName": "string",
+  "invitationCodes": [
+    "iuvvlFfBnaJhW2ZQAAe7kNhrDAfPreeIuPqudl5Y1JrE5/tRdp1g4TS3M+/4xAayJGlR/GlHCkRyJ3adBxwqYQ=="
+  ]
+}
+```
+
+
+
+
+
+### 4.8 设置锚节点
+
+已经加入通道的Peer可以通过`/api/v1/channel/updateAnchor`被设置为组织的锚节点（负责与其他组织通信）。注意，一个锚节点一旦被设置将永远是锚节点，但一个组织允许设置多个锚节点。
+
+```json
+{
+  "channelName": "halochannel",
+  "peerName": "TestOrgAPeer0"
 }
 ```
 
