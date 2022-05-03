@@ -48,9 +48,9 @@ public class ChannelController {
     }
 
     @Secured({Authority.ADMIN})
-    @PostMapping("/submitInvitations")
+    @PostMapping("/submitInvitationCodes")
     @ApiOperation("生成邀请信息")
-    public void submitInvitations(@Valid @RequestBody ChannelSubmitInvitationCodesRequest request) throws Exception {
+    public void submitInvitationCodes(@Valid @RequestBody ChannelSubmitInvitationCodesRequest request) throws Exception {
         ttpChannelApi.submitInvitationCodes(request.getChannelName(), request.getInvitationCodes());
     }
 
