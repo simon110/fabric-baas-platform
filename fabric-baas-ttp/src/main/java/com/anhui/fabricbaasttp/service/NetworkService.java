@@ -55,7 +55,7 @@ public class NetworkService {
     private ChannelRepo channelRepo;
 
     public void assertOrganizationInNetwork(NetworkEntity network, String organizationName, boolean expected) throws OrganizationException {
-        if (network.getOrganizationNames().contains(organizationName) == expected) {
+        if (network.getOrganizationNames().contains(organizationName) != expected) {
             throw new OrganizationException("组织在网络中的存在性不符合断言：" + organizationName);
         }
     }
