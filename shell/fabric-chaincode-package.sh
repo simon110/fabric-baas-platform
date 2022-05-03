@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# shellcheck disable=SC2155
+export FABRIC_CFG_PATH=$(pwd)
 export CHAINCODE_SRC_DIR=$1
 export CHAINCODE_LABEL=$2
 export CHAINCODE_PACKAGE_PATH=$3
