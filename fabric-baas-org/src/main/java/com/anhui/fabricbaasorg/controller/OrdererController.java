@@ -42,7 +42,7 @@ public class OrdererController {
 
     @Secured({Authority.ADMIN})
     @PostMapping("/queryOrderersInCluster")
-    @ApiOperation("获取组织所有的Orderer节点")
+    @ApiOperation("获取组织在集群里所有的Orderer节点")
     public PaginationQueryResult<OrdererEntity> queryOrderersInCluster(@Valid @RequestBody PaginationQueryRequest request) {
         Page<OrdererEntity> page = ordererService.queryOrderersInCluster(request.getPage(), request.getPageSize());
         return new PaginationQueryResult<>(page.getTotalPages(), page.getContent());
@@ -50,7 +50,7 @@ public class OrdererController {
 
     @Secured({Authority.ADMIN})
     @PostMapping("/queryOrderersInNetwork")
-    @ApiOperation("获取组织所有的Orderer节点")
+    @ApiOperation("获取组织在网络中所有的Orderer节点")
     public ListResult<NetworkOrderer> queryOrderersInNetwork(@Valid @RequestBody BaseNetworkRequest request) throws Exception {
         List<NetworkOrderer> orderers = ttpNetworkApi.queryOrderers(request.getNetworkName());
         return new ListResult<>(orderers);

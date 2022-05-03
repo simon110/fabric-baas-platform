@@ -41,16 +41,16 @@ public class PeerController {
 
     @Secured({Authority.ADMIN})
     @PostMapping("/queryPeersInCluster")
-    @ApiOperation("获取组织所有的Peer节点")
+    @ApiOperation("获取组织在集群里所有的Peer节点")
     public PaginationQueryResult<PeerEntity> queryPeersInCluster(@Valid @RequestBody PaginationQueryRequest request) {
         Page<PeerEntity> page = peerService.queryPeersInCluster(request.getPage(), request.getPageSize());
         return new PaginationQueryResult<>(page.getTotalPages(), page.getContent());
     }
 
     @Secured({Authority.ADMIN})
-    @PostMapping("/queryOrderersInNetwork")
-    @ApiOperation("获取组织所有的Orderer节点")
-    public ListResult<ChannelPeer> queryOrderersInNetwork(@Valid @RequestBody BaseChannelRequest request) throws Exception {
+    @PostMapping("/queryPeersInChannel")
+    @ApiOperation("获取组织在通道中所有的Peer节点")
+    public ListResult<ChannelPeer> queryPeersInChannel(@Valid @RequestBody BaseChannelRequest request) throws Exception {
         List<ChannelPeer> peers = ttpChannelApi.queryPeers(request.getChannelName());
         return new ListResult<>(peers);
     }

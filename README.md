@@ -917,6 +917,8 @@ token用于身份验证，需要将其设置为Http请求Header的`Authorization
 
 测试环境的集群包括172.18.118.183到172.18.118.186四个节点，集群DNS和所有测试机器的hosts中配置了四个相应可访问的虚拟域名，分别为`orga.example.com`、`orgb.example.com`、`orgc.example.com`、`orgd.example.com`。其他域名均不可访问，在初始化组织端域名的时候请选择这四个域名中的一个。
 
+集群的合法端口范围为[30000, 32767]，其中30000端口已经被Kubernetes Dashboard占用了。
+
 
 
 
@@ -1240,4 +1242,155 @@ eyJhbGciOiJSUzI1NiIsImtpZCI6IndnQVpfTGR0d1pOSHd0V3Nsc1FJRUE5UmhGektzYjRUcHRnYVJ1
 ```
 
 
+
+### 3.7 查询本地Orderer节点
+
+通过`/api/v1/orderer/queryOrderersInCluster`可以查询到指定当前组织的集群中所有的Orderer节点：
+
+```json
+{
+  "page": 1,
+  "pageSize": 10
+}
+```
+
+```json
+{
+  "code": 200,
+  "message": "成功调用服务",
+  "data": {
+    "totalPages": 1,
+    "items": [
+      {
+        "name": "TestOrgAOrderer0",
+        "kubeNodeName": "kubenode1",
+        "kubeNodePort": 30500
+      },
+      {
+        "name": "TestOrgAOrderer1",
+        "kubeNodeName": "kubenode2",
+        "kubeNodePort": 30501
+      },
+      {
+        "name": "TestOrgAOrderer2",
+        "kubeNodeName": "kubenode3",
+        "kubeNodePort": 30502
+      }
+    ]
+  }
+}
+```
+
+
+
+## 4 通道管理
+
+### 4.1 创建通道
+
+在没有启动Peer的情况下，可以先通过`/api/v1/channel/create`创建一个新的通道，一个通道只属于一个网络，每个网络可以包含多个通道。注意通道名只能包含小写字母和数字，且以小写字母开头，例如：
+
+```json
+{
+  "channelName": "halochannel",
+  "networkName": "HaloNetwork"
+}
+```
+
+
+
+### 4.2 启动Peer
+
+在创建通道成功后，可以通过`/api/v1/orderer/startOrderer`启动Peer。启动前请先确认已经注册了相应的Peer证书，因为此处需要提供对应证书的账户和密码：
+
+```json
+{
+  "caPassword": "12345678",
+  "caUsername": "TestOrgAPeer0",
+  "couchDBPassword": "12345678",
+  "couchDBUsername": "admin",
+  "kubeEventNodePort": 31500,
+  "kubeNodeName": "kubenode1",
+  "kubeNodePort": 31000,
+  "name": "TestOrgAPeer0"
+}
+```
+
+CouchDB的用户密码为自定义，每个Peer维护一个独立的CouchDB。注意Peer有两个端口是外部可以访问的，kubeNodePort是主端口，用来和其他节点通信的；kubeEventNodePort是事件端口，是让SDK去监听区块链事件的。这两个端口必须不同。name字段是组织端内部用来唯一标识Peer的。
+
+
+
+### 4.3 加入通道
+
+启动Peer之后，可以通过`/api/v1/channel/join`将Peer加入到已经创建的通道中，例如此处将TestOrgAPeer0加入到已经创建的通道`halochannel`中：
+
+```json
+{
+  "channelName": "halochannel",
+  "peerName": "TestOrgAPeer0"
+}
+```
+
+
+
+### 4.4 查询通道Peer节点
+
+通过`/api/v1/peer/queryPeersInChannel`可以查询到指定通道中所有的Peer节点：
+
+```json
+{
+  "channelName": "halochannel"
+}
+```
+
+```json
+{
+  "code": 200,
+  "message": "成功调用服务",
+  "data": {
+    "items": [
+      {
+        "host": "orga.example.com",
+        "port": 31000,
+        "organizationName": "TestOrgA",
+        "addr": "orga.example.com:31000"
+      }
+    ]
+  }
+}
+```
+
+
+
+### 4.5 查询本地Peer节点
+
+通过`/api/v1/peer/queryPeersInCluster`可以查询到指定当前组织的集群中所有的Peer节点：
+
+```json
+{
+  "page": 1,
+  "pageSize": 10
+}
+```
+
+```json
+{
+  "code": 200,
+  "message": "成功调用服务",
+  "data": {
+    "totalPages": 1,
+    "items": [
+      {
+        "name": "TestOrgAPeer0",
+        "kubeNodeName": "kubenode1",
+        "kubeNodePort": 31000,
+        "kubeEventNodePort": 31500,
+        "caUsername": "TestOrgAPeer0",
+        "caPassword": "Not Available",
+        "couchDBUsername": "admin",
+        "couchDBPassword": "Not Available"
+      }
+    ]
+  }
+}
+```
 
