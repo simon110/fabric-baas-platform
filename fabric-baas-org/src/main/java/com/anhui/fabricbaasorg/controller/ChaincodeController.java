@@ -2,9 +2,11 @@ package com.anhui.fabricbaasorg.controller;
 
 import com.anhui.fabricbaascommon.constant.Authority;
 import com.anhui.fabricbaascommon.request.PaginationQueryRequest;
+import com.anhui.fabricbaascommon.response.ListResult;
 import com.anhui.fabricbaascommon.response.PaginationQueryResult;
 import com.anhui.fabricbaasorg.entity.CommittedChaincodeEntity;
 import com.anhui.fabricbaasorg.entity.InstalledChaincodeEntity;
+import com.anhui.fabricbaasorg.request.BasePeerRequest;
 import com.anhui.fabricbaasorg.request.ChaincodeApproveRequest;
 import com.anhui.fabricbaasorg.request.ChaincodeCommitRequest;
 import com.anhui.fabricbaasorg.request.ChaincodeInstallRequest;
@@ -49,18 +51,32 @@ public class ChaincodeController {
 
     @Secured({Authority.ADMIN})
     @PostMapping("/queryInstalledChaincodes")
-    @ApiOperation("查询指定Peer上已安装的所有链码")
-    public PaginationQueryResult<InstalledChaincodeEntity> queryInstalledChaincodes(@Valid @RequestBody PaginationQueryRequest request) throws Exception {
+    @ApiOperation("查询组织端已安装的所有链码")
+    public PaginationQueryResult<InstalledChaincodeEntity> queryInstalledChaincodes(@Valid @RequestBody PaginationQueryRequest request) {
         Page<InstalledChaincodeEntity> page = chaincodeService.queryInstalledChaincodes(request.getPage(), request.getPageSize());
         return new PaginationQueryResult<>(page.getTotalPages(), page.getContent());
     }
 
     @Secured({Authority.ADMIN})
     @PostMapping("/queryCommittedChaincodes")
-    @ApiOperation("查询指定Peer上已生效的所有链码")
-    public PaginationQueryResult<CommittedChaincodeEntity> queryCommittedChaincodes(@Valid @RequestBody PaginationQueryRequest request) throws Exception {
+    @ApiOperation("查询组织端已生效的所有链码")
+    public PaginationQueryResult<CommittedChaincodeEntity> queryCommittedChaincodes(@Valid @RequestBody PaginationQueryRequest request) {
         Page<CommittedChaincodeEntity> page = chaincodeService.queryCommittedChaincodes(request.getPage(), request.getPageSize());
         return new PaginationQueryResult<>(page.getTotalPages(), page.getContent());
+    }
+
+    @Secured({Authority.ADMIN})
+    @PostMapping("/getAllInstalledChaincodesOnPeer")
+    @ApiOperation("查询指定Peer上已安装的所有链码")
+    public ListResult<InstalledChaincodeEntity> queryAllInstalledChaincodesOnPeer(@Valid @RequestBody BasePeerRequest request) {
+        return new ListResult<>(chaincodeService.getAllInstalledChaincodesOnPeer(request.getPeerName()));
+    }
+
+    @Secured({Authority.ADMIN})
+    @PostMapping("/getAllCommittedChaincodesOnPeer")
+    @ApiOperation("查询指定Peer上已生效的所有链码")
+    public ListResult<CommittedChaincodeEntity> queryAllCommittedChaincodesOnPeer(@Valid @RequestBody BasePeerRequest request) {
+        return new ListResult<>(chaincodeService.getAllCommittedChaincodesOnChannel(request.getPeerName()));
     }
 }
 
