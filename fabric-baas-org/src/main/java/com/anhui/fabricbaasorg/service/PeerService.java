@@ -65,6 +65,11 @@ public class PeerService {
 
     public Page<PeerEntity> queryPeersInCluster(int page, int pageSize) {
         Pageable pageable = PageRequest.of(page - 1, pageSize);
-        return peerRepo.findAll(pageable);
+        Page<PeerEntity> result = peerRepo.findAll(pageable);
+        result.getContent().forEach(item -> {
+            item.setCaPassword("Not Available");
+            item.setCouchDBPassword("Not Available");
+        });
+        return result;
     }
 }

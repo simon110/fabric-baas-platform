@@ -1139,6 +1139,23 @@ eyJhbGciOiJSUzI1NiIsImtpZCI6IndnQVpfTGR0d1pOSHd0V3Nsc1FJRUE5UmhGektzYjRUcHRnYVJ1
 }
 ```
 
+```json
+{
+  "code": 200,
+  "message": "成功调用服务",
+  "data": {
+    "totalPages": 1,
+    "items": [
+      {
+        "networkName": "HaloNetwork",
+        "status": 0,
+        "description": "This is TestOrgB trying to take part in HaloNetwork"
+      }
+    ]
+  }
+}
+```
+
 
 
 ### 3.4 同意加入网络申请
@@ -1153,4 +1170,74 @@ eyJhbGciOiJSUzI1NiIsImtpZCI6IndnQVpfTGR0d1pOSHd0V3Nsc1FJRUE5UmhGektzYjRUcHRnYVJ1
 }
 ```
 
-需要所有在`HaloNetwork`中的组织同意。
+需要所有在`HaloNetwork`中的组织同意，一旦所有组织都同意之后，申请的组织会被写入到区块链的联盟配置中。
+
+
+
+### 3.5 添加Orderer
+
+如果后续想要向网络中添加Orderer，可以先通过`/api/v1/network/addOrderer`来向TTP注册一个新的Orderer，例如TestOrgA注册一个地址为`orga.example.com:30502`的新Orderer：
+
+```json
+{
+  "networkName": "HaloNetwork",
+  "ordererPort": 30502
+}
+```
+
+注册成功之后，通过`/api/v1/orderer/startOrderer`来启动相应的Orderer即可：
+
+```json
+{
+  "kubeNodeName": "kubenode3",
+  "kubeNodePort": 30502,
+  "name": "TestOrgAOrderer2",
+  "networkName": "HaloNetwork"
+}
+```
+
+然后一个新的Orderer节点便会被部署到集群中。
+
+
+
+### 3.6 查询网络Orderer节点
+
+通过`/api/v1/orderer/queryOrderersInNetwork`可以查询到指定网络中所有的Orderer节点：
+
+```json
+{
+  "networkName": "HaloNetwork"
+}
+```
+
+```json
+{
+  "code": 200,
+  "message": "成功调用服务",
+  "data": {
+    "items": [
+      {
+        "host": "orga.example.com",
+        "port": 30500,
+        "organizationName": "TestOrgA",
+        "addr": "orga.example.com:30500"
+      },
+      {
+        "host": "orga.example.com",
+        "port": 30501,
+        "organizationName": "TestOrgA",
+        "addr": "orga.example.com:30501"
+      },
+      {
+        "host": "orga.example.com",
+        "port": 30502,
+        "organizationName": "TestOrgA",
+        "addr": "orga.example.com:30502"
+      }
+    ]
+  }
+}
+```
+
+
+
