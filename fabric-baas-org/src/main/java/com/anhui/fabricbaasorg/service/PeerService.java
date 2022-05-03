@@ -32,7 +32,7 @@ public class PeerService {
     private PeerRepo peerRepo;
 
     public void startPeer(PeerEntity peer) throws Exception {
-        if (!peer.getKubeNodePort().equals(peer.getKubeEventNodePort())) {
+        if (peer.getKubeNodePort().equals(peer.getKubeEventNodePort())) {
             throw new KubernetesException("Peer的主端口和事件端口必须不同！");
         }
         // 获取集群域名
