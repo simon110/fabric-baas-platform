@@ -4,7 +4,6 @@ import cn.hutool.json.JSONObject;
 import com.anhui.fabricbaascommon.response.LoginResult;
 import org.springframework.stereotype.Component;
 
-@Component
 public class TTPOrganizationApi {
     private final RemoteHttpClient remoteHttpClient;
 

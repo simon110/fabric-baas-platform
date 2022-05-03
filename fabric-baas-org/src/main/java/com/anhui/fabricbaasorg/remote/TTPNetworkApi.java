@@ -8,14 +8,12 @@ import com.anhui.fabricbaasorg.bean.Network;
 import com.anhui.fabricbaasorg.bean.NetworkOrderer;
 import com.anhui.fabricbaasorg.bean.Participation;
 import org.apache.commons.io.FileUtils;
-import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@Component
 public class TTPNetworkApi {
     private final RemoteHttpClient httpClient;
 

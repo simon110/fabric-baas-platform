@@ -1,7 +1,6 @@
 package com.anhui.fabricbaascommon.entity;
 
 import com.anhui.fabricbaascommon.constant.ParamPattern;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
@@ -25,7 +24,6 @@ public class CertfileEntity {
 
     @Pattern(regexp = ParamPattern.CA_PASSWORD_REGEX, message = ParamPattern.CA_PASSWORD_MSG)
     @ApiModelProperty(value = "CA服务密码", required = true)
-    @JsonIgnore
     private String caPassword;
 
     @Pattern(regexp = ParamPattern.CA_USERTYPE_REGEX, message = ParamPattern.CA_USERTYPE_MSG)

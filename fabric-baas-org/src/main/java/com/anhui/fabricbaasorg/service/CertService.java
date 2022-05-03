@@ -26,6 +26,8 @@ public class CertService {
     public Page<CertfileEntity> query(String usertype, int page, int pageSize) throws Exception {
         Sort sort = Sort.by(Sort.Direction.ASC, "caUsername");
         Pageable pageable = PageRequest.of(page - 1, pageSize, sort);
-        return certfileRepo.findAllByCaUsertype(usertype, pageable);
+        Page<CertfileEntity> result = certfileRepo.findAllByCaUsertype(usertype, pageable);
+        result.getContent().forEach(item -> item.setCaPassword("Not Available"));
+        return result;
     }
 }

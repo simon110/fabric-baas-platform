@@ -110,13 +110,18 @@ public class SystemService {
      * 4. 初始化TTP远程用户
      */
     public void init(CaEntity org, RemoteUserEntity remoteUser, String adminPassword, MultipartFile kubernetesConfig) throws Exception {
-        initCaService(org);
-        initKubernetesService(kubernetesConfig);
-        initRemoteUser(remoteUser);
+        try {
+            initRemoteUser(remoteUser);
+            initKubernetesService(kubernetesConfig);
+            initCaService(org);
 
-        // 更新系统管理员密码
-        if (adminPassword != null && !StringUtils.isBlank(adminPassword)) {
-            setAdminPassword(adminPassword);
+            // 更新系统管理员密码
+            if (adminPassword != null && !StringUtils.isBlank(adminPassword)) {
+                setAdminPassword(adminPassword);
+            }
+        } catch (Exception e) {
+            caContainerService.cleanCaContainer();
+            throw e;
         }
     }
 

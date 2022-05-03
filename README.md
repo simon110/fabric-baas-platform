@@ -1,4 +1,4 @@
-# Fabric TTP Service
+# 可信端接口说明
 
 
 
@@ -907,3 +907,200 @@ token用于身份验证，需要将其设置为Http请求Header的`Authorization
 }
 ```
 
+
+
+
+
+# 组织端接口说明
+
+## 0 注意事项
+
+测试环境的集群包括172.18.118.183到172.18.118.186四个节点，集群DNS和所有测试机器的hosts中配置了四个相应可访问的虚拟域名，分别为`orga.example.com`、`orgb.example.com`、`orgc.example.com`、`orgd.example.com`。其他域名均不可访问，在初始化组织端域名的时候请选择这四个域名中的一个。
+
+
+
+
+
+
+
+## 1 系统管理
+
+### 1.1 管理员登录
+
+首先第一步需要通过`/api/v1/user/login`先登录系统：
+
+```json
+{
+  "organizationName": "admin",
+  "password": "5NjLjNZQUSTKKoS0"
+}
+```
+
+```json
+{
+  "code": 200,
+  "message": "成功调用服务",
+  "data": {
+    "token": "eyJhbGciOiJIUzUxMiJ9.eyJleHAiOjE2NTE1NzY0NDYsImF1dGhvcml0aWVzIjoiUk9MRV9BRE1JTiIsInVzZXJuYW1lIjoiYWRtaW4ifQ.lCZkEMbbw7G5w-HFuWja1uG-Eg9pbbAMLsoOy0Aewhp7hN9qWLOuJF-ACF-exQIgGK08ZZvFEiOgWkjjPvDIqA"
+  }
+}
+```
+
+同样将token设置为HTTP请求头的Authorization字段来获得访问权限。系统不支持注册新账户，只能通过管理员进行操作。
+
+
+
+### 1.2 系统状态
+
+登录后需要通过`/api/v1/system/isAvailable`来判断系统是否可用，不需要传入任何参数：
+
+```json
+{
+  "code": 200,
+  "message": "成功调用服务",
+  "data": {
+    "result": false
+  }
+}
+```
+
+如果返回的结果为false需要先对系统进行初始化。
+
+
+
+### 1.3 系统初始化
+
+通过`/api/v1/system/init`来对系统进行初始化，需要传入的参数包括**Kubernetes的管理员证书文件**、**组织CA的基本信息**、**TTP端的登录信息**和**新的组织端密码（可选）**，请求内容如下：
+
+```json
+{
+  "adminPassword": "12345678",
+  "org": {
+    "countryCode": "CN",
+    "domain": "orga.example.com",
+    "locality": "Guangzhou",
+    "organizationName": "TestOrgA",
+    "stateOrProvince": "Guangdong"
+  },
+  "remoteUser": {
+    "apiServer": "172.18.118.222:8080",
+    "organizationName": "TestOrgA",
+    "password": "12345678"
+  }
+}
+```
+
+其中，domain必须为其他组织连接该组织集群的正确域名，不能随便设置；remoteUser表示与TTP端通信的身份，该账号必须已经通过TTP端的审核，确保可以正常登录。
+
+
+
+### 1.4 查询集群节点
+
+通过`/api/v1/system/getClusterNodeNames`可以查询到上传证书对应的Kubernetes集群中有哪些物理节点：
+
+```json
+{
+  "code": 200,
+  "message": "成功调用服务",
+  "data": {
+    "items": [
+      "kubemaster",
+      "kubenode1",
+      "kubenode2",
+      "kubenode3"
+    ]
+  }
+}
+```
+
+请勿选择Master节点来部署容器，Master节点不应该且拒绝被部署任何容器。
+
+
+
+
+
+## 2 证书管理
+
+### 2.1 证书注册
+
+在使用证书前，需要先通过`/api/v1/cert/generate`接口来向本地CA注册证书，主要用于注册启动Peer节点的证书，例如：
+
+```json
+{
+  "caUsername": "TestOrgAPeer0",
+  "caPassword": "12345678",
+  "caUsertype": "peer"
+}
+```
+
+注意caUsertype必须为admin、client、peer和orderer中的一种。
+
+
+
+### 2.2 证书查询
+
+通过`/api/v1/cert/query`可以按证书类型分页查询到已经在本地CA注册过的所有证书：
+
+```json
+{
+  "page": 1,
+  "pageSize": 10,
+  "usertype": "peer"
+}
+```
+
+```json
+{
+  "code": 200,
+  "message": "成功调用服务",
+  "data": {
+    "totalPages": 1,
+    "items": [
+      {
+        "caUsername": "TestOrgAPeer0",
+        "caPassword": "Not Available",
+        "caUsertype": "peer"
+      },
+      {
+        "caUsername": "TestOrgAPeer1",
+        "caPassword": "Not Available",
+        "caUsertype": "peer"
+      },
+      {
+        "caUsername": "TestOrgAPeer2",
+        "caPassword": "Not Available",
+        "caUsertype": "peer"
+      }
+    ]
+  }
+}
+```
+
+
+
+## 3 网络管理
+
+### 3.1 网络创建
+
+通过`/api/v1/network/create`可以向TTP端请求创建网络并启动Orderer：
+
+```json
+{
+  "consortiumName": "TestConsortium",
+  "networkName": "TestNetwork",
+  "orderers": [
+    {
+      "kubeNodeName": "kubenode1",
+      "kubeNodePort": 30500,
+      "name": "TestOrgAOrderer0"
+    },
+    {
+      "kubeNodeName": "kubenode2",
+      "kubeNodePort": 30501,
+      "name": "TestOrgAOrderer1"
+    }
+  ]
+}
+```
+
+该接口会自动从TTP端下载创世区块和Orderer证书，并将Orderer部署到指定的节点上。kubeNodeName为集群中任意非Master节点的名称，kubeNodePort为Orderer节点与外部通信的接口。外界访问本组织的地址为初始化系统时填入的domain加上kubeNodePort，例如此处访问TestOrgAOrderer0的地址为`orga.example.com:30500`。

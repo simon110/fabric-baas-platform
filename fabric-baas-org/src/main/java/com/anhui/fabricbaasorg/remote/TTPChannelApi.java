@@ -5,14 +5,12 @@ import cn.hutool.json.JSONUtil;
 import com.anhui.fabricbaascommon.bean.Node;
 import com.anhui.fabricbaasorg.bean.ChannelPeer;
 import org.apache.commons.io.FileUtils;
-import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@Component
 public class TTPChannelApi {
 
     private final RemoteHttpClient httpClient;
