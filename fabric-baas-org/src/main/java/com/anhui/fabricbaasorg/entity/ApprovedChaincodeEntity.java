@@ -9,6 +9,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.bson.types.ObjectId;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import javax.validation.constraints.NotBlank;
@@ -21,6 +23,9 @@ import javax.validation.constraints.Pattern;
 @Data
 @ApiModel(value = "已投票的链码")
 public class ApprovedChaincodeEntity extends ApprovedChaincode {
+    @Id
+    private ObjectId id;
+
     @Pattern(regexp = ParamPattern.DEPLOYMENT_NAME_REGEX, message = ParamPattern.DEPLOYMENT_NAME_MSG)
     @ApiModelProperty(value = "链码所在的Peer", required = true)
     private String peerName;

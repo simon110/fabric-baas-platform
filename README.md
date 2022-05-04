@@ -1683,9 +1683,48 @@ installedChaincodeIdentifier为安装链码时返回的链码编号，name表示
 
 
 
+### 5.5 组织投票记录
+
+通过`/api/v1/chaincode/queryApprovedChaincodes`可以查询当前组织投票过的链码
+
+```json
+{
+  "page": 1,
+  "pageSize": 10
+}
+```
+
+```json
+{
+  "code": 200,
+  "message": "成功调用服务",
+  "data": {
+    "totalPages": 1,
+    "items": [
+      {
+        "name": "asset-transfer-abac-chaincode",
+        "version": "1.0",
+        "sequence": 1,
+        "channelName": "testchannel",
+        "peerName": "TestOrgAPeer0",
+        "installedChaincodeIdentifier": "asset-transfer-abac-1.0:db4ca8f29606a98dc7dc6e83de096545a7b5e9194f09769316125c13aae51eb6"
+      },
+      {
+        "name": "asset-transfer-ledger-queries-chaincode",
+        "version": "1.0",
+        "sequence": 1,
+        "channelName": "testchannel",
+        "peerName": "TestOrgAPeer0",
+        "installedChaincodeIdentifier": "asset-transfer-ledger-queries-1.0:e532fbdb5fa1cc81dee3388a665d9bee224bfa63c9f943247143f82c959382b8"
+      }
+    ]
+  }
+}
+```
 
 
-### 5.5 链码投票情况查询
+
+### 5.7 链码投票情况查询
 
 可以通过`/api/v1/chaincode/getChaincodeApprovals`来对链码的投票情况进行查询：
 
@@ -1717,9 +1756,11 @@ installedChaincodeIdentifier为安装链码时返回的链码编号，name表示
 }
 ```
 
+必须在所有通道中组织的approved都为true链码才能被commit。
 
 
-### 5.6 链码提交（生效）
+
+### 5.8 链码提交（生效）
 
 所有组织都对链码进行投票之后，需要由其中的任意组织通过`/api/v1/chaincode/commit`来让链码生效，必须预先知道所有其他组织安装了链码的Peer地址，因为需要他们的背书。
 
@@ -1742,7 +1783,7 @@ commit完成后所有的组织的链码都会同时生效。
 
 
 
-### 5.7 组织已提交的链码查询
+### 5.9 组织已提交的链码查询
 
 通过`/api/v1/chaincode/queryCommittedChaincodes`可以查询到当前组织端已经生效的链码：
 
@@ -1774,7 +1815,7 @@ commit完成后所有的组织的链码都会同时生效。
 
 
 
-### 5.8 通道已提交的链码查询
+### 5.10 通道已提交的链码查询
 
 通过`/api/v1/chaincode/getAllCommittedChaincodesOnChannel`可以查询到当前组织在指定Channel上的所有已经生效的链码
 
