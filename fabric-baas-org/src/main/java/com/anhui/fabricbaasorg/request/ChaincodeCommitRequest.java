@@ -8,7 +8,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotEmpty;
 import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
@@ -16,7 +15,6 @@ import java.util.List;
 @ApiModel(value = "链码生效请求")
 public class ChaincodeCommitRequest extends CommittedChaincodeEntity {
     @Valid
-    @NotEmpty
     @ApiModelProperty(value = "所有背书节点（这些节点上已经安装的相应链码也会生效）")
     private List<Node> endorserPeers;
 }

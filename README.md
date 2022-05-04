@@ -919,6 +919,8 @@ token用于身份验证，需要将其设置为Http请求Header的`Authorization
 
 集群的合法端口范围为[30000, 32767]，其中30000端口已经被Kubernetes Dashboard占用了。
 
+由于测试环境四个组织公用的是一个集群，所以不同组织的Peer和Orderer名称必须起不一样的，端口也不能重复。
+
 
 
 
@@ -1472,21 +1474,180 @@ CouchDB的用户密码为自定义，每个Peer维护一个独立的CouchDB。�
 }
 ```
 
-返回值为链码的唯一标识符，后续会用到。
+返回值为链码的唯一标识符，后续会用到。所有通道中的组织都必须安装相同的链码才能继续后面的流程。
 
 
 
-### 5.2 已安装链码查询
+### 5.2 组织已安装链码查询
+
+通过`/api/v1/chaincode/queryInstalledChaincodes`可以查询到当前组织端安装过的所有链码：
+
+```json
+{
+  "page": 1,
+  "pageSize": 10
+}
+```
+
+```json
+{
+  "code": 200,
+  "message": "成功调用服务",
+  "data": {
+    "totalPages": 1,
+    "items": [
+      {
+        "identifier": "1.0:974fe7b8e06675a7f470c97e1a2a4b6450fe429eb0529183368263e8c978b126",
+        "label": "asset-transfer-basic-1.0",
+        "peerName": "TestOrgAPeer0"
+      },
+      {
+        "identifier": "asset-transfer-ledger-queries-1.0:e532fbdb5fa1cc81dee3388a665d9bee224bfa63c9f943247143f82c959382b8",
+        "label": "asset-transfer-ledger-queries-1.0",
+        "peerName": "TestOrgAPeer0"
+      }
+    ]
+  }
+}
+```
 
 
 
 ### 5.3 Peer已安装链码查询
 
+通过`/api/v1/chaincode/getAllInstalledChaincodesOnPeer`可以查询到已经安装到指定Peer上的所有链码
+
+```json
+{
+  "peerName": "TestOrgAPeer0"
+}
+```
+
+```json
+{
+  "code": 200,
+  "message": "成功调用服务",
+  "data": {
+    "items": [
+      {
+        "identifier": "1.0:974fe7b8e06675a7f470c97e1a2a4b6450fe429eb0529183368263e8c978b126",
+        "label": "asset-transfer-basic-1.0",
+        "peerName": "TestOrgAPeer0"
+      },
+      {
+        "identifier": "asset-transfer-ledger-queries-1.0:e532fbdb5fa1cc81dee3388a665d9bee224bfa63c9f943247143f82c959382b8",
+        "label": "asset-transfer-ledger-queries-1.0",
+        "peerName": "TestOrgAPeer0"
+      }
+    ]
+  }
+}
+```
+
+
+
 ### 5.4 链码投票
+
+通过`/api/v1/chaincode/approve`可以对已经安装的链码进行投票：
+
+```json
+{
+  "channelName": "testchannel",
+  "installedChaincodeIdentifier": "asset-transfer-ledger-queries-1.0:e532fbdb5fa1cc81dee3388a665d9bee224bfa63c9f943247143f82c959382b8",
+  "name": "asset-transfer-ledger-queries-chaincode",
+  "peerName": "TestOrgAPeer0",
+  "sequence": 1,
+  "version": "1.0"
+}
+```
+
+installedChaincodeIdentifier为安装链码时返回的链码编号，name表示支持该链码以什么名称被部署到通道上，channelName表示支持该链码在什么通道上生效，peerName对应的必须是当前组织中一个已经安装了对应链码的Peer节点，version表示链码的版本号，sequence表示这是链码的第几个版本（从1开始递增，每次升级链码都+1）。
+
+所有的组织都必须对相应的链码进行投票且参数必须一致才能让链码生效。
+
+
 
 ### 5.5 链码提交（生效）
 
-### 5.6 已提交的链码查询
+所有组织都对链码进行投票之后，需要由其中的任意组织通过`/api/v1/chaincode/commit`来让链码生效，必须预先知道所有其他组织安装了链码的Peer地址，因为需要他们的背书。
 
-### 5.7 Peer已生效的链码查询
+```json
+{
+  "channelName": "testchannel",
+  "endorserPeers": [
+    {
+      "host": "orgb.example.com",
+      "port": 31005
+    }
+  ],
+  "name": "asset-transfer-ledger-queries-chaincode",
+  "peerName": "TestOrgAPeer0",
+  "sequence": 1,
+  "version": "1.0"
+}
+```
+
+commit完成后所有的组织的链码都会同时生效。
+
+
+
+### 5.6 组织已提交的链码查询
+
+通过`/api/v1/chaincode/queryCommittedChaincodes`可以查询到当前组织端已经生效的链码：
+
+```json
+{
+  "page": 1,
+  "pageSize": 10
+}
+```
+
+```json
+{
+  "code": 200,
+  "message": "成功调用服务",
+  "data": {
+    "totalPages": 1,
+    "items": [
+      {
+        "name": "asset-transfer-ledger-queries-chaincode",
+        "version": "1.0",
+        "sequence": 1,
+        "channelName": "testchannel",
+        "peerName": "TestOrgAPeer0"
+      }
+    ]
+  }
+}
+```
+
+
+
+### 5.7 通道已提交的链码查询
+
+通过`/api/v1/chaincode/getAllCommittedChaincodesOnChannel`可以查询到当前组织在指定Channel上的所有已经生效的链码
+
+```json
+{
+  "channelName": "testchannel"
+}
+```
+
+```json
+{
+  "code": 200,
+  "message": "成功调用服务",
+  "data": {
+    "items": [
+      {
+        "name": "asset-transfer-ledger-queries-chaincode",
+        "version": "1.0",
+        "sequence": 1,
+        "channelName": "testchannel",
+        "peerName": "TestOrgAPeer0"
+      }
+    ]
+  }
+}
+```
 

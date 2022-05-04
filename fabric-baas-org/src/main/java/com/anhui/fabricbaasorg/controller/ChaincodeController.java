@@ -1,6 +1,7 @@
 package com.anhui.fabricbaasorg.controller;
 
 import com.anhui.fabricbaascommon.constant.Authority;
+import com.anhui.fabricbaascommon.request.BaseChannelRequest;
 import com.anhui.fabricbaascommon.request.PaginationQueryRequest;
 import com.anhui.fabricbaascommon.response.ListResult;
 import com.anhui.fabricbaascommon.response.PaginationQueryResult;
@@ -75,10 +76,10 @@ public class ChaincodeController {
     }
 
     @Secured({Authority.ADMIN})
-    @PostMapping("/getAllCommittedChaincodesOnPeer")
+    @PostMapping("/getAllCommittedChaincodesOnChannel")
     @ApiOperation("查询指定Peer上已生效的所有链码")
-    public ListResult<CommittedChaincodeEntity> queryAllCommittedChaincodesOnPeer(@Valid @RequestBody BasePeerRequest request) {
-        return new ListResult<>(chaincodeService.getAllCommittedChaincodesOnChannel(request.getPeerName()));
+    public ListResult<CommittedChaincodeEntity> queryAllCommittedChaincodesOnChannel(@Valid @RequestBody BaseChannelRequest request) {
+        return new ListResult<>(chaincodeService.getAllCommittedChaincodesOnChannel(request.getChannelName()));
     }
 }
 
