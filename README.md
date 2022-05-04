@@ -1724,7 +1724,9 @@ installedChaincodeIdentifier为安装链码时返回的链码编号，name表示
 
 
 
-### 5.7 链码投票情况查询
+
+
+### 5.6 链码投票情况查询
 
 可以通过`/api/v1/chaincode/getChaincodeApprovals`来对链码的投票情况进行查询：
 
@@ -1760,7 +1762,7 @@ installedChaincodeIdentifier为安装链码时返回的链码编号，name表示
 
 
 
-### 5.8 链码提交（生效）
+### 5.7 链码提交（生效）
 
 所有组织都对链码进行投票之后，需要由其中的任意组织通过`/api/v1/chaincode/commit`来让链码生效，必须预先知道所有其他组织安装了链码的Peer地址，因为需要他们的背书。
 
@@ -1783,7 +1785,7 @@ commit完成后所有的组织的链码都会同时生效。
 
 
 
-### 5.9 组织已提交的链码查询
+### 5.8 组织已提交的链码查询
 
 通过`/api/v1/chaincode/queryCommittedChaincodes`可以查询到当前组织端已经生效的链码：
 
@@ -1815,7 +1817,7 @@ commit完成后所有的组织的链码都会同时生效。
 
 
 
-### 5.10 通道已提交的链码查询
+### 5.9 通道已提交的链码查询
 
 通过`/api/v1/chaincode/getAllCommittedChaincodesOnChannel`可以查询到当前组织在指定Channel上的所有已经生效的链码
 
