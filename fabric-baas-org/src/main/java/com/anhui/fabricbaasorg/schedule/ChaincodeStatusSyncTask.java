@@ -14,6 +14,6 @@ public class ChaincodeStatusSyncTask {
 
     @Scheduled(fixedDelay = 3600000)
     public void syncChaincodeStatuses() throws Exception {
-        chaincodeService.updateAllApprovedChaincodeStatuses();
+        chaincodeService.syncApprovedChaincodeStatuses();
     }
 }

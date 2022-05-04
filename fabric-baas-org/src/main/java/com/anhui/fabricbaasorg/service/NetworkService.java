@@ -5,6 +5,7 @@ import com.anhui.fabricbaascommon.bean.Node;
 import com.anhui.fabricbaascommon.exception.CaException;
 import com.anhui.fabricbaascommon.service.CaClientService;
 import com.anhui.fabricbaascommon.util.MyFileUtils;
+import com.anhui.fabricbaasorg.bean.Network;
 import com.anhui.fabricbaasorg.entity.OrdererEntity;
 import com.anhui.fabricbaasorg.remote.TTPNetworkApi;
 import lombok.extern.slf4j.Slf4j;
@@ -78,5 +79,9 @@ public class NetworkService {
         // 调用TTP端的接口发送加入网络申请
         ttpNetworkApi.applyParticipation(networkName, description, adminCertfileZip);
         FileUtils.deleteQuietly(adminCertfileZip);
+    }
+
+    public List<Network> getParticipatedNetworks() throws Exception {
+        return ttpNetworkApi.queryNetworks("", caClientService.getCaOrganizationName(), 1, 100000);
     }
 }

@@ -149,7 +149,7 @@ public class ChaincodeService {
         approvedChaincodeRepo.save(entity);
     }
 
-    public void updateAllApprovedChaincodeStatuses() {
+    public void syncApprovedChaincodeStatuses() {
         List<ApprovedChaincodeEntity> entities = approvedChaincodeRepo.findAllByCommitted(false);
         Map<String, List<ApprovedChaincode>> map = new HashMap<>();
         entities.forEach(entity -> {
