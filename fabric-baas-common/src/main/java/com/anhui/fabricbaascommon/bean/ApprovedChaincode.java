@@ -14,8 +14,8 @@ import javax.validation.constraints.Pattern;
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 @Data
-@ApiModel(value = "已生效的链码")
-public class CommittedChaincode extends BasicChaincodeProperties {
+@ApiModel(value = "已投票的链码")
+public class ApprovedChaincode extends BasicChaincodeProperties {
     @Pattern(regexp = ParamPattern.CHANNEL_NAME_REGEX, message = ParamPattern.CHANNEL_NAME_MSG)
     @ApiModelProperty(value = "链码所在的通道", required = true)
     private String channelName;

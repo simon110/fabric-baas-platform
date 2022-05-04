@@ -19,7 +19,7 @@ public class ChaincodeUtils {
      * @return 已提交的链码名称
      * @throws ChaincodeException 查询不到时抛出异常
      */
-    public static List<CommittedChaincode> queryCommittedChaincodes(
+    public static List<ApprovedChaincode> queryCommittedChaincodes(
             String channelName,
             CoreEnv peerCoreEnv)
             throws IOException, InterruptedException, CertfileException, ChaincodeException {
@@ -32,9 +32,9 @@ public class ChaincodeUtils {
                 peerCoreEnv.getMspConfig().getAbsolutePath(),
                 peerCoreEnv.getAddress(),
                 channelName);
-        List<CommittedChaincode> committedChaincodes = new ArrayList<>();
+        List<ApprovedChaincode> approvedChaincodes = new ArrayList<>();
         if (str.isBlank()) {
-            return committedChaincodes;
+            return approvedChaincodes;
         }
         if (!str.startsWith("Name: ")) {
             throw new ChaincodeException("读取已提交的代码失败：" + str);
@@ -55,14 +55,14 @@ public class ChaincodeUtils {
             assert parts[3].startsWith("Endorsement Plugin: ");
             assert parts[4].startsWith("Validation Plugin: ");
 
-            CommittedChaincode committedChaincode = new CommittedChaincode();
-            committedChaincode.setChannelName(channelName);
-            committedChaincode.setName(parts[0].replaceFirst("Name: ", ""));
-            committedChaincode.setVersion(parts[1].replaceFirst("Version: ", ""));
-            committedChaincode.setSequence(Integer.parseInt(parts[2].replaceFirst("Sequence: ", "")));
-            committedChaincodes.add(committedChaincode);
+            ApprovedChaincode approvedChaincode = new ApprovedChaincode();
+            approvedChaincode.setChannelName(channelName);
+            approvedChaincode.setName(parts[0].replaceFirst("Name: ", ""));
+            approvedChaincode.setVersion(parts[1].replaceFirst("Version: ", ""));
+            approvedChaincode.setSequence(Integer.parseInt(parts[2].replaceFirst("Sequence: ", "")));
+            approvedChaincodes.add(approvedChaincode);
         }
-        return committedChaincodes;
+        return approvedChaincodes;
     }
 
     /**
@@ -287,10 +287,10 @@ public class ChaincodeUtils {
         String[] commands = new String[commandList.size()];
         commandList.toArray(commands);
 
-        List<CommittedChaincode> oldCommittedChaincodes = queryCommittedChaincodes(channelName, committerPeerCoreEnv);
+        List<ApprovedChaincode> oldApprovedChaincodes = queryCommittedChaincodes(channelName, committerPeerCoreEnv);
         String str = CommandUtils.exec(commands);
-        List<CommittedChaincode> newCommittedChaincodes = queryCommittedChaincodes(channelName, committerPeerCoreEnv);
-        if (oldCommittedChaincodes.equals(newCommittedChaincodes)) {
+        List<ApprovedChaincode> newApprovedChaincodes = queryCommittedChaincodes(channelName, committerPeerCoreEnv);
+        if (oldApprovedChaincodes.equals(newApprovedChaincodes)) {
             throw new ChaincodeException("提交失败：" + str);
         }
     }

@@ -6,7 +6,7 @@ import com.anhui.fabricbaascommon.request.PaginationQueryRequest;
 import com.anhui.fabricbaascommon.response.ListResult;
 import com.anhui.fabricbaascommon.response.PaginationQueryResult;
 import com.anhui.fabricbaascommon.response.UniqueResult;
-import com.anhui.fabricbaasorg.entity.CommittedChaincodeEntity;
+import com.anhui.fabricbaasorg.entity.ApprovedChaincodeEntity;
 import com.anhui.fabricbaasorg.entity.InstalledChaincodeEntity;
 import com.anhui.fabricbaasorg.request.BasePeerRequest;
 import com.anhui.fabricbaasorg.request.ChaincodeApproveRequest;
@@ -42,7 +42,7 @@ public class ChaincodeController {
     @PostMapping("/approve")
     @ApiOperation("赞同指定参数的链码安装到指定通道上")
     public void approve(@Valid @RequestBody ChaincodeApproveRequest request) throws Exception {
-        chaincodeService.approve(request.getPeerName(), request.getChannelName(), request.getInstalledChaincodeIdentifier(), request);
+        chaincodeService.approve(request);
     }
 
     @Secured({Authority.ADMIN})
@@ -63,8 +63,8 @@ public class ChaincodeController {
     @Secured({Authority.ADMIN})
     @PostMapping("/queryCommittedChaincodes")
     @ApiOperation("查询组织端已生效的所有链码")
-    public PaginationQueryResult<CommittedChaincodeEntity> queryCommittedChaincodes(@Valid @RequestBody PaginationQueryRequest request) {
-        Page<CommittedChaincodeEntity> page = chaincodeService.queryCommittedChaincodes(request.getPage(), request.getPageSize());
+    public PaginationQueryResult<ApprovedChaincodeEntity> queryCommittedChaincodes(@Valid @RequestBody PaginationQueryRequest request) {
+        Page<ApprovedChaincodeEntity> page = chaincodeService.queryCommittedChaincodes(request.getPage(), request.getPageSize());
         return new PaginationQueryResult<>(page.getTotalPages(), page.getContent());
     }
 
@@ -78,7 +78,7 @@ public class ChaincodeController {
     @Secured({Authority.ADMIN})
     @PostMapping("/getAllCommittedChaincodesOnChannel")
     @ApiOperation("查询指定Peer上已生效的所有链码")
-    public ListResult<CommittedChaincodeEntity> queryAllCommittedChaincodesOnChannel(@Valid @RequestBody BaseChannelRequest request) {
+    public ListResult<ApprovedChaincodeEntity> queryAllCommittedChaincodesOnChannel(@Valid @RequestBody BaseChannelRequest request) {
         return new ListResult<>(chaincodeService.getAllCommittedChaincodesOnChannel(request.getChannelName()));
     }
 }

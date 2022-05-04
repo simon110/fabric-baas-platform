@@ -15,12 +15,12 @@ import com.anhui.fabricbaascommon.util.CertfileUtils;
 import com.anhui.fabricbaascommon.util.MyFileUtils;
 import com.anhui.fabricbaasorg.bean.NetworkOrderer;
 import com.anhui.fabricbaasorg.entity.ChannelEntity;
-import com.anhui.fabricbaasorg.entity.CommittedChaincodeEntity;
+import com.anhui.fabricbaasorg.entity.ApprovedChaincodeEntity;
 import com.anhui.fabricbaasorg.entity.InstalledChaincodeEntity;
 import com.anhui.fabricbaasorg.entity.PeerEntity;
 import com.anhui.fabricbaasorg.remote.TTPChannelApi;
 import com.anhui.fabricbaasorg.remote.TTPNetworkApi;
-import com.anhui.fabricbaasorg.repository.CommittedChaincodeRepo;
+import com.anhui.fabricbaasorg.repository.ApprovedChaincodeRepo;
 import com.anhui.fabricbaasorg.repository.InstalledChaincodeRepo;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
@@ -39,7 +39,7 @@ import java.util.List;
 @Slf4j
 public class ChaincodeService {
     @Autowired
-    private CommittedChaincodeRepo committedChaincodeRepo;
+    private ApprovedChaincodeRepo approvedChaincodeRepo;
     @Autowired
     private InstalledChaincodeRepo installedChaincodeRepo;
     @Autowired
@@ -100,10 +100,13 @@ public class ChaincodeService {
         return packageId;
     }
 
-    public void approve(String peerName, String channelName, String chaincodePackageId, BasicChaincodeProperties chaincodeProperties) throws Exception {
-        CoreEnv peerCoreEnv = buildPeerCoreEnv(peerName);
+    public void approve(ApprovedChaincodeEntity approvedChaincode) throws Exception {
+        String channelName = approvedChaincode.getChannelName();
+        CoreEnv peerCoreEnv = buildPeerCoreEnv(approvedChaincode.getPeerName());
         TlsEnv ordererTlsEnv = buildOrdererTlsEnv(channelName);
-        ChaincodeUtils.approveChaincode(ordererTlsEnv, peerCoreEnv, channelName, chaincodePackageId, chaincodeProperties);
+        ChaincodeUtils.approveChaincode(ordererTlsEnv, peerCoreEnv, channelName,
+                approvedChaincode.getInstalledChaincodeIdentifier(), approvedChaincode);
+        approvedChaincodeRepo.save(approvedChaincode);
     }
 
     public void commit(String peerName, String channelName, List<Node> endorsers, BasicChaincodeProperties chaincodeProperties) throws Exception {
@@ -117,13 +120,13 @@ public class ChaincodeService {
 
         ChaincodeUtils.commitChaincode(ordererTlsEnv, peerCoreEnv, endorserTlsEnvs, channelName, chaincodeProperties);
 
-        CommittedChaincodeEntity committedChaincode = new CommittedChaincodeEntity();
+        ApprovedChaincodeEntity committedChaincode = new ApprovedChaincodeEntity();
         committedChaincode.setChannelName(channelName);
         committedChaincode.setName(chaincodeProperties.getName());
         committedChaincode.setSequence(chaincodeProperties.getSequence());
         committedChaincode.setVersion(chaincodeProperties.getVersion());
         committedChaincode.setPeerName(peerName);
-        committedChaincodeRepo.save(committedChaincode);
+        approvedChaincodeRepo.save(committedChaincode);
     }
 
     public void getChaincodeApprovals(String channelName) {
@@ -135,16 +138,16 @@ public class ChaincodeService {
         return installedChaincodeRepo.findAll(pageable);
     }
 
-    public Page<CommittedChaincodeEntity> queryCommittedChaincodes(int page, int pageSize) {
+    public Page<ApprovedChaincodeEntity> queryCommittedChaincodes(int page, int pageSize) {
         Pageable pageable = PageRequest.of(page - 1, pageSize);
-        return committedChaincodeRepo.findAll(pageable);
+        return approvedChaincodeRepo.findAll(pageable);
     }
 
     public List<InstalledChaincodeEntity> getAllInstalledChaincodesOnPeer(String peerName) {
         return installedChaincodeRepo.findAllByPeerName(peerName);
     }
 
-    public List<CommittedChaincodeEntity> getAllCommittedChaincodesOnChannel(String channelName) {
-        return committedChaincodeRepo.findAllByChannelName(channelName);
+    public List<ApprovedChaincodeEntity> getAllCommittedChaincodesOnChannel(String channelName) {
+        return approvedChaincodeRepo.findAllByChannelName(channelName);
     }
 }
