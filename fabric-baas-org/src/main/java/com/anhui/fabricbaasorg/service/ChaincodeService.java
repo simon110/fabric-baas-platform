@@ -126,6 +126,10 @@ public class ChaincodeService {
         committedChaincodeRepo.save(committedChaincode);
     }
 
+    public void getChaincodeApprovals(String channelName) {
+
+    }
+
     public Page<InstalledChaincodeEntity> queryInstalledChaincodes(int page, int pageSize) {
         Pageable pageable = PageRequest.of(page - 1, pageSize);
         return installedChaincodeRepo.findAll(pageable);
