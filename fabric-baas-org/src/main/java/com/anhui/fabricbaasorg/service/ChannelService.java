@@ -18,6 +18,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -75,5 +77,15 @@ public class ChannelService {
         // 调用远程接口
         Node node = new Node(caClientService.getCaOrganizationDomain(), peer.getKubeNodePort());
         ttpChannelApi.joinChannel(channelName, node, peerCertfileZip);
+    }
+
+    public List<Object> getJoinedChannels() throws Exception {
+        List<ChannelEntity> channels = channelRepo.findAll();
+        List<Object> result = new ArrayList<>();
+        for (ChannelEntity channel : channels) {
+            Object object = ttpChannelApi.getChannel(channel.getName());
+            result.add(object);
+        }
+        return result;
     }
 }

@@ -1,6 +1,7 @@
 package com.anhui.fabricbaasorg.controller;
 
 import com.anhui.fabricbaascommon.constant.Authority;
+import com.anhui.fabricbaascommon.response.ListResult;
 import com.anhui.fabricbaascommon.response.UniqueResult;
 import com.anhui.fabricbaasorg.remote.TTPChannelApi;
 import com.anhui.fabricbaasorg.request.*;
@@ -59,6 +60,13 @@ public class ChannelController {
     @ApiOperation("加入通道")
     public void join(@Valid @RequestBody ChannelJoinRequest request) throws Exception {
         channelService.join(request.getChannelName(), request.getPeerName());
+    }
+
+    @Secured({Authority.ADMIN})
+    @PostMapping("/getJoinedChannels")
+    @ApiOperation("查询所有已经加入的通道")
+    public ListResult<Object> getJoinedChannels() throws Exception {
+        return new ListResult<>(channelService.getJoinedChannels());
     }
 }
 
