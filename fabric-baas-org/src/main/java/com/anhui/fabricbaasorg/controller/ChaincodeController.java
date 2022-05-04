@@ -1,5 +1,6 @@
 package com.anhui.fabricbaasorg.controller;
 
+import com.anhui.fabricbaascommon.bean.ChaincodeApproval;
 import com.anhui.fabricbaascommon.constant.Authority;
 import com.anhui.fabricbaascommon.request.BaseChannelRequest;
 import com.anhui.fabricbaascommon.request.PaginationQueryRequest;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/chaincode")
@@ -45,8 +47,9 @@ public class ChaincodeController {
     @Secured({Authority.ADMIN})
     @PostMapping("/getChaincodeApprovals")
     @ApiOperation("查询指定链码的投票情况")
-    public void getChaincodeApprovals(@Valid @RequestBody ChaincodeGetApprovalsRequest request) throws Exception {
-        chaincodeService.getChaincodeApprovals(request);
+    public ListResult<ChaincodeApproval> getChaincodeApprovals(@Valid @RequestBody ChaincodeGetApprovalsRequest request) throws Exception {
+        List<ChaincodeApproval> chaincodeApprovals = chaincodeService.getChaincodeApprovals(request);
+        return new ListResult<>(chaincodeApprovals);
     }
 
     @Secured({Authority.ADMIN})
@@ -54,6 +57,14 @@ public class ChaincodeController {
     @ApiOperation("让指定参数的链码在指定通道上生效（需要通道里所有的组织都安装并赞同）")
     public void commit(@Valid @RequestBody ChaincodeCommitRequest request) throws Exception {
         chaincodeService.commit(request.getEndorserPeers(), request);
+    }
+
+    @Secured({Authority.ADMIN})
+    @PostMapping("/queryApprovedChaincodes")
+    @ApiOperation("查询组织端已投票的所有链码")
+    public PaginationQueryResult<ApprovedChaincodeEntity> queryApprovedChaincodes(@Valid @RequestBody PaginationQueryRequest request) {
+        Page<ApprovedChaincodeEntity> page = chaincodeService.queryApprovedChaincodes(request.getPage(), request.getPageSize());
+        return new PaginationQueryResult<>(page.getTotalPages(), page.getContent());
     }
 
     @Secured({Authority.ADMIN})

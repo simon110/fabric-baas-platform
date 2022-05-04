@@ -147,6 +147,11 @@ public class ChaincodeService {
         approvedChaincodeRepo.save(entity);
     }
 
+    public Page<ApprovedChaincodeEntity> queryApprovedChaincodes(int page, int pageSize) {
+        Pageable pageable = PageRequest.of(page - 1, pageSize);
+        return approvedChaincodeRepo.findAll(pageable);
+    }
+
     public Page<InstalledChaincodeEntity> queryInstalledChaincodes(int page, int pageSize) {
         Pageable pageable = PageRequest.of(page - 1, pageSize);
         return installedChaincodeRepo.findAll(pageable);
