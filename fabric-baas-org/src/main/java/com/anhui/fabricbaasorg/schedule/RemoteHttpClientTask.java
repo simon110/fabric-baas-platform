@@ -24,7 +24,8 @@ public class RemoteHttpClientTask {
         assert ttpEntities.size() <= 1;
         if (!ttpEntities.isEmpty()) {
             RemoteUserEntity ttpAccount = ttpEntities.get(0);
-            ttpOrganizationApi.login(ttpAccount.getOrganizationName(), ttpAccount.getPassword());
+            String token = ttpOrganizationApi.login(ttpAccount.getOrganizationName(), ttpAccount.getPassword());
+            log.info("已刷新HTTP客户端Token：" + token);
         }
     }
 }

@@ -3,7 +3,6 @@ package com.anhui.fabricbaascommon.bean;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-import org.springframework.data.annotation.Id;
 
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
@@ -11,7 +10,7 @@ import javax.validation.constraints.NotBlank;
 @ApiModel(value = "链码基本属性")
 @Data
 public class BasicChaincodeProperties {
-    @Id
+    @NotBlank
     @ApiModelProperty(value = "链码名称", required = true)
     private String name;
 
