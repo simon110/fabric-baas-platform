@@ -13,4 +13,6 @@ public interface ApprovedChaincodeRepo extends MongoRepository<ApprovedChaincode
     List<ApprovedChaincodeEntity> findAllByChannelNameAndNameAndSequenceAndVersion(String channelName, String chaincodeName, int sequence, String version);
 
     Page<ApprovedChaincodeEntity> findAllByCommitted(boolean isCommitted, Pageable pageable);
+
+    List<ApprovedChaincodeEntity> findAllByCommitted(boolean isCommitted);
 }

@@ -11,8 +11,8 @@ import com.anhui.fabricbaascommon.service.CaClientService;
 import com.anhui.fabricbaascommon.util.CertfileUtils;
 import com.anhui.fabricbaascommon.util.MyFileUtils;
 import com.anhui.fabricbaasorg.bean.NetworkOrderer;
-import com.anhui.fabricbaasorg.entity.ChannelEntity;
 import com.anhui.fabricbaasorg.entity.ApprovedChaincodeEntity;
+import com.anhui.fabricbaasorg.entity.ChannelEntity;
 import com.anhui.fabricbaasorg.entity.InstalledChaincodeEntity;
 import com.anhui.fabricbaasorg.entity.PeerEntity;
 import com.anhui.fabricbaasorg.remote.TTPChannelApi;
@@ -30,7 +30,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @Slf4j
@@ -145,6 +147,32 @@ public class ChaincodeService {
         // 更新链码生效状态
         entity.setCommitted(true);
         approvedChaincodeRepo.save(entity);
+    }
+
+    public void updateAllApprovedChaincodeStatuses() {
+        List<ApprovedChaincodeEntity> entities = approvedChaincodeRepo.findAllByCommitted(false);
+        Map<String, List<ApprovedChaincode>> map = new HashMap<>();
+        entities.forEach(entity -> {
+            try {
+                String channelName = entity.getChannelName();
+                List<ApprovedChaincode> approvedChaincodes = map.getOrDefault(channelName, null);
+                if (approvedChaincodes == null) {
+                    CoreEnv peerCoreEnv = buildPeerCoreEnv(entity.getPeerName());
+                    approvedChaincodes = ChaincodeUtils.queryCommittedChaincodes(channelName, peerCoreEnv);
+                    map.put(channelName, approvedChaincodes);
+                }
+                for (ApprovedChaincode approvedChaincode : approvedChaincodes) {
+                    if (approvedChaincode.getName().equals(entity.getName()) &&
+                            approvedChaincode.getVersion().equals(entity.getVersion()) &&
+                            approvedChaincode.getSequence().equals(entity.getSequence())) {
+                        entity.setCommitted(true);
+                        approvedChaincodeRepo.save(entity);
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("同步链码状态时发生异常：" + e);
+            }
+        });
     }
 
     public Page<ApprovedChaincodeEntity> queryApprovedChaincodes(int page, int pageSize) {
