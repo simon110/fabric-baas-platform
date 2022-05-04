@@ -2,6 +2,7 @@ package com.anhui.fabricbaasttp.controller;
 
 import com.anhui.fabricbaascommon.constant.Authority;
 import com.anhui.fabricbaascommon.request.BaseChannelRequest;
+import com.anhui.fabricbaascommon.request.BaseOrganizationRequest;
 import com.anhui.fabricbaascommon.response.ListResult;
 import com.anhui.fabricbaascommon.response.ResourceResult;
 import com.anhui.fabricbaascommon.response.UniqueResult;
@@ -97,5 +98,13 @@ public class ChannelController {
     public UniqueResult<ChannelEntity> getChannel(@Valid @RequestBody BaseChannelRequest request) throws Exception {
         ChannelEntity channel = channelService.findChannelOrThrowEx(request.getChannelName());
         return new UniqueResult<>(channel);
+    }
+
+    @Secured({Authority.USER, Authority.ADMIN})
+    @PostMapping("/getOrganizationChannels")
+    @ApiOperation("查询指定组织参与的所有通道")
+    public ListResult<ChannelEntity> getOrganizationChannels(@Valid @RequestBody BaseOrganizationRequest request) throws Exception {
+        List<ChannelEntity> channels = channelService.getOrganizationChannels(request.getOrganizationName());
+        return new ListResult<>(channels);
     }
 }

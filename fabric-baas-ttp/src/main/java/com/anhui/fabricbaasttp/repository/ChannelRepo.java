@@ -7,4 +7,6 @@ import java.util.List;
 
 public interface ChannelRepo extends MongoRepository<ChannelEntity, String> {
     List<ChannelEntity> findAllByNetworkName(String networkName);
+
+    List<ChannelEntity> findAllByOrganizationNamesIsContaining(String organizationName);
 }

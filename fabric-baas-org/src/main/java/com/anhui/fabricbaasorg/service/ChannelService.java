@@ -1,5 +1,6 @@
 package com.anhui.fabricbaasorg.service;
 
+import cn.hutool.json.JSONArray;
 import com.anhui.fabricbaascommon.bean.Node;
 import com.anhui.fabricbaascommon.constant.CertfileType;
 import com.anhui.fabricbaascommon.exception.ChannelException;
@@ -79,13 +80,8 @@ public class ChannelService {
         ttpChannelApi.joinChannel(channelName, node, peerCertfileZip);
     }
 
-    public List<Object> getJoinedChannels() throws Exception {
-        List<ChannelEntity> channels = channelRepo.findAll();
-        List<Object> result = new ArrayList<>();
-        for (ChannelEntity channel : channels) {
-            Object object = ttpChannelApi.getChannel(channel.getName());
-            result.add(object);
-        }
-        return result;
+    public List<Object> getParticipatedChannels() throws Exception {
+        JSONArray array = ttpChannelApi.getOrganizationChannels(caClientService.getCaOrganizationName());
+        return new ArrayList<>(array);
     }
 }

@@ -63,10 +63,10 @@ public class ChannelController {
     }
 
     @Secured({Authority.ADMIN})
-    @PostMapping("/getJoinedChannels")
-    @ApiOperation("查询所有已经加入的通道")
-    public ListResult<Object> getJoinedChannels() throws Exception {
-        return new ListResult<>(channelService.getJoinedChannels());
+    @PostMapping("/getParticipatedChannels")
+    @ApiOperation("查询当前组织已经加入的通道")
+    public ListResult<Object> getParticipatedChannels() throws Exception {
+        return new ListResult<>(channelService.getParticipatedChannels());
     }
 }
 

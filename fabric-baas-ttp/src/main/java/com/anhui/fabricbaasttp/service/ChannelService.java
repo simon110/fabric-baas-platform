@@ -382,4 +382,8 @@ public class ChannelService {
     public List<Peer> queryPeers(String channelName) throws Exception {
         return findChannelOrThrowEx(channelName).getPeers();
     }
+
+    public List<ChannelEntity> getOrganizationChannels(String organizationName) {
+        return channelRepo.findAllByOrganizationNamesIsContaining(organizationName);
+    }
 }

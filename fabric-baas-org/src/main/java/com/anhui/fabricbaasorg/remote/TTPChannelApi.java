@@ -1,5 +1,6 @@
 package com.anhui.fabricbaasorg.remote;
 
+import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.anhui.fabricbaascommon.bean.Node;
@@ -122,10 +123,17 @@ public class TTPChannelApi {
         return JSONUtil.toList(response.getJSONArray("items"), ChannelPeer.class);
     }
 
-    public Object getChannel(String channelName) throws Exception {
+    public JSONObject getChannel(String channelName) throws Exception {
         JSONObject data = new JSONObject();
         data.set("channelName", channelName);
         JSONObject response = httpClient.request("/api/v1/channel/getChannel", data);
-        return response.get("result");
+        return response.getJSONObject("result");
+    }
+
+    public JSONArray getOrganizationChannels(String organizationName) throws Exception {
+        JSONObject data = new JSONObject();
+        data.set("organizationName", organizationName);
+        JSONObject response = httpClient.request("/api/v1/channel/getOrganizationChannels", data);
+        return response.getJSONArray("items");
     }
 }
