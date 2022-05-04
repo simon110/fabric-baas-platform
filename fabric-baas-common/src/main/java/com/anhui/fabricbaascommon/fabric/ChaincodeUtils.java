@@ -218,16 +218,16 @@ public class ChaincodeUtils {
         String str = CommandUtils.exec(
                 MyFileUtils.getWorkingDir() + "/shell/fabric-chaincode-check-readiness.sh",
                 peerCoreEnv.getMspId(),
+                peerCoreEnv.getTlsRootCert().getAbsolutePath(),
                 peerCoreEnv.getMspConfig().getAbsolutePath(),
                 peerCoreEnv.getAddress(),
-                peerCoreEnv.getTlsRootCert().getAbsolutePath(),
                 chaincodeProperties.getName(),
                 chaincodeProperties.getVersion(),
                 chaincodeProperties.getSequence().toString(),
                 channelName,
                 ordererTlsEnv.getAddress(),
                 ordererTlsEnv.getTlsRootCert().getAbsolutePath());
-        if (!str.toLowerCase().contains("\"approvals\":")) {
+        if (!str.toLowerCase().startsWith("chaincode definition for chaincode ")) {
             throw new ChaincodeException("检查链码失败：" + str);
         }
         List<ChaincodeApproval> chaincodeApprovals = new ArrayList<>();
