@@ -1,9 +1,6 @@
 package com.anhui.fabricbaasorg.service;
 
-import com.anhui.fabricbaascommon.bean.BasicChaincodeProperties;
-import com.anhui.fabricbaascommon.bean.CoreEnv;
-import com.anhui.fabricbaascommon.bean.Node;
-import com.anhui.fabricbaascommon.bean.TlsEnv;
+import com.anhui.fabricbaascommon.bean.*;
 import com.anhui.fabricbaascommon.constant.CertfileType;
 import com.anhui.fabricbaascommon.entity.CaEntity;
 import com.anhui.fabricbaascommon.exception.CaException;
@@ -100,37 +97,42 @@ public class ChaincodeService {
         return packageId;
     }
 
-    public void approve(ApprovedChaincodeEntity approvedChaincode) throws Exception {
+    public void approve(String peerName, String chaincodeIdentifier, ApprovedChaincode approvedChaincode) throws Exception {
         String channelName = approvedChaincode.getChannelName();
-        CoreEnv peerCoreEnv = buildPeerCoreEnv(approvedChaincode.getPeerName());
+        CoreEnv peerCoreEnv = buildPeerCoreEnv(peerName);
         TlsEnv ordererTlsEnv = buildOrdererTlsEnv(channelName);
-        ChaincodeUtils.approveChaincode(ordererTlsEnv, peerCoreEnv, channelName,
-                approvedChaincode.getInstalledChaincodeIdentifier(), approvedChaincode);
-        approvedChaincodeRepo.save(approvedChaincode);
+        ChaincodeUtils.approveChaincode(ordererTlsEnv, peerCoreEnv, channelName, chaincodeIdentifier, approvedChaincode);
+
+        ApprovedChaincodeEntity entity = new ApprovedChaincodeEntity();
+        entity.setPeerName(peerName);
+        entity.setChannelName(channelName);
+        entity.setSequence(approvedChaincode.getSequence());
+        entity.setVersion(approvedChaincode.getVersion());
+        entity.setCommitted(false);
+        entity.setName(approvedChaincode.getName());
+        entity.setInstalledChaincodeIdentifier(chaincodeIdentifier);
+        approvedChaincodeRepo.save(entity);
     }
 
-    public void commit(String peerName, String channelName, List<Node> endorsers, BasicChaincodeProperties chaincodeProperties) throws Exception {
-        CoreEnv peerCoreEnv = buildPeerCoreEnv(peerName);
+    public void commit(String committerPeerName, List<Node> endorsers, ApprovedChaincode approvedChaincode) throws Exception {
+        String channelName = approvedChaincode.getChannelName();
+        CoreEnv peerCoreEnv = buildPeerCoreEnv(committerPeerName);
         TlsEnv ordererTlsEnv = buildOrdererTlsEnv(channelName);
 
         List<TlsEnv> endorserTlsEnvs = new ArrayList<>();
         for (Node endorser : endorsers) {
             endorserTlsEnvs.add(buildEndorserTlsEnv(channelName, endorser));
         }
+        ChaincodeUtils.commitChaincode(ordererTlsEnv, peerCoreEnv, endorserTlsEnvs, channelName, approvedChaincode);
 
-        ChaincodeUtils.commitChaincode(ordererTlsEnv, peerCoreEnv, endorserTlsEnvs, channelName, chaincodeProperties);
-
-        ApprovedChaincodeEntity committedChaincode = new ApprovedChaincodeEntity();
-        committedChaincode.setChannelName(channelName);
-        committedChaincode.setName(chaincodeProperties.getName());
-        committedChaincode.setSequence(chaincodeProperties.getSequence());
-        committedChaincode.setVersion(chaincodeProperties.getVersion());
-        committedChaincode.setPeerName(peerName);
-        approvedChaincodeRepo.save(committedChaincode);
-    }
-
-    public void getChaincodeApprovals(String channelName) {
-
+        // 更新链码生效状态
+        List<ApprovedChaincodeEntity> approvedChaincodes = approvedChaincodeRepo.findAllByChannelNameAndNameAndSequenceAndVersion(
+                channelName, approvedChaincode.getName(), approvedChaincode.getSequence(), approvedChaincode.getVersion()
+        );
+        assert approvedChaincodes.size() == 1;
+        ApprovedChaincodeEntity entity = approvedChaincodes.get(0);
+        entity.setCommitted(true);
+        approvedChaincodeRepo.save(entity);
     }
 
     public Page<InstalledChaincodeEntity> queryInstalledChaincodes(int page, int pageSize) {
@@ -140,7 +142,7 @@ public class ChaincodeService {
 
     public Page<ApprovedChaincodeEntity> queryCommittedChaincodes(int page, int pageSize) {
         Pageable pageable = PageRequest.of(page - 1, pageSize);
-        return approvedChaincodeRepo.findAll(pageable);
+        return approvedChaincodeRepo.findAllByCommitted(true, pageable);
     }
 
     public List<InstalledChaincodeEntity> getAllInstalledChaincodesOnPeer(String peerName) {
@@ -148,6 +150,6 @@ public class ChaincodeService {
     }
 
     public List<ApprovedChaincodeEntity> getAllCommittedChaincodesOnChannel(String channelName) {
-        return approvedChaincodeRepo.findAllByChannelName(channelName);
+        return approvedChaincodeRepo.findAllByChannelNameAndCommitted(channelName, true);
     }
 }

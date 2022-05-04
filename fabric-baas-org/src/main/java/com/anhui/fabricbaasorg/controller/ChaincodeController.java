@@ -42,14 +42,14 @@ public class ChaincodeController {
     @PostMapping("/approve")
     @ApiOperation("赞同指定参数的链码安装到指定通道上")
     public void approve(@Valid @RequestBody ChaincodeApproveRequest request) throws Exception {
-        chaincodeService.approve(request);
+        chaincodeService.approve(request.getPeerName(), request.getInstalledChaincodeIdentifier(), request);
     }
 
     @Secured({Authority.ADMIN})
     @PostMapping("/commit")
     @ApiOperation("让指定参数的链码在指定通道上生效（需要通道里所有的组织都安装并赞同）")
     public void commit(@Valid @RequestBody ChaincodeCommitRequest request) throws Exception {
-        chaincodeService.commit(request.getPeerName(), request.getChannelName(), request.getEndorserPeers(), request);
+        chaincodeService.commit(request.getChannelName(), request.getEndorserPeers(), request);
     }
 
     @Secured({Authority.ADMIN})

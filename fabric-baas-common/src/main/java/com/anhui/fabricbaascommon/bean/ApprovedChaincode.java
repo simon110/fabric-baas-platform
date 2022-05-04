@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.springframework.data.mongodb.core.index.Indexed;
 
 import javax.validation.constraints.Pattern;
 
@@ -18,6 +19,7 @@ import javax.validation.constraints.Pattern;
 public class ApprovedChaincode extends BasicChaincodeProperties {
     @Pattern(regexp = ParamPattern.CHANNEL_NAME_REGEX, message = ParamPattern.CHANNEL_NAME_MSG)
     @ApiModelProperty(value = "链码所在的通道", required = true)
+    @Indexed
     private String channelName;
 }
 
