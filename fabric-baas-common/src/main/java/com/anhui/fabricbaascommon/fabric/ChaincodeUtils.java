@@ -32,7 +32,11 @@ public class ChaincodeUtils {
                 peerCoreEnv.getMspConfig().getAbsolutePath(),
                 peerCoreEnv.getAddress(),
                 channelName);
-        if (!str.toLowerCase().startsWith("committed chaincode definitions on channel")) {
+        List<CommittedChaincode> committedChaincodes = new ArrayList<>();
+        if (str.isBlank()) {
+            return committedChaincodes;
+        }
+        if (!str.startsWith("Name: ")) {
             throw new ChaincodeException("读取已提交的代码失败：" + str);
         }
 
@@ -41,7 +45,7 @@ public class ChaincodeUtils {
         //Name: basic, Version: 1.0, Sequence: 1, Endorsement Plugin: escc, Validation Plugin: vscc
         String[] outputLines = str.split("\n");
         assert outputLines.length > 0;
-        List<CommittedChaincode> committedChaincodes = new ArrayList<>();
+
         for (String outputLine : outputLines) {
             String[] parts = outputLine.split(", ");
             assert parts.length == 5;
@@ -76,13 +80,16 @@ public class ChaincodeUtils {
                 peerCoreEnv.getTlsRootCert().getAbsolutePath(),
                 peerCoreEnv.getMspConfig().getAbsolutePath(),
                 peerCoreEnv.getAddress());
-        if (!str.startsWith("Installed chaincodes on peer")) {
+        List<InstalledChaincode> installedChaincodes = new ArrayList<>();
+        if (str.isBlank()) {
+            return installedChaincodes;
+        }
+        if (!str.startsWith("Package ID: ")) {
             throw new ChaincodeException("读取已安装的链码失败：" + str);
         }
         //将shell的返回值str处理为installedChaincode
         //Installed chaincodes on peer:
         //Package ID: basic_1.0:dee2d612e15f5059478b9048fa4b3c9f792096554841d642b9b59099fa0e04a4, Label: basic_1.0
-        List<InstalledChaincode> installedChaincodes = new ArrayList<>();
         String[] outputLines = str.split("\n");
         for (String outputLine : outputLines) {
             InstalledChaincode installedChaincode = new InstalledChaincode();

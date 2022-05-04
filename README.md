@@ -1445,3 +1445,34 @@ CouchDB的用户密码为自定义，每个Peer维护一个独立的CouchDB。�
 }
 ```
 
+
+
+
+
+## 5 链码管理
+
+### 5.1 链码安装
+
+通过`/api/v1/chaincode/install`可以将链码安装到Peer上，必须上传一份已经编译好的链码文件。可以使用项目example/fabric下面提供的编译好的链码压缩包直接上传。
+
+```
+{
+  "chaincodeLabel": "asset-transfer-basic-1.0",
+  "peerName": "TestOrgAPeer0"
+}
+```
+
+
+
+### 5.2 已安装链码查询
+
+### 5.3 Peer已安装链码查询
+
+### 5.4 链码投票
+
+### 5.5 链码提交（生效）
+
+### 5.6 已提交的链码查询
+
+### 5.7 Peer已生效的链码查询
+

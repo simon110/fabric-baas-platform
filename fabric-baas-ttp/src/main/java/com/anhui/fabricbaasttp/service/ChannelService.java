@@ -259,9 +259,6 @@ public class ChannelService {
         // 对证书格式进行检查
         CertfileUtils.assertCertfileZip(peerCertZip);
 
-        // 检查Peer是否在通道中且为该组织的节点
-        assertPeerInChannel(channel, peer, false);
-
         // 生成新Peer的信息
         String newPeerId = IdentifierGenerator.generatePeerId(channel.getName(), peer);
         Peer newPeer = new Peer();
@@ -283,7 +280,7 @@ public class ChannelService {
         log.info("将Peer证书解压到：" + peerCertfileDir.getAbsolutePath());
         CertfileUtils.assertCertfile(peerCertfileDir);
 
-        // 尝试将Peer加入到通道中（TLS环境变量需要改为临时目录中的，因为还没保存到正式目录）
+        // 尝试将Peer加入到通道中
         CoreEnv peerCoreEnv = fabricEnvService.buildPeerCoreEnv(channel.getNetworkName(), currentOrganizationName, newPeer);
         peerCoreEnv.setTlsRootCert(CertfileUtils.getTlsCaCert(peerCertfileDir));
         log.info("生成Peer的环境变量：" + peerCoreEnv);
@@ -293,13 +290,22 @@ public class ChannelService {
         minioService.putBytes(MinioBucket.PEER_CERTFILE_BUCKET_NAME, newPeer.getName(), peerCertZip.getBytes());
         log.info("将用户上传的Peer证书保存至MinIO：" + peerCertZip.getOriginalFilename());
         File formalPeerCertfileDir = CertfileUtils.getCertfileDir(newPeer.getName(), CertfileType.PEER);
+        if (CertfileUtils.checkCertfile(formalPeerCertfileDir)) {
+            FileUtils.deleteDirectory(CertfileUtils.getMspDir(formalPeerCertfileDir));
+            FileUtils.deleteDirectory(CertfileUtils.getTlsDir(formalPeerCertfileDir));
+        }
         ZipUtils.unzip(peerCertfileZip, formalPeerCertfileDir);
         log.info("将Peer证书保存到正式目录：" + formalPeerCertfileDir.getAbsolutePath());
 
-        // 更新MongoDB中的信息
-        channel.getPeers().add(newPeer);
-        channelRepo.save(channel);
-        log.info("更新通道信息：" + channel);
+        try {
+            assertPeerInChannel(channel, peer, false);
+            // 更新MongoDB中的信息
+            channel.getPeers().add(newPeer);
+            channelRepo.save(channel);
+            log.info("更新通道信息：" + channel);
+        } catch (Exception e) {
+            log.warn("节点已经存在于通道中：" + peer);
+        }
     }
 
     public String generateInvitationCode(String currentOrganizationName, String channelName, String inviteeOrganizationName) throws Exception {
