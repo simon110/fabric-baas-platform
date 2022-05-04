@@ -8,10 +8,7 @@ import com.anhui.fabricbaascommon.response.PaginationQueryResult;
 import com.anhui.fabricbaascommon.response.UniqueResult;
 import com.anhui.fabricbaasorg.entity.ApprovedChaincodeEntity;
 import com.anhui.fabricbaasorg.entity.InstalledChaincodeEntity;
-import com.anhui.fabricbaasorg.request.BasePeerRequest;
-import com.anhui.fabricbaasorg.request.ChaincodeApproveRequest;
-import com.anhui.fabricbaasorg.request.ChaincodeCommitRequest;
-import com.anhui.fabricbaasorg.request.ChaincodeInstallRequest;
+import com.anhui.fabricbaasorg.request.*;
 import com.anhui.fabricbaasorg.service.ChaincodeService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -46,10 +43,17 @@ public class ChaincodeController {
     }
 
     @Secured({Authority.ADMIN})
+    @PostMapping("/getChaincodeApprovals")
+    @ApiOperation("查询指定链码的投票情况")
+    public void getChaincodeApprovals(@Valid @RequestBody ChaincodeGetApprovalsRequest request) throws Exception {
+        chaincodeService.getChaincodeApprovals(request);
+    }
+
+    @Secured({Authority.ADMIN})
     @PostMapping("/commit")
     @ApiOperation("让指定参数的链码在指定通道上生效（需要通道里所有的组织都安装并赞同）")
     public void commit(@Valid @RequestBody ChaincodeCommitRequest request) throws Exception {
-        chaincodeService.commit(request.getChannelName(), request.getEndorserPeers(), request);
+        chaincodeService.commit(request.getEndorserPeers(), request);
     }
 
     @Secured({Authority.ADMIN})

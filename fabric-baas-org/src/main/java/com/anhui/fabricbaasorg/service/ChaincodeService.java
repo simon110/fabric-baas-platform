@@ -114,9 +114,26 @@ public class ChaincodeService {
         approvedChaincodeRepo.save(entity);
     }
 
-    public void commit(String committerPeerName, List<Node> endorsers, ApprovedChaincode approvedChaincode) throws Exception {
+    public ApprovedChaincodeEntity findApprovedChaincodeOrThrowEx(ApprovedChaincode approvedChaincode) {
+        List<ApprovedChaincodeEntity> approvedChaincodes = approvedChaincodeRepo.findAllByChannelNameAndNameAndSequenceAndVersion(
+                approvedChaincode.getChannelName(), approvedChaincode.getName(), approvedChaincode.getSequence(), approvedChaincode.getVersion()
+        );
+        assert approvedChaincodes.size() == 1;
+        return approvedChaincodes.get(0);
+    }
+
+    public List<ChaincodeApproval> getChaincodeApprovals(ApprovedChaincode approvedChaincode) throws Exception {
         String channelName = approvedChaincode.getChannelName();
-        CoreEnv peerCoreEnv = buildPeerCoreEnv(committerPeerName);
+        ApprovedChaincodeEntity entity = findApprovedChaincodeOrThrowEx(approvedChaincode);
+        CoreEnv peerCoreEnv = buildPeerCoreEnv(entity.getPeerName());
+        TlsEnv ordererTlsEnv = buildOrdererTlsEnv(channelName);
+        return ChaincodeUtils.checkCommittedReadiness(ordererTlsEnv, peerCoreEnv, channelName, approvedChaincode);
+    }
+
+    public void commit(List<Node> endorsers, ApprovedChaincode approvedChaincode) throws Exception {
+        String channelName = approvedChaincode.getChannelName();
+        ApprovedChaincodeEntity entity = findApprovedChaincodeOrThrowEx(approvedChaincode);
+        CoreEnv peerCoreEnv = buildPeerCoreEnv(entity.getPeerName());
         TlsEnv ordererTlsEnv = buildOrdererTlsEnv(channelName);
 
         List<TlsEnv> endorserTlsEnvs = new ArrayList<>();
@@ -126,11 +143,6 @@ public class ChaincodeService {
         ChaincodeUtils.commitChaincode(ordererTlsEnv, peerCoreEnv, endorserTlsEnvs, channelName, approvedChaincode);
 
         // 更新链码生效状态
-        List<ApprovedChaincodeEntity> approvedChaincodes = approvedChaincodeRepo.findAllByChannelNameAndNameAndSequenceAndVersion(
-                channelName, approvedChaincode.getName(), approvedChaincode.getSequence(), approvedChaincode.getVersion()
-        );
-        assert approvedChaincodes.size() == 1;
-        ApprovedChaincodeEntity entity = approvedChaincodes.get(0);
         entity.setCommitted(true);
         approvedChaincodeRepo.save(entity);
     }
