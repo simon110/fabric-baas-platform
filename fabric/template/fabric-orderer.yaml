@@ -74,7 +74,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: orderer-example-com
+  name: orderer-example-com-service
 spec:
   selector:
     app: orderer-example-com-deployment

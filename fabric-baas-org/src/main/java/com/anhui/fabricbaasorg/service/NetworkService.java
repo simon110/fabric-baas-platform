@@ -1,11 +1,11 @@
 package com.anhui.fabricbaasorg.service;
 
 
+import cn.hutool.json.JSONArray;
 import com.anhui.fabricbaascommon.bean.Node;
 import com.anhui.fabricbaascommon.exception.CaException;
 import com.anhui.fabricbaascommon.service.CaClientService;
 import com.anhui.fabricbaascommon.util.MyFileUtils;
-import com.anhui.fabricbaasorg.bean.Network;
 import com.anhui.fabricbaasorg.entity.OrdererEntity;
 import com.anhui.fabricbaasorg.remote.TTPNetworkApi;
 import lombok.extern.slf4j.Slf4j;
@@ -81,7 +81,8 @@ public class NetworkService {
         FileUtils.deleteQuietly(adminCertfileZip);
     }
 
-    public List<Network> getParticipatedNetworks() throws Exception {
-        return ttpNetworkApi.queryNetworks("", caClientService.getCaOrganizationName(), 1, 100000);
+    public List<Object> getParticipatedNetworks() throws Exception {
+        JSONArray array = ttpNetworkApi.queryNetworks("", caClientService.getCaOrganizationName(), 1, 100000);
+        return new ArrayList<>(array);
     }
 }

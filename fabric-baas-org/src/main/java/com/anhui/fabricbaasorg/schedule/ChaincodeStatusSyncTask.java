@@ -12,7 +12,7 @@ public class ChaincodeStatusSyncTask {
     @Autowired
     private ChaincodeService chaincodeService;
 
-    @Scheduled(fixedDelay = 3600000)
+    @Scheduled(fixedDelay = 120000)
     public void syncChaincodeStatuses() throws Exception {
         chaincodeService.syncApprovedChaincodeStatuses();
     }

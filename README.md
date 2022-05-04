@@ -1285,6 +1285,74 @@ eyJhbGciOiJSUzI1NiIsImtpZCI6IndnQVpfTGR0d1pOSHd0V3Nsc1FJRUE5UmhGektzYjRUcHRnYVJ1
 
 
 
+### 3.8 查询所有网络
+
+通过`/api/v1/network/getParticipatedNetworks`可以查询当前组织已经加入的所有网络。
+
+```json
+{
+  "code": 200,
+  "message": "成功调用服务",
+  "data": {
+    "items": [
+      {
+        "orderers": [
+          {
+            "organizationName": "TestOrgA",
+            "port": 30500,
+            "host": "orga.example.com",
+            "addr": "orga.example.com:30500"
+          },
+          {
+            "organizationName": "TestOrgA",
+            "port": 30501,
+            "host": "orga.example.com",
+            "addr": "orga.example.com:30501"
+          },
+          {
+            "organizationName": "TestOrgA",
+            "port": 30502,
+            "host": "orga.example.com",
+            "addr": "orga.example.com:30502"
+          }
+        ],
+        "organizationNames": [
+          "TestOrgA",
+          "TestOrgB"
+        ],
+        "consortiumName": "HaloConsortium",
+        "name": "HaloNetwork"
+      },
+      {
+        "orderers": [
+          {
+            "organizationName": "TestOrgA",
+            "port": 30500,
+            "host": "orga.example.com",
+            "addr": "orga.example.com:30500"
+          },
+          {
+            "organizationName": "TestOrgA",
+            "port": 30501,
+            "host": "orga.example.com",
+            "addr": "orga.example.com:30501"
+          }
+        ],
+        "organizationNames": [
+          "TestOrgA"
+        ],
+        "consortiumName": "SampleConsortium",
+        "name": "SampleNetwork"
+      }
+    ]
+  }
+}
+```
+
+
+
+
+
 ## 4 通道管理
 
 ### 4.1 创建通道
@@ -1449,6 +1517,54 @@ CouchDB的用户密码为自定义，每个Peer维护一个独立的CouchDB。�
 
 
 
+### 4.9 查询所有通道
+
+通过`/api/v1/channel/getParticipatedChannels`可以查询到当前组织参与的所有通道。
+
+```json
+{
+  "code": 200,
+  "message": "成功调用服务",
+  "data": {
+    "items": [
+      {
+        "networkName": "HaloNetwork",
+        "peers": [
+          {
+            "organizationName": "TestOrgA",
+            "port": 31000,
+            "host": "orga.example.com",
+            "name": "halochannel-orgaexamplecom-31000",
+            "addr": "orga.example.com:31000"
+          }
+        ],
+        "organizationNames": [
+          "TestOrgA",
+          "TestOrgB"
+        ],
+        "name": "halochannel"
+      },
+      {
+        "networkName": "HaloNetwork",
+        "peers": [
+          {
+            "organizationName": "TestOrgA",
+            "port": 31000,
+            "host": "orga.example.com",
+            "name": "testchannel-orgaexamplecom-31000",
+            "addr": "orga.example.com:31000"
+          }
+        ],
+        "organizationNames": [
+          "TestOrgA"
+        ],
+        "name": "testchannel"
+      }
+    ]
+  }
+}
+```
+
 
 
 ## 5 链码管理
@@ -1567,7 +1683,43 @@ installedChaincodeIdentifier为安装链码时返回的链码编号，name表示
 
 
 
-### 5.5 链码提交（生效）
+
+
+### 5.5 链码投票情况查询
+
+可以通过`/api/v1/chaincode/getChaincodeApprovals`来对链码的投票情况进行查询：
+
+```json
+{
+  "channelName": "testchannel",
+  "name": "asset-transfer-ledger-queries-chaincode",
+  "sequence": 1,
+  "version": "1.0"
+}
+```
+
+```json
+{
+  "code": 200,
+  "message": "成功调用服务",
+  "data": {
+    "items": [
+      {
+        "organizationName": "TestOrgA",
+        "approved": true
+      },
+      {
+        "organizationName": "TestOrgB",
+        "approved": false
+      },
+    ]
+  }
+}
+```
+
+
+
+### 5.6 链码提交（生效）
 
 所有组织都对链码进行投票之后，需要由其中的任意组织通过`/api/v1/chaincode/commit`来让链码生效，必须预先知道所有其他组织安装了链码的Peer地址，因为需要他们的背书。
 
@@ -1581,7 +1733,6 @@ installedChaincodeIdentifier为安装链码时返回的链码编号，name表示
     }
   ],
   "name": "asset-transfer-ledger-queries-chaincode",
-  "peerName": "TestOrgAPeer0",
   "sequence": 1,
   "version": "1.0"
 }
@@ -1591,7 +1742,7 @@ commit完成后所有的组织的链码都会同时生效。
 
 
 
-### 5.6 组织已提交的链码查询
+### 5.7 组织已提交的链码查询
 
 通过`/api/v1/chaincode/queryCommittedChaincodes`可以查询到当前组织端已经生效的链码：
 
@@ -1623,7 +1774,7 @@ commit完成后所有的组织的链码都会同时生效。
 
 
 
-### 5.7 通道已提交的链码查询
+### 5.8 通道已提交的链码查询
 
 通过`/api/v1/chaincode/getAllCommittedChaincodesOnChannel`可以查询到当前组织在指定Channel上的所有已经生效的链码
 

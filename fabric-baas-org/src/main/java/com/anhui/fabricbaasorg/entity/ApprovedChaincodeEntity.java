@@ -27,7 +27,7 @@ public class ApprovedChaincodeEntity extends ApprovedChaincode {
 
     @JsonIgnore
     @ApiModelProperty(value = "链码是否已经生效", required = false)
-    private boolean isCommitted = false;
+    private boolean committed = false;
 
     @NotBlank
     @ApiModelProperty(value = "链码的Package ID")

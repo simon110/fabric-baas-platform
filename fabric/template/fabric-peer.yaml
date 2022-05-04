@@ -52,7 +52,7 @@ spec:
             - name: CORE_PEER_LISTENADDRESS
               value: "0.0.0.0:7051"
             - name: CORE_PEER_CHAINCODEADDRESS
-              value: "peer-org-example-com-internal-service:7052"
+              value: "localhost:7052"
             - name: CORE_PEER_CHAINCODELISTENADDRESS
               value: "0.0.0.0:7052"
             - name: CORE_PEER_GOSSIP_BOOTSTRAP
@@ -123,20 +123,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: peer-org-example-com-internal-service
-spec:
-  selector:
-    app: peer-org-example-com-deployment
-  ports:
-    - name: peer-chaincode-port
-      port: 7052
-      targetPort: 7052
-
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: peer-org-example-com-external-service
+  name: peer-org-example-com-service
 spec:
   selector:
     app: peer-org-example-com-deployment

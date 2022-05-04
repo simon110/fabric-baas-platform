@@ -3,7 +3,6 @@ package com.anhui.fabricbaasorg.controller;
 import com.anhui.fabricbaascommon.constant.Authority;
 import com.anhui.fabricbaascommon.response.ListResult;
 import com.anhui.fabricbaascommon.response.PaginationQueryResult;
-import com.anhui.fabricbaasorg.bean.Network;
 import com.anhui.fabricbaasorg.bean.Participation;
 import com.anhui.fabricbaasorg.remote.TTPNetworkApi;
 import com.anhui.fabricbaasorg.request.*;
@@ -64,9 +63,9 @@ public class NetworkController {
     }
 
     @Secured({Authority.ADMIN})
-    @PostMapping("/getParticipatedNetwork")
+    @PostMapping("/getParticipatedNetworks")
     @ApiOperation("查询已经加入的网络")
-    public ListResult<Network> getParticipatedNetworks() throws Exception {
+    public ListResult<Object> getParticipatedNetworks() throws Exception {
         return new ListResult<>(networkService.getParticipatedNetworks());
     }
 }
