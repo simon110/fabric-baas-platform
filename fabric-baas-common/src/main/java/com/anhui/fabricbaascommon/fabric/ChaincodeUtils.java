@@ -93,7 +93,7 @@ public class ChaincodeUtils {
         String[] outputLines = str.split("\n");
         for (String outputLine : outputLines) {
             InstalledChaincode installedChaincode = new InstalledChaincode();
-            String[] parts = outputLine.split(", ");
+            String[] parts = outputLine.strip().split(", ");
             assert parts[0].startsWith("Package ID: ");
             assert parts[1].startsWith("Label: ");
             installedChaincode.setIdentifier(parts[0].replaceFirst("Package ID: ", ""));
@@ -158,7 +158,7 @@ public class ChaincodeUtils {
         if (newInstalledChaincodes.size() == oldInstalledChaincodes.size() || !str.toLowerCase().contains("chaincode code package identifier")) {
             throw new ChaincodeException("链码安装失败：" + chaincodePackage);
         }
-        return str.substring(str.lastIndexOf(" ") + 1);
+        return str.substring(str.lastIndexOf(" ") + 1).strip();
     }
 
     /**

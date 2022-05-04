@@ -4,6 +4,7 @@ import com.anhui.fabricbaascommon.constant.Authority;
 import com.anhui.fabricbaascommon.request.PaginationQueryRequest;
 import com.anhui.fabricbaascommon.response.ListResult;
 import com.anhui.fabricbaascommon.response.PaginationQueryResult;
+import com.anhui.fabricbaascommon.response.UniqueResult;
 import com.anhui.fabricbaasorg.entity.CommittedChaincodeEntity;
 import com.anhui.fabricbaasorg.entity.InstalledChaincodeEntity;
 import com.anhui.fabricbaasorg.request.BasePeerRequest;
@@ -31,8 +32,9 @@ public class ChaincodeController {
     @Secured({Authority.ADMIN})
     @PostMapping("/install")
     @ApiOperation("安装链码到指定Peer节点")
-    public void install(@Valid @RequestPart ChaincodeInstallRequest request, @RequestPart MultipartFile chaincodePackage) throws Exception {
-        chaincodeService.install(request.getPeerName(), request.getChaincodeLabel(), chaincodePackage);
+    public UniqueResult<String> install(@Valid @RequestPart ChaincodeInstallRequest request, @RequestPart MultipartFile chaincodePackage) throws Exception {
+        String packageId = chaincodeService.install(request.getPeerName(), request.getChaincodeLabel(), chaincodePackage);
+        return new UniqueResult<>(packageId);
     }
 
     @Secured({Authority.ADMIN})

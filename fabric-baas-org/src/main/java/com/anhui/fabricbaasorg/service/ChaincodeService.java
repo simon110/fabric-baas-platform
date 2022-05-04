@@ -84,7 +84,7 @@ public class ChaincodeService {
         return new TlsEnv(endorser.getAddr(), endorserTlsCert);
     }
 
-    public void install(String peerName, String chaincodeLabel, MultipartFile chaincodePackage) throws Exception {
+    public String install(String peerName, String chaincodeLabel, MultipartFile chaincodePackage) throws Exception {
         // 将链码压缩包写入临时目录
         File tempChaincodePackage = MyFileUtils.createTempFile("tar.gz");
         FileUtils.writeByteArrayToFile(tempChaincodePackage, chaincodePackage.getBytes());
@@ -96,6 +96,8 @@ public class ChaincodeService {
         installedChaincode.setIdentifier(packageId);
         installedChaincode.setLabel(chaincodeLabel);
         installedChaincodeRepo.save(installedChaincode);
+
+        return packageId;
     }
 
     public void approve(String peerName, String channelName, String chaincodePackageId, BasicChaincodeProperties chaincodeProperties) throws Exception {
