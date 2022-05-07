@@ -110,6 +110,10 @@ public class SystemService {
      * 4. 初始化TTP远程用户
      */
     public void init(CaEntity org, RemoteUserEntity remoteUser, String adminPassword, MultipartFile kubernetesConfig) throws Exception {
+        if (isAvailable()) {
+            throw new DuplicatedOperationException("请勿重复初始化系统");
+        }
+
         try {
             initRemoteUser(remoteUser);
             initKubernetesService(kubernetesConfig);
