@@ -34,7 +34,7 @@ public class SystemController {
 
     @Secured({Authority.ADMIN})
     @PostMapping("/getClusterNodeNames")
-    @ApiOperation("获取集群的所有物理节点")
+    @ApiOperation("获取集群的所有物理节点的名称")
     public ListResult<String> getClusterNodeNames() throws Exception {
         List<String> nodeNames = kubernetesService.getAllNodeNames();
         return new ListResult<>(nodeNames);
@@ -42,7 +42,7 @@ public class SystemController {
 
     @Secured({Authority.ADMIN})
     @PostMapping("/getClusterNode")
-    @ApiOperation("获取集群的所有物理节点")
+    @ApiOperation("获取集群指定物理节点的信息")
     public UniqueResult<Node> getClusterNode(@Valid @RequestBody ClusterNodeQueryRequest request) throws Exception {
         return new UniqueResult<>(kubernetesService.getNode(request.getNodeName()));
     }
