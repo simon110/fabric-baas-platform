@@ -6,7 +6,6 @@ import com.anhui.fabricbaascommon.request.PaginationQueryRequest;
 import com.anhui.fabricbaascommon.response.PaginationQueryResult;
 import com.anhui.fabricbaascommon.response.UniqueResult;
 import com.anhui.fabricbaascommon.service.CaClientService;
-import com.anhui.fabricbaasorg.bean.Participation;
 import com.anhui.fabricbaasorg.remote.TTPNetworkApi;
 import com.anhui.fabricbaasorg.request.*;
 import com.anhui.fabricbaasorg.service.NetworkService;
@@ -63,7 +62,7 @@ public class NetworkController {
     @Secured({Authority.ADMIN})
     @PostMapping("/queryParticipations")
     @ApiOperation("查询加入网络申请")
-    public PaginationQueryResult<Participation> queryParticipations(@Valid @RequestBody ParticipationQueryRequest request) throws Exception {
+    public PaginationQueryResult<Object> queryParticipations(@Valid @RequestBody ParticipationQueryRequest request) throws Exception {
         return ttpNetworkApi.queryParticipations(request.getNetworkName(), request.getStatus(), request.getPage(), request.getPageSize());
     }
 

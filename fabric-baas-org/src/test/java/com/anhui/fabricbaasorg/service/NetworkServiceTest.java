@@ -2,11 +2,9 @@ package com.anhui.fabricbaasorg.service;
 
 import cn.hutool.core.lang.Pair;
 import com.anhui.fabricbaascommon.bean.Node;
-import com.anhui.fabricbaascommon.response.PaginationQueryResult;
 import com.anhui.fabricbaascommon.util.MyFileUtils;
 import com.anhui.fabricbaascommon.util.ZipUtils;
 import com.anhui.fabricbaasorg.bean.NetworkOrderer;
-import com.anhui.fabricbaasorg.bean.Participation;
 import com.anhui.fabricbaasorg.entity.OrdererEntity;
 import com.anhui.fabricbaasorg.remote.TTPNetworkApi;
 import com.anhui.fabricbaasorg.remote.TTPOrganizationApi;
@@ -69,9 +67,6 @@ class NetworkServiceTest {
 
         // 处理其他组织加入网络的申请
         ttpOrganizationApi.login(testOrgA.getKey(), testOrgA.getValue());
-        PaginationQueryResult<Participation> participations = ttpNetworkApi.queryParticipations(networkName, 0, 1, 10);
-        System.out.println(participations);
-        Assertions.assertEquals(2, participations.getItems().size());
 
         ttpNetworkApi.handleParticipation(networkName, testOrgB.getKey(), true);
         ttpNetworkApi.handleParticipation(networkName, testOrgC.getKey(), true);

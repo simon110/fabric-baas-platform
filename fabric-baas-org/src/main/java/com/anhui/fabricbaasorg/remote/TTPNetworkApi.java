@@ -5,7 +5,6 @@ import cn.hutool.json.JSONUtil;
 import com.anhui.fabricbaascommon.bean.Node;
 import com.anhui.fabricbaascommon.response.PaginationQueryResult;
 import com.anhui.fabricbaasorg.bean.NetworkOrderer;
-import com.anhui.fabricbaasorg.bean.Participation;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
@@ -84,16 +83,17 @@ public class TTPNetworkApi {
      * @return 指定网络中的加入申请及处理状态
      * @throws Exception 返回请求中任何code!=200的情况都应该抛出异常
      */
-    public PaginationQueryResult<Participation> queryParticipations(String networkName, int status, int page, int pageSize) throws Exception {
+    public PaginationQueryResult<Object> queryParticipations(String networkName, int status, int page, int pageSize) throws Exception {
         JSONObject data = new JSONObject();
         data.set("networkName", networkName);
         data.set("status", status);
         data.set("page", page);
         data.set("pageSize", pageSize);
         JSONObject response = httpClient.request("/api/v1/network/queryParticipations", data);
-        PaginationQueryResult<Participation> result = new PaginationQueryResult<>();
-        result.setItems(JSONUtil.toList(response.getJSONArray("items"), Participation.class));
+        PaginationQueryResult<Object> result = new PaginationQueryResult<>();
         result.setTotalPages((Integer) response.get("totalPages"));
+        List<Object> items = new ArrayList<>(response.getJSONArray("items"));
+        result.setItems(items);
         return result;
     }
 
