@@ -1,13 +1,14 @@
 package com.anhui.fabricbaasorg.remote;
 
-import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.anhui.fabricbaascommon.bean.Node;
+import com.anhui.fabricbaascommon.response.PaginationQueryResult;
 import com.anhui.fabricbaasorg.bean.ChannelPeer;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -123,17 +124,20 @@ public class TTPChannelApi {
         return JSONUtil.toList(response.getJSONArray("items"), ChannelPeer.class);
     }
 
-    public JSONObject getChannel(String channelName) throws Exception {
+    public Object getChannel(String channelName) throws Exception {
         JSONObject data = new JSONObject();
         data.set("channelName", channelName);
         JSONObject response = httpClient.request("/api/v1/channel/getChannel", data);
-        return response.getJSONObject("result");
+        return response.get("result");
     }
 
-    public JSONArray getOrganizationChannels(String organizationName, int page, int pageSize) throws Exception {
+    public PaginationQueryResult<Object> getOrganizationChannels(String organizationName, int page, int pageSize) throws Exception {
         JSONObject data = new JSONObject();
         data.set("organizationName", organizationName);
+        data.set("page", page);
+        data.set("pageSize", pageSize);
         JSONObject response = httpClient.request("/api/v1/channel/getOrganizationChannels", data);
-        return response.getJSONArray("items");
+        List<Object> channels = new ArrayList<>(response.getJSONArray("items"));
+        return new PaginationQueryResult<>(response.getInt("totalPages"), channels);
     }
 }

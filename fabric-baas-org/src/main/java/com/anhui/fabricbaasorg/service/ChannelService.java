@@ -1,6 +1,5 @@
 package com.anhui.fabricbaasorg.service;
 
-import cn.hutool.json.JSONArray;
 import com.anhui.fabricbaascommon.bean.Node;
 import com.anhui.fabricbaascommon.constant.CertfileType;
 import com.anhui.fabricbaascommon.exception.ChannelException;
@@ -19,8 +18,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -78,10 +75,5 @@ public class ChannelService {
         // 调用远程接口
         Node node = new Node(caClientService.getCaOrganizationDomain(), peer.getKubeNodePort());
         ttpChannelApi.joinChannel(channelName, node, peerCertfileZip);
-    }
-
-    public List<Object> getParticipatedChannels() throws Exception {
-        JSONArray array = ttpChannelApi.getOrganizationChannels(caClientService.getCaOrganizationName());
-        return new ArrayList<>(array);
     }
 }

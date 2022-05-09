@@ -189,4 +189,11 @@ public class TTPNetworkApi {
         JSONObject response = httpClient.request("/api/v1/network/queryOrganizations", data);
         return JSONUtil.toList(response.getJSONArray("items"), String.class);
     }
+
+    public Object getNetwork(String networkName) throws Exception {
+        JSONObject data = new JSONObject();
+        data.set("networkName", networkName);
+        JSONObject response = httpClient.request("/api/v1/network/getNetwork", data);
+        return response.get("result");
+    }
 }

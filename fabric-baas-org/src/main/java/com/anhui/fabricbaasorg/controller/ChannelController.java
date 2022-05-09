@@ -1,8 +1,11 @@
 package com.anhui.fabricbaasorg.controller;
 
 import com.anhui.fabricbaascommon.constant.Authority;
-import com.anhui.fabricbaascommon.response.ListResult;
+import com.anhui.fabricbaascommon.request.BaseChannelRequest;
+import com.anhui.fabricbaascommon.request.PaginationQueryRequest;
+import com.anhui.fabricbaascommon.response.PaginationQueryResult;
 import com.anhui.fabricbaascommon.response.UniqueResult;
+import com.anhui.fabricbaascommon.service.CaClientService;
 import com.anhui.fabricbaasorg.remote.TTPChannelApi;
 import com.anhui.fabricbaasorg.request.*;
 import com.anhui.fabricbaasorg.service.ChannelService;
@@ -25,6 +28,8 @@ public class ChannelController {
     private ChannelService channelService;
     @Autowired
     private TTPChannelApi ttpChannelApi;
+    @Autowired
+    private CaClientService caClientService;
 
     @Secured({Authority.ADMIN})
     @PostMapping("/create")
@@ -63,10 +68,17 @@ public class ChannelController {
     }
 
     @Secured({Authority.ADMIN})
-    @PostMapping("/getParticipatedChannels")
+    @PostMapping("/queryParticipatedChannels")
     @ApiOperation("查询当前组织已经加入的通道")
-    public ListResult<Object> getParticipatedChannels() throws Exception {
-        return new ListResult<>(channelService.getParticipatedChannels());
+    public PaginationQueryResult<Object> queryParticipatedChannels(@Valid @RequestBody PaginationQueryRequest request) throws Exception {
+        return ttpChannelApi.getOrganizationChannels(caClientService.getCaOrganizationName(), request.getPage(), request.getPageSize());
+    }
+
+    @Secured({Authority.ADMIN})
+    @PostMapping("/getChannel")
+    @ApiOperation("获取通道的详细信息")
+    public UniqueResult<Object> getChannel(@Valid @RequestBody BaseChannelRequest request) throws Exception {
+        return new UniqueResult<>(ttpChannelApi.getChannel(request.getChannelName()));
     }
 }
 

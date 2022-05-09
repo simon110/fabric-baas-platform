@@ -1,8 +1,11 @@
 package com.anhui.fabricbaasorg.controller;
 
 import com.anhui.fabricbaascommon.constant.Authority;
-import com.anhui.fabricbaascommon.response.ListResult;
+import com.anhui.fabricbaascommon.request.BaseNetworkRequest;
+import com.anhui.fabricbaascommon.request.PaginationQueryRequest;
 import com.anhui.fabricbaascommon.response.PaginationQueryResult;
+import com.anhui.fabricbaascommon.response.UniqueResult;
+import com.anhui.fabricbaascommon.service.CaClientService;
 import com.anhui.fabricbaasorg.bean.Participation;
 import com.anhui.fabricbaasorg.remote.TTPNetworkApi;
 import com.anhui.fabricbaasorg.request.*;
@@ -26,6 +29,8 @@ public class NetworkController {
     private NetworkService networkService;
     @Autowired
     private TTPNetworkApi ttpNetworkApi;
+    @Autowired
+    private CaClientService caClientService;
 
     @Secured({Authority.ADMIN})
     @PostMapping("/create")
@@ -63,9 +68,16 @@ public class NetworkController {
     }
 
     @Secured({Authority.ADMIN})
-    @PostMapping("/getParticipatedNetworks")
+    @PostMapping("/queryParticipatedNetworks")
     @ApiOperation("查询已经加入的网络")
-    public ListResult<Object> getParticipatedNetworks() throws Exception {
-        return new ListResult<>(networkService.getParticipatedNetworks());
+    public PaginationQueryResult<Object> queryParticipatedNetworks(@Valid @RequestBody PaginationQueryRequest request) throws Exception {
+        return ttpNetworkApi.queryNetworks("", caClientService.getCaOrganizationName(), request.getPage(), request.getPageSize());
+    }
+
+    @Secured({Authority.ADMIN})
+    @PostMapping("/getNetwork")
+    @ApiOperation("获取网络的详细信息")
+    public UniqueResult<Object> getNetwork(@Valid @RequestBody BaseNetworkRequest request) throws Exception {
+        return new UniqueResult<>(ttpNetworkApi.getNetwork(request.getNetworkName()));
     }
 }

@@ -1,7 +1,6 @@
 package com.anhui.fabricbaasorg.service;
 
 
-import cn.hutool.json.JSONArray;
 import com.anhui.fabricbaascommon.bean.Node;
 import com.anhui.fabricbaascommon.exception.CaException;
 import com.anhui.fabricbaascommon.service.CaClientService;
@@ -79,10 +78,5 @@ public class NetworkService {
         // 调用TTP端的接口发送加入网络申请
         ttpNetworkApi.applyParticipation(networkName, description, adminCertfileZip);
         FileUtils.deleteQuietly(adminCertfileZip);
-    }
-
-    public List<Object> getParticipatedNetworks() throws Exception {
-        JSONArray array = ttpNetworkApi.queryNetworks("", caClientService.getCaOrganizationName(), 1, 100000);
-        return new ArrayList<>(array);
     }
 }

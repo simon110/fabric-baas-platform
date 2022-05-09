@@ -1287,7 +1287,14 @@ eyJhbGciOiJSUzI1NiIsImtpZCI6IndnQVpfTGR0d1pOSHd0V3Nsc1FJRUE5UmhGektzYjRUcHRnYVJ1
 
 ### 3.8 查询所有网络
 
-通过`/api/v1/network/getParticipatedNetworks`可以查询当前组织已经加入的所有网络。
+通过`/api/v1/network/queryParticipatedNetworks`可以查询当前组织已经加入的所有网络。
+
+```json
+{
+  "page": 1,
+  "pageSize": 10,
+}
+```
 
 ```json
 {
@@ -1519,7 +1526,14 @@ CouchDB的用户密码为自定义，每个Peer维护一个独立的CouchDB。�
 
 ### 4.9 查询所有通道
 
-通过`/api/v1/channel/getParticipatedChannels`可以查询到当前组织参与的所有通道。
+通过`/api/v1/channel/queryParticipatedChannels`可以查询到当前组织参与的所有通道。
+
+```json
+{
+  "page": 1,
+  "pageSize": 10,
+}
+```
 
 ```json
 {
