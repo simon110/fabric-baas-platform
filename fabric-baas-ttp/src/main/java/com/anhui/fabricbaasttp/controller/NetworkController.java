@@ -67,7 +67,7 @@ public class NetworkController {
     @Secured({Authority.USER})
     @PostMapping("/addOrderer")
     @ApiOperation("向网络中添加Orderer")
-    public ResourceResult addOrderer(@Valid @RequestBody NetworkOrdererOperateRequest request) throws Exception {
+    public ResourceResult addOrderer(@Valid @RequestBody NetworkOrdererRequest request) throws Exception {
         String currentOrganizationName = SecurityUtils.getUsername();
         String downloadUrl = networkService.addOrderer(currentOrganizationName, request.getNetworkName(), request.getOrderer());
         return new ResourceResult(downloadUrl);
@@ -93,7 +93,7 @@ public class NetworkController {
     @Secured({Authority.USER})
     @PostMapping("/queryOrdererTlsCert")
     @ApiOperation("查询当前组织所参与的任意网络中指定Orderer节点的tls/ca.crt")
-    public ResourceResult queryOrdererTlsCert(@Valid @RequestBody NetworkOrdererOperateRequest request) throws Exception {
+    public ResourceResult queryOrdererTlsCert(@Valid @RequestBody NetworkOrdererRequest request) throws Exception {
         String currentOrganizationName = SecurityUtils.getUsername();
         String downloadUrl = networkService.queryOrdererTlsCert(currentOrganizationName, request.getNetworkName(), request.getOrderer());
         return new ResourceResult(downloadUrl);
@@ -102,7 +102,7 @@ public class NetworkController {
     @Secured({Authority.USER, Authority.ADMIN})
     @PostMapping("/queryOrdererCert")
     @ApiOperation("查询当前组织所参与的任意网络中指定Orderer节点的证书（包括MSP和TLS，只有所属组织可以下载）")
-    public ResourceResult queryOrdererCert(@Valid @RequestBody NetworkOrdererOperateRequest request) throws Exception {
+    public ResourceResult queryOrdererCert(@Valid @RequestBody NetworkOrdererRequest request) throws Exception {
         String currentOrganizationName = SecurityUtils.getUsername();
         String downloadUrl = networkService.queryOrdererCert(currentOrganizationName, request.getNetworkName(), request.getOrderer());
         return new ResourceResult(downloadUrl);

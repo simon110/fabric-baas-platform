@@ -11,9 +11,9 @@ import javax.validation.constraints.Pattern;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-@ApiModel(value = "锚节点更新请求")
-public class AnchorPeerUpdateRequest extends BaseChannelRequest {
+@ApiModel(value = "通道相关的Peer节点操作请求")
+public class ChannelPeerRequest extends BaseChannelRequest {
     @Pattern(regexp = ParamPattern.DEPLOYMENT_NAME_REGEX, message = ParamPattern.DEPLOYMENT_NAME_MSG)
-    @ApiModelProperty(value = "组织锚节点名称", required = true)
+    @ApiModelProperty(value = "节点名称", required = true)
     private String peerName;
 }

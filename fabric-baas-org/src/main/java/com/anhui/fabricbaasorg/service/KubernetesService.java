@@ -72,27 +72,42 @@ public class KubernetesService {
         throw new NodeException("未找到集群节点：" + nodeName);
     }
 
+    public String getCompletePodName(String keyword) {
+        List<Pod> podList = kubernetesClient.findPodsByKeyword(keyword);
+        assert podList.size() == 1;
+        Pod pod = podList.get(0);
+        return pod.getMetadata().getName();
+    }
+
+    public PodStatus getPodStatus(String podName) throws KubernetesException {
+        List<Pod> pods = kubernetesClient.findPodsByKeyword(podName);
+        if (pods.isEmpty()) {
+            throw new KubernetesException("未找到相应名称的Pod：" + podName);
+        }
+        assert pods.size() == 1;
+        return pods.get(0).getStatus();
+    }
+
+    public boolean isAllContainersReady(PodStatus podStatus) {
+        if ("Running".equals(podStatus.getPhase())) {
+            List<ContainerStatus> containerStatuses = podStatus.getContainerStatuses();
+            if (containerStatuses.isEmpty()) {
+                return false;
+            }
+            boolean isAllContainersReady = true;
+            for (int i = 0; i < containerStatuses.size() && isAllContainersReady; i++) {
+                ContainerStatus status = containerStatuses.get(i);
+                isAllContainersReady = status.getReady();
+            }
+            return isAllContainersReady;
+        }
+        return false;
+    }
+
     private void waitFor(String podName, int sleepMs, int timeoutMs) throws KubernetesException {
         ThrowableSupplier<Boolean, Exception> supplier = () -> {
-            List<Pod> pods = kubernetesClient.findPodsByKeyword(podName);
-            if (pods.isEmpty()) {
-                throw new KubernetesException("未找到相应名称的Pod：" + podName);
-            }
-            assert pods.size() == 1;
-            PodStatus podStatus = pods.get(0).getStatus();
-            if ("Running".equals(podStatus.getPhase())) {
-                List<ContainerStatus> containerStatuses = podStatus.getContainerStatuses();
-                if (containerStatuses.isEmpty()) {
-                    return false;
-                }
-                boolean isAllContainersReady = true;
-                for (int i = 0; i < containerStatuses.size() && isAllContainersReady; i++) {
-                    ContainerStatus status = containerStatuses.get(i);
-                    isAllContainersReady = status.getReady();
-                }
-                return isAllContainersReady;
-            }
-            return false;
+            PodStatus podStatus = getPodStatus(podName);
+            return isAllContainersReady(podStatus);
         };
         try {
             WatcherUtils.waitFor(supplier, sleepMs, timeoutMs);
@@ -130,12 +145,9 @@ public class KubernetesService {
         try {
             kubernetesClient.applyYaml(peerYaml);
 
-            List<Pod> podList = kubernetesClient.findPodsByKeyword(peer.getName());
-            assert podList.size() == 1;
-            Pod pod = podList.get(0);
-            String podName = pod.getMetadata().getName();
+            String podName = getCompletePodName(peer.getName());
             waitFor(podName, 3000, 30000);
-            pod = kubernetesClient.findPodsByKeyword(podName).get(0);
+            Pod pod = kubernetesClient.findPodsByKeyword(podName).get(0);
             List<ContainerStatus> containerStatuses = pod.getStatus().getContainerStatuses();
             String containerName = null;
             for (int i = 0; i < containerStatuses.size() && containerName == null; i++) {
@@ -165,7 +177,7 @@ public class KubernetesService {
         assertNodePortAvailable(peer.getKubeEventNodePort());
         // 检查是否存在同名Peer
         assertDeploymentNameAvailable(peer.getName());
-
+        assertPeerExists(peer.getName(), false);
 
         applyPeerYaml(organizationName, peer, domain, peerCertfileDir);
         log.info("保存Peer信息：" + peer);
@@ -180,12 +192,22 @@ public class KubernetesService {
         }
     }
 
-    public void stopPeer(String peerName) throws Exception {
-        if (!peerRepo.existsById(peerName)) {
-            throw new KubernetesException("不存在Peer：" + peerName);
+    public void assertPeerExists(String peerName, boolean expected) throws KubernetesException {
+        if (peerRepo.existsById(peerName) != expected) {
+            throw new KubernetesException("Peer存在性断言不符合：" + peerName);
         }
+    }
+
+    public void stopPeer(String peerName) throws Exception {
+        assertPeerExists(peerName, true);
         deletePeerYaml(peerName);
         peerRepo.deleteById(peerName);
+    }
+
+    public PodStatus getPeerStatus(String peerName) throws Exception {
+        assertPeerExists(peerName, true);
+        String podName = getCompletePodName(peerName);
+        return getPodStatus(podName);
     }
 
     public void applyOrdererYaml(String ordererOrganizationName, OrdererEntity orderer, File ordererCertfileDir, File genesisBlock) throws Exception {
@@ -197,12 +219,9 @@ public class KubernetesService {
             kubernetesClient.applyYaml(ordererYaml);
 
             // 等待容器启动完成（Pod需要在等待结束后被刷新一次）
-            List<Pod> podList = kubernetesClient.findPodsByKeyword(orderer.getName());
-            assert podList.size() == 1;
-            Pod pod = podList.get(0);
-            String podName = pod.getMetadata().getName();
+            String podName = getCompletePodName(orderer.getName());
             waitFor(podName, 5000, 60000);
-            pod = kubernetesClient.findPodsByKeyword(podName).get(0);
+            Pod pod = kubernetesClient.findPodsByKeyword(podName).get(0);
             List<ContainerStatus> containerStatuses = pod.getStatus().getContainerStatuses();
             String containerName = containerStatuses.get(0).getName();
 
@@ -224,6 +243,7 @@ public class KubernetesService {
         assertNodePortAvailable(orderer.getKubeNodePort());
         // 检查Orderer是否已经存在
         assertDeploymentNameAvailable(orderer.getName());
+        assertOrdererExists(orderer.getName(), false);
         // 检查物理主机是否存在
         assertNodeExists(orderer.getKubeNodeName());
 
@@ -240,12 +260,22 @@ public class KubernetesService {
         }
     }
 
-    public void stopOrderer(String ordererName) throws Exception {
-        if (!ordererRepo.existsById(ordererName)) {
-            throw new KubernetesException("不存在Orderer：" + ordererName);
+    public void assertOrdererExists(String ordererName, boolean expected) throws KubernetesException {
+        if (ordererRepo.existsById(ordererName) != expected) {
+            throw new KubernetesException("Orderer存在性断言不符合：" + ordererName);
         }
+    }
+
+    public void stopOrderer(String ordererName) throws Exception {
+        assertPeerExists(ordererName, true);
         deleteOrdererYaml(ordererName);
         ordererRepo.deleteById(ordererName);
+    }
+
+    public PodStatus getOrdererStatus(String ordererName) throws Exception {
+        assertOrdererExists(ordererName, true);
+        String podName = getCompletePodName(ordererName);
+        return getPodStatus(podName);
     }
 }
 

@@ -2,6 +2,7 @@ package com.anhui.fabricbaasorg.controller;
 
 import com.anhui.fabricbaascommon.constant.Authority;
 import com.anhui.fabricbaascommon.request.BaseChannelRequest;
+import com.anhui.fabricbaascommon.request.NetworkChannelRequest;
 import com.anhui.fabricbaascommon.request.PaginationQueryRequest;
 import com.anhui.fabricbaascommon.response.PaginationQueryResult;
 import com.anhui.fabricbaascommon.response.UniqueResult;
@@ -34,14 +35,14 @@ public class ChannelController {
     @Secured({Authority.ADMIN})
     @PostMapping("/create")
     @ApiOperation("创建通道")
-    public void create(@Valid @RequestBody ChannelCreateRequest request) throws Exception {
+    public void create(@Valid @RequestBody NetworkChannelRequest request) throws Exception {
         channelService.create(request.getChannelName(), request.getNetworkName());
     }
 
     @Secured({Authority.ADMIN})
     @PostMapping("/updateAnchor")
     @ApiOperation("更新锚节点")
-    public void updateAnchor(@Valid @RequestBody AnchorPeerUpdateRequest request) throws Exception {
+    public void updateAnchor(@Valid @RequestBody ChannelPeerRequest request) throws Exception {
         channelService.updateAnchor(request.getChannelName(), request.getPeerName());
     }
 
@@ -63,7 +64,7 @@ public class ChannelController {
     @Secured({Authority.ADMIN})
     @PostMapping("/join")
     @ApiOperation("加入通道")
-    public void join(@Valid @RequestBody ChannelJoinRequest request) throws Exception {
+    public void join(@Valid @RequestBody ChannelPeerRequest request) throws Exception {
         channelService.join(request.getChannelName(), request.getPeerName());
     }
 

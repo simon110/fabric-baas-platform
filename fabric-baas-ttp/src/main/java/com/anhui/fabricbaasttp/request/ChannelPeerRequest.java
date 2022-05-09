@@ -1,7 +1,7 @@
 package com.anhui.fabricbaasttp.request;
 
 import com.anhui.fabricbaascommon.bean.Node;
-import com.anhui.fabricbaascommon.request.BaseNetworkRequest;
+import com.anhui.fabricbaascommon.request.BaseChannelRequest;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -11,9 +11,9 @@ import javax.validation.constraints.NotNull;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-@ApiModel(value = "Network Orderer操作请求")
-public class NetworkOrdererOperateRequest extends BaseNetworkRequest {
+@ApiModel(value = "Channel Peer 操作请求")
+public class ChannelPeerRequest extends BaseChannelRequest {
     @NotNull
-    @ApiModelProperty(value = "Orderer节点的信息", required = true)
-    private Node orderer;
+    @ApiModelProperty(value = "Peer节点地址信息", required = true)
+    private Node peer;
 }
