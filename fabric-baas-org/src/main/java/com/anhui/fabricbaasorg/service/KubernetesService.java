@@ -1,5 +1,6 @@
 package com.anhui.fabricbaasorg.service;
 
+import com.anhui.fabricbaascommon.exception.NodeException;
 import com.anhui.fabricbaascommon.function.ThrowableSupplier;
 import com.anhui.fabricbaascommon.util.CertfileUtils;
 import com.anhui.fabricbaascommon.util.MyFileUtils;
@@ -53,12 +54,22 @@ public class KubernetesService {
         kubernetesClient = new KubernetesClient(KUBERNETES_ADMIN_CONFIG);
     }
 
-    public List<String> getNodeNames() throws KubernetesException {
+    public List<String> getAllNodeNames() throws KubernetesException {
         assertAdminConfig();
         List<Node> nodes = kubernetesClient.getAllNodes();
         List<String> nodeNames = new ArrayList<>();
         nodes.forEach(node -> nodeNames.add(node.getMetadata().getName()));
         return nodeNames;
+    }
+
+    public Node getNode(String nodeName) throws NodeException {
+        List<Node> nodes = kubernetesClient.getAllNodes();
+        for (Node node : nodes) {
+            if (node.getMetadata().getName().equals(nodeName)) {
+                return node;
+            }
+        }
+        throw new NodeException("未找到集群节点：" + nodeName);
     }
 
     private void waitFor(String podName, int sleepMs, int timeoutMs) throws KubernetesException {
@@ -105,7 +116,7 @@ public class KubernetesService {
     }
 
     public void assertNodeExists(String name) throws KubernetesException {
-        if (!getNodeNames().contains(name)) {
+        if (!getAllNodeNames().contains(name)) {
             throw new KubernetesException("物理节点不存在：" + name);
         }
     }

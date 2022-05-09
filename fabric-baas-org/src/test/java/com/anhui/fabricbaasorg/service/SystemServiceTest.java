@@ -44,7 +44,6 @@ class SystemServiceTest {
             systemService.init(org, remoteUser, adminPassword, kubernetesConfig);
             Assertions.assertTrue(systemService.isAvailable());
 
-            System.out.println(systemService.getClusterNodeNames());
         } catch (Exception e) {
             caContainerService.cleanCaContainer();
             throw e;

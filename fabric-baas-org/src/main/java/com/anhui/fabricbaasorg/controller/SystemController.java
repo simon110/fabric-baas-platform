@@ -5,17 +5,17 @@ import com.anhui.fabricbaascommon.exception.CaException;
 import com.anhui.fabricbaascommon.response.ListResult;
 import com.anhui.fabricbaascommon.response.UniqueResult;
 import com.anhui.fabricbaascommon.service.CaClientService;
+import com.anhui.fabricbaasorg.request.ClusterNodeQueryRequest;
 import com.anhui.fabricbaasorg.request.SystemInitRequest;
+import com.anhui.fabricbaasorg.service.KubernetesService;
 import com.anhui.fabricbaasorg.service.SystemService;
+import io.fabric8.kubernetes.api.model.Node;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.annotation.Secured;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
@@ -29,13 +29,22 @@ public class SystemController {
     private SystemService systemService;
     @Autowired
     private CaClientService caClientService;
+    @Autowired
+    private KubernetesService kubernetesService;
 
     @Secured({Authority.ADMIN})
     @PostMapping("/getClusterNodeNames")
     @ApiOperation("获取集群的所有物理节点")
     public ListResult<String> getClusterNodeNames() throws Exception {
-        List<String> nodeNames = systemService.getClusterNodeNames();
+        List<String> nodeNames = kubernetesService.getAllNodeNames();
         return new ListResult<>(nodeNames);
+    }
+
+    @Secured({Authority.ADMIN})
+    @PostMapping("/getClusterNode")
+    @ApiOperation("获取集群的所有物理节点")
+    public UniqueResult<Node> getClusterNode(@Valid @RequestBody ClusterNodeQueryRequest request) throws Exception {
+        return new UniqueResult<>(kubernetesService.getNode(request.getNodeName()));
     }
 
     @Secured({Authority.ADMIN})
