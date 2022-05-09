@@ -1,8 +1,10 @@
 package com.anhui.fabricbaasorg.controller;
 
 import com.anhui.fabricbaascommon.constant.Authority;
+import com.anhui.fabricbaascommon.exception.CaException;
 import com.anhui.fabricbaascommon.response.ListResult;
 import com.anhui.fabricbaascommon.response.UniqueResult;
+import com.anhui.fabricbaascommon.service.CaClientService;
 import com.anhui.fabricbaasorg.request.SystemInitRequest;
 import com.anhui.fabricbaasorg.service.SystemService;
 import io.swagger.annotations.Api;
@@ -25,6 +27,8 @@ import java.util.List;
 public class SystemController {
     @Autowired
     private SystemService systemService;
+    @Autowired
+    private CaClientService caClientService;
 
     @Secured({Authority.ADMIN})
     @PostMapping("/getClusterNodeNames")
@@ -48,5 +52,12 @@ public class SystemController {
     @ApiOperation("判断当前系统是否已经初始化")
     public UniqueResult<Boolean> isAvailable() {
         return new UniqueResult<>(systemService.isAvailable());
+    }
+
+    @Secured({Authority.ADMIN})
+    @PostMapping("/getOrganizationName")
+    @ApiOperation("获取组织用户的名称")
+    public UniqueResult<String> getOrganizationName() throws CaException {
+        return new UniqueResult<>(caClientService.getCaOrganizationName());
     }
 }
