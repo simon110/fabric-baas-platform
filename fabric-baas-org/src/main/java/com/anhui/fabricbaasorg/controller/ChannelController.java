@@ -71,7 +71,7 @@ public class ChannelController {
     @PostMapping("/queryParticipatedChannels")
     @ApiOperation("查询当前组织已经加入的通道")
     public PaginationQueryResult<Object> queryParticipatedChannels(@Valid @RequestBody PaginationQueryRequest request) throws Exception {
-        return ttpChannelApi.getOrganizationChannels(caClientService.getCaOrganizationName(), request.getPage(), request.getPageSize());
+        return ttpChannelApi.queryOrganizationChannels(caClientService.getCaOrganizationName(), request.getPage(), request.getPageSize());
     }
 
     @Secured({Authority.ADMIN})

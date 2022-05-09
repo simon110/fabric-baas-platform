@@ -101,7 +101,7 @@ public class ChannelController {
     @Secured({Authority.USER, Authority.ADMIN})
     @PostMapping("/queryOrganizationChannels")
     @ApiOperation("查询指定组织参与的所有通道")
-    public PaginationQueryResult<ChannelEntity> getOrganizationChannels(@Valid @RequestBody OrganizationChannelQueryRequest request) {
+    public PaginationQueryResult<ChannelEntity> queryOrganizationChannels(@Valid @RequestBody OrganizationChannelQueryRequest request) {
         Page<ChannelEntity> page = channelService.getOrganizationChannels(request.getOrganizationName(), request.getPage(), request.getPageSize());
         return new PaginationQueryResult<>(page.getTotalPages(), page.getContent());
     }

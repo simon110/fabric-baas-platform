@@ -131,12 +131,12 @@ public class TTPChannelApi {
         return response.get("result");
     }
 
-    public PaginationQueryResult<Object> getOrganizationChannels(String organizationName, int page, int pageSize) throws Exception {
+    public PaginationQueryResult<Object> queryOrganizationChannels(String organizationName, int page, int pageSize) throws Exception {
         JSONObject data = new JSONObject();
         data.set("organizationName", organizationName);
         data.set("page", page);
         data.set("pageSize", pageSize);
-        JSONObject response = httpClient.request("/api/v1/channel/getOrganizationChannels", data);
+        JSONObject response = httpClient.request("/api/v1/channel/queryOrganizationChannels", data);
         List<Object> channels = new ArrayList<>(response.getJSONArray("items"));
         return new PaginationQueryResult<>(response.getInt("totalPages"), channels);
     }
