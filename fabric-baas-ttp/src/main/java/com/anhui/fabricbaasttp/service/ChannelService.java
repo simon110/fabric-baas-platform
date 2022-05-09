@@ -18,6 +18,9 @@ import com.anhui.fabricbaasttp.util.IdentifierGenerator;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -383,7 +386,8 @@ public class ChannelService {
         return findChannelOrThrowEx(channelName).getPeers();
     }
 
-    public List<ChannelEntity> getOrganizationChannels(String organizationName) {
-        return channelRepo.findAllByOrganizationNamesIsContaining(organizationName);
+    public Page<ChannelEntity> getOrganizationChannels(String organizationName, int page, int pageSize) {
+        Pageable pageable = PageRequest.of(page - 1, pageSize);
+        return channelRepo.findAllByOrganizationNamesIsContaining(organizationName, pageable);
     }
 }

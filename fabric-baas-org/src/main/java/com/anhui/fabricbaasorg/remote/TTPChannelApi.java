@@ -130,7 +130,7 @@ public class TTPChannelApi {
         return response.getJSONObject("result");
     }
 
-    public JSONArray getOrganizationChannels(String organizationName) throws Exception {
+    public JSONArray getOrganizationChannels(String organizationName, int page, int pageSize) throws Exception {
         JSONObject data = new JSONObject();
         data.set("organizationName", organizationName);
         JSONObject response = httpClient.request("/api/v1/channel/getOrganizationChannels", data);

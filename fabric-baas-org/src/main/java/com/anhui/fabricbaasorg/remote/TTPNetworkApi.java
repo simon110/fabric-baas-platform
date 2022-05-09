@@ -1,6 +1,5 @@
 package com.anhui.fabricbaasorg.remote;
 
-import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.anhui.fabricbaascommon.bean.Node;
@@ -10,6 +9,7 @@ import com.anhui.fabricbaasorg.bean.Participation;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -49,14 +49,15 @@ public class TTPNetworkApi {
      * @return 所有相关的网络信息
      * @throws Exception 返回请求中任何code!=200的情况都应该抛出异常
      */
-    public JSONArray queryNetworks(String networkNameKeyword, String organizationNameKeyword, int page, int pageSize) throws Exception {
+    public PaginationQueryResult<Object> queryNetworks(String networkNameKeyword, String organizationNameKeyword, int page, int pageSize) throws Exception {
         JSONObject data = new JSONObject();
         data.set("networkNameKeyword", networkNameKeyword);
         data.set("organizationNameKeyword", organizationNameKeyword);
         data.set("page", page);
         data.set("pageSize", pageSize);
         JSONObject response = httpClient.request("/api/v1/network/queryNetworks", data);
-        return response.getJSONArray("items");
+        List<Object> networks = new ArrayList<>(response.getJSONArray("items"));
+        return new PaginationQueryResult<>(response.getInt("totalPages"), networks);
     }
 
     /**
