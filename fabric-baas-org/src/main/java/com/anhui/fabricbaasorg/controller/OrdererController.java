@@ -8,6 +8,7 @@ import com.anhui.fabricbaascommon.response.PaginationQueryResult;
 import com.anhui.fabricbaasorg.bean.NetworkOrderer;
 import com.anhui.fabricbaasorg.entity.OrdererEntity;
 import com.anhui.fabricbaasorg.remote.TTPNetworkApi;
+import com.anhui.fabricbaasorg.request.BaseOrdererRequest;
 import com.anhui.fabricbaasorg.request.OrdererStartRequest;
 import com.anhui.fabricbaasorg.service.OrdererService;
 import io.swagger.annotations.Api;
@@ -38,6 +39,13 @@ public class OrdererController {
     public void startOrderer(@Valid @RequestBody OrdererStartRequest request) throws Exception {
         OrdererEntity orderer = new OrdererEntity(request.getName(), request.getKubeNodeName(), request.getKubeNodePort());
         ordererService.startOrderer(request.getNetworkName(), orderer);
+    }
+
+    @Secured({Authority.ADMIN})
+    @PostMapping("/stopOrderer")
+    @ApiOperation("关闭Orderer节点")
+    public void stopOrderer(@Valid @RequestBody BaseOrdererRequest request) throws Exception {
+        ordererService.stopOrderer(request.getOrdererName());
     }
 
     @Secured({Authority.ADMIN})

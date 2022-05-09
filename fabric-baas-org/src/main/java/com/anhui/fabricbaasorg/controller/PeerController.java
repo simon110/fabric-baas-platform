@@ -8,6 +8,7 @@ import com.anhui.fabricbaascommon.response.PaginationQueryResult;
 import com.anhui.fabricbaasorg.bean.ChannelPeer;
 import com.anhui.fabricbaasorg.entity.PeerEntity;
 import com.anhui.fabricbaasorg.remote.TTPChannelApi;
+import com.anhui.fabricbaasorg.request.BasePeerRequest;
 import com.anhui.fabricbaasorg.request.PeerStartRequest;
 import com.anhui.fabricbaasorg.service.PeerService;
 import io.swagger.annotations.Api;
@@ -37,6 +38,13 @@ public class PeerController {
     @ApiOperation("启动Peer节点")
     public void startPeer(@Valid @RequestBody PeerStartRequest request) throws Exception {
         peerService.startPeer(request);
+    }
+
+    @Secured({Authority.ADMIN})
+    @PostMapping("/stopPeer")
+    @ApiOperation("关闭Peer节点")
+    public void stopPeer(@Valid @RequestBody BasePeerRequest request) throws Exception {
+        peerService.stopPeer(request.getPeerName());
     }
 
     @Secured({Authority.ADMIN})
