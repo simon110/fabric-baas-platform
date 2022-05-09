@@ -17,6 +17,7 @@ public class PodExecListener implements ExecListener {
 
     @Override
     public void onFailure(Throwable t, Response failureResponse) {
+        log.info("执行命令失败：" + failureResponse.toString());
         countDownLatch.countDown();
     }
 
