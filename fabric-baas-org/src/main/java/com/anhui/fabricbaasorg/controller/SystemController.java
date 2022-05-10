@@ -5,7 +5,7 @@ import com.anhui.fabricbaascommon.exception.CaException;
 import com.anhui.fabricbaascommon.response.ListResult;
 import com.anhui.fabricbaascommon.response.UniqueResult;
 import com.anhui.fabricbaascommon.service.CaClientService;
-import com.anhui.fabricbaasorg.request.ClusterNodeQueryRequest;
+import com.anhui.fabricbaasorg.request.ClusterNodeRequest;
 import com.anhui.fabricbaasorg.request.SystemInitRequest;
 import com.anhui.fabricbaasorg.service.KubernetesService;
 import com.anhui.fabricbaasorg.service.SystemService;
@@ -43,7 +43,7 @@ public class SystemController {
     @Secured({Authority.ADMIN})
     @PostMapping("/getClusterNode")
     @ApiOperation("获取集群指定物理节点的信息")
-    public UniqueResult<Node> getClusterNode(@Valid @RequestBody ClusterNodeQueryRequest request) throws Exception {
+    public UniqueResult<Node> getClusterNode(@Valid @RequestBody ClusterNodeRequest request) throws Exception {
         return new UniqueResult<>(kubernetesService.getNode(request.getNodeName()));
     }
 

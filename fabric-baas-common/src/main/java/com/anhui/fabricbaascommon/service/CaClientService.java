@@ -35,7 +35,6 @@ public class CaClientService {
     @Autowired
     private FabricConfiguration fabricConfig;
 
-
     public void register(String username, String password, String usertype) throws CertfileException, CaException, IOException, InterruptedException {
         if (certfileRepo.existsById(username)) {
             throw new CertfileException("证书已注册，请勿重复操作");

@@ -8,7 +8,7 @@ import javax.validation.constraints.NotBlank;
 
 @Data
 @ApiModel(value = "集群节点查询请求")
-public class ClusterNodeQueryRequest {
+public class ClusterNodeRequest {
     @NotBlank
     @ApiModelProperty(value = "节点名称", required = true)
     private String nodeName;
