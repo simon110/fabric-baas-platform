@@ -46,6 +46,7 @@ public class NetworkService {
         for (OrdererEntity orderer : orderers) {
             int port = orderer.getKubeNodePort();
             kubernetesService.assertNodePortAvailable(port);
+            kubernetesService.assertNodeExists(orderer.getKubeNodeName());
             ordererPorts.add(port);
         }
         // 生成Orderer节点的连接信息

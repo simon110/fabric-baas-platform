@@ -30,6 +30,7 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
@@ -206,6 +207,7 @@ public class NetworkService {
         return MyResourceUtils.release(ordererCertfileZip, "zip");
     }
 
+    @Transactional
     public String addOrderer(String currentOrganizationName, String networkName, Node orderer) throws Exception {
         // 检查网络是否存在
         NetworkEntity network = findNetworkOrThrowEx(networkName);
@@ -280,6 +282,7 @@ public class NetworkService {
         return MyResourceUtils.release(ordererCertfileZip, "zip");
     }
 
+    @Transactional
     public String createNetwork(
             String currentOrganizationName,
             String networkName,
@@ -437,6 +440,7 @@ public class NetworkService {
         }
     }
 
+    @Transactional
     public void applyParticipation(
             String currentOrganizationName,
             String networkName,
@@ -470,6 +474,7 @@ public class NetworkService {
         participationRepo.save(participation);
     }
 
+    @Transactional
     public void handleParticipation(String currentOrganizationName, String networkName, String applierOrganizationName, boolean isAllowed) throws Exception {
         // 找到相应的申请
         ParticipationEntity participation = findUnhandledParticipationOrThrowEx(networkName, applierOrganizationName);

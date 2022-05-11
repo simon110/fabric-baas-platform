@@ -20,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
 import java.io.IOException;
@@ -49,9 +50,16 @@ public class KubernetesService {
         }
     }
 
-    public void importAdminConfig(File file) throws IOException {
-        FileUtils.copyFile(file, KUBERNETES_ADMIN_CONFIG);
-        kubernetesClient = new KubernetesClient(KUBERNETES_ADMIN_CONFIG);
+    public void importAdminConfig(File file) throws Exception {
+        try {
+            FileUtils.copyFile(file, KUBERNETES_ADMIN_CONFIG);
+            kubernetesClient = new KubernetesClient(KUBERNETES_ADMIN_CONFIG);
+            getAllNodeNames();
+        } catch (Exception e) {
+            boolean delete = KUBERNETES_ADMIN_CONFIG.delete();
+            log.warn("已清除连接失败的证书：" + file.getAbsolutePath());
+            throw e;
+        }
     }
 
     public List<String> getAllNodeNames() throws KubernetesException {
@@ -169,6 +177,7 @@ public class KubernetesService {
         }
     }
 
+    @Transactional
     public void startPeer(String organizationName, PeerEntity peer, String domain, File peerCertfileDir) throws Exception {
         // 检查物理主机是否存在
         assertNodeExists(peer.getKubeNodeName());
@@ -198,6 +207,7 @@ public class KubernetesService {
         }
     }
 
+    @Transactional
     public void stopPeer(String peerName) throws Exception {
         assertPeerExists(peerName, true);
         deletePeerYaml(peerName);
@@ -238,6 +248,7 @@ public class KubernetesService {
         }
     }
 
+    @Transactional
     public void startOrderer(String ordererOrganizationName, OrdererEntity orderer, File ordererCertfileDir, File genesisBlock) throws Exception {
         // 检查端口是否冲突
         assertNodePortAvailable(orderer.getKubeNodePort());
@@ -266,6 +277,7 @@ public class KubernetesService {
         }
     }
 
+    @Transactional
     public void stopOrderer(String ordererName) throws Exception {
         assertPeerExists(ordererName, true);
         deleteOrdererYaml(ordererName);

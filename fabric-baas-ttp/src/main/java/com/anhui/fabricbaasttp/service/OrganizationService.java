@@ -26,6 +26,7 @@ import org.springframework.mail.MailException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
@@ -90,6 +91,7 @@ public class OrganizationService {
      * 2. 检查组织名称是否还包含未处理的申请
      * 3. 将注册申请保存至数据库
      */
+    @Transactional
     public void applyRegistration(
             String organizationName,
             String password,
@@ -122,6 +124,7 @@ public class OrganizationService {
      * 2. 更新数据库中的申请状态
      * 3. 增加相应的组织和用户定义（如果需要）
      */
+    @Transactional
     public void handleRegistration(String organizationName, boolean isAllowed) throws Exception {
         RegistrationEntity registration = findUnhandledRegistration(organizationName);
         if (registration == null) {

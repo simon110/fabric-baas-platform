@@ -15,6 +15,7 @@ import com.anhui.fabricbaasorg.repository.PeerRepo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
 import java.util.Optional;
@@ -47,6 +48,7 @@ public class ChannelService {
         return peerOptional.get();
     }
 
+    @Transactional
     public void create(String channelName, String networkName) throws Exception {
         ttpChannelApi.createChannel(networkName, channelName);
         ChannelEntity channel = new ChannelEntity(channelName, networkName);

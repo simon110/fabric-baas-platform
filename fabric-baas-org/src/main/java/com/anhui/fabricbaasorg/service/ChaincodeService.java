@@ -26,6 +26,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
@@ -83,6 +84,7 @@ public class ChaincodeService {
         return new TlsEnv(endorser.getAddr(), endorserTlsCert);
     }
 
+    @Transactional
     public String install(String peerName, String chaincodeLabel, MultipartFile chaincodePackage) throws Exception {
         // 将链码压缩包写入临时目录
         File tempChaincodePackage = MyFileUtils.createTempFile("tar.gz");
@@ -99,6 +101,7 @@ public class ChaincodeService {
         return packageId;
     }
 
+    @Transactional
     public void approve(String peerName, String chaincodeIdentifier, ApprovedChaincode approvedChaincode) throws Exception {
         String channelName = approvedChaincode.getChannelName();
         CoreEnv peerCoreEnv = buildPeerCoreEnv(peerName);
@@ -132,6 +135,7 @@ public class ChaincodeService {
         return ChaincodeUtils.checkCommittedReadiness(ordererTlsEnv, peerCoreEnv, channelName, approvedChaincode);
     }
 
+    @Transactional
     public void commit(List<Node> endorsers, ApprovedChaincode approvedChaincode) throws Exception {
         String channelName = approvedChaincode.getChannelName();
         ApprovedChaincodeEntity entity = findApprovedChaincodeOrThrowEx(approvedChaincode);

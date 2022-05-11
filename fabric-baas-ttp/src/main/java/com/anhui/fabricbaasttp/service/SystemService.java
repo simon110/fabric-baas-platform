@@ -18,6 +18,7 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -57,6 +58,7 @@ public class SystemService {
      * 2. 启动CA服务容器
      * 3. 登记管理员证书
      */
+    @Transactional
     public void init(CaEntity ttp, String newAdminPassword) throws Exception {
         if (isAvailable()) {
             throw new DuplicatedOperationException("系统中已存在TTP信息，请勿重复初始化系统");

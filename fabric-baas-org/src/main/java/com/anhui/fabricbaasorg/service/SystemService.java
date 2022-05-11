@@ -24,11 +24,11 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -84,7 +84,7 @@ public class SystemService {
         caRepo.save(ca);
     }
 
-    public void initKubernetesService(MultipartFile kubernetesConfig) throws IOException {
+    public void initKubernetesService(MultipartFile kubernetesConfig) throws Exception {
         // 将证书导入到KubernetesService中
         File tempKubernetesConfig = MyFileUtils.createTempFile("yaml");
         FileUtils.writeByteArrayToFile(tempKubernetesConfig, kubernetesConfig.getBytes());
@@ -109,6 +109,7 @@ public class SystemService {
      * 3. 初始化CA服务
      * 4. 初始化TTP远程用户
      */
+    @Transactional
     public void init(CaEntity org, RemoteUserEntity remoteUser, String adminPassword, MultipartFile kubernetesConfig) throws Exception {
         if (isAvailable()) {
             throw new DuplicatedOperationException("请勿重复初始化系统");
