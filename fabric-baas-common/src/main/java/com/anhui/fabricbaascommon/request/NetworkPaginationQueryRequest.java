@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
 @EqualsAndHashCode(callSuper = true)
@@ -15,7 +16,8 @@ import javax.validation.constraints.Pattern;
 @AllArgsConstructor
 @NoArgsConstructor
 @ApiModel(value = "网络相关的查询请求")
-public class NetworkBasedPaginationQueryRequest extends PaginationQueryRequest {
+public class NetworkPaginationQueryRequest extends PaginationQueryRequest {
+    @NotNull
     @Pattern(regexp = ParamPattern.NETWORK_NAME_REGEX, message = ParamPattern.NETWORK_NAME_MSG)
     @ApiModelProperty(value = "网络名称", required = true)
     private String networkName;

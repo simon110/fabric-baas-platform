@@ -13,11 +13,11 @@ public class PaginationQueryRequest {
     @NotNull
     @ApiModelProperty(value = "分页查询的页号（从1开始计算）", required = true)
     @Min(1)
-    private int page;
+    private Integer page;
 
     @NotNull
     @ApiModelProperty(value = "分页查询的页面大小", required = true)
     @Min(1)
-    private int pageSize;
+    private Integer pageSize;
 }
 

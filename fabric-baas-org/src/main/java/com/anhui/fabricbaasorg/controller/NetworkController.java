@@ -1,13 +1,13 @@
 package com.anhui.fabricbaasorg.controller;
 
 import com.anhui.fabricbaascommon.constant.Authority;
-import com.anhui.fabricbaascommon.request.BaseNetworkRequest;
-import com.anhui.fabricbaascommon.request.PaginationQueryRequest;
+import com.anhui.fabricbaascommon.request.*;
 import com.anhui.fabricbaascommon.response.PaginationQueryResult;
 import com.anhui.fabricbaascommon.response.UniqueResult;
 import com.anhui.fabricbaascommon.service.CaClientService;
 import com.anhui.fabricbaasorg.remote.TTPNetworkApi;
-import com.anhui.fabricbaasorg.request.*;
+import com.anhui.fabricbaasorg.request.OrdererAddRequest;
+import com.anhui.fabricbaasorg.request.NetworkCreateRequest;
 import com.anhui.fabricbaasorg.service.NetworkService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -41,7 +41,7 @@ public class NetworkController {
     @Secured({Authority.ADMIN})
     @PostMapping("/addOrderer")
     @ApiOperation("向可信第三方请求添加Orderer")
-    public void addOrderer(@Valid @RequestBody NetworkAddOrdererRequest request) throws Exception {
+    public void addOrderer(@Valid @RequestBody OrdererAddRequest request) throws Exception {
         networkService.addOrderer(request.getNetworkName(), request.getOrdererPort());
     }
 
@@ -56,7 +56,7 @@ public class NetworkController {
     @PostMapping("/handleParticipation")
     @ApiOperation("向可信第三方发送同意或拒绝加入网络（网络中所有组织都必须同意）")
     public void handleParticipation(@Valid @RequestBody ParticipationHandleRequest request) throws Exception {
-        ttpNetworkApi.handleParticipation(request.getNetworkName(), request.getOrganizationName(), request.isAccepted());
+        ttpNetworkApi.handleParticipation(request.getNetworkName(), request.getOrganizationName(), request.isAllowed());
     }
 
     @Secured({Authority.ADMIN})

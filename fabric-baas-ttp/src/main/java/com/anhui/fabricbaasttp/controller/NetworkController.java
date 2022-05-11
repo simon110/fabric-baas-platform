@@ -2,6 +2,9 @@ package com.anhui.fabricbaasttp.controller;
 
 import com.anhui.fabricbaascommon.constant.Authority;
 import com.anhui.fabricbaascommon.request.BaseNetworkRequest;
+import com.anhui.fabricbaascommon.request.ParticipationApplyRequest;
+import com.anhui.fabricbaascommon.request.ParticipationHandleRequest;
+import com.anhui.fabricbaascommon.request.ParticipationQueryRequest;
 import com.anhui.fabricbaascommon.response.*;
 import com.anhui.fabricbaasttp.bean.Orderer;
 import com.anhui.fabricbaasttp.entity.NetworkEntity;
@@ -50,7 +53,7 @@ public class NetworkController {
     @PostMapping("/applyParticipation")
     @ApiOperation("申请加入网络")
     public void applyParticipation(
-            @Valid @RequestPart NetworkApplyParticipationRequest request,
+            @Valid @RequestPart ParticipationApplyRequest request,
             @ApiParam(value = "CA管理员的证书压缩包（包含msp和tls两个文件夹）") @RequestPart MultipartFile adminCertZip) throws Exception {
         String currentOrganizationName = SecurityUtils.getUsername();
         networkService.applyParticipation(currentOrganizationName, request.getNetworkName(), request.getDescription(), adminCertZip);
@@ -59,7 +62,7 @@ public class NetworkController {
     @Secured({Authority.USER})
     @PostMapping("/handleParticipation")
     @ApiOperation("处理加入网络请求（网络中所有组织都必须同意）")
-    public void handleParticipation(@Valid @RequestBody NetworkHandleParticipationRequest request) throws Exception {
+    public void handleParticipation(@Valid @RequestBody ParticipationHandleRequest request) throws Exception {
         String currentOrganizationName = SecurityUtils.getUsername();
         networkService.handleParticipation(currentOrganizationName, request.getNetworkName(), request.getOrganizationName(), request.isAllowed());
     }
@@ -76,7 +79,7 @@ public class NetworkController {
     @Secured({Authority.USER})
     @PostMapping("/queryParticipations")
     @ApiOperation("查询加入网络申请")
-    public PaginationQueryResult<ParticipationEntity> queryParticipations(@Valid @RequestBody NetworkQueryParticipationRequest request) throws Exception {
+    public PaginationQueryResult<ParticipationEntity> queryParticipations(@Valid @RequestBody ParticipationQueryRequest request) throws Exception {
         Page<ParticipationEntity> page = networkService.queryParticipations(request.getNetworkName(), request.getStatus(), request.getPage(), request.getPageSize());
         return new PaginationQueryResult<>(page.getTotalPages(), page.getContent());
     }

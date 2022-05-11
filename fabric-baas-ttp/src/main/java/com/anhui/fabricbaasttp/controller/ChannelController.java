@@ -1,17 +1,14 @@
 package com.anhui.fabricbaasttp.controller;
 
 import com.anhui.fabricbaascommon.constant.Authority;
-import com.anhui.fabricbaascommon.request.BaseChannelRequest;
-import com.anhui.fabricbaascommon.request.ChannelOrganizationRequest;
-import com.anhui.fabricbaascommon.request.NetworkChannelRequest;
-import com.anhui.fabricbaascommon.request.OrganizationBasedPaginationQueryRequest;
+import com.anhui.fabricbaascommon.request.*;
 import com.anhui.fabricbaascommon.response.ListResult;
 import com.anhui.fabricbaascommon.response.PaginationQueryResult;
 import com.anhui.fabricbaascommon.response.ResourceResult;
 import com.anhui.fabricbaascommon.response.UniqueResult;
 import com.anhui.fabricbaasttp.bean.Peer;
 import com.anhui.fabricbaasttp.entity.ChannelEntity;
-import com.anhui.fabricbaasttp.request.*;
+import com.anhui.fabricbaasttp.request.ChannelPeerRequest;
 import com.anhui.fabricbaasttp.service.ChannelService;
 import com.anhui.fabricbaasweb.util.SecurityUtils;
 import io.swagger.annotations.Api;
@@ -54,7 +51,7 @@ public class ChannelController {
     @Secured({Authority.USER})
     @PostMapping("/submitInvitationCodes")
     @ApiOperation("向通道中添加组织（必须是已经在网络中的组织）")
-    public void submitInvitationCodes(@Valid @RequestBody ChannelSubmitInvitationCodesRequest request) throws Exception {
+    public void submitInvitationCodes(@Valid @RequestBody InvitationCodeSubmitRequest request) throws Exception {
         String currentOrganizationName = SecurityUtils.getUsername();
         channelService.submitInvitationCodes(currentOrganizationName, request.getChannelName(), request.getInvitationCodes());
     }
@@ -104,7 +101,7 @@ public class ChannelController {
     @Secured({Authority.USER, Authority.ADMIN})
     @PostMapping("/queryOrganizationChannels")
     @ApiOperation("查询指定组织参与的所有通道")
-    public PaginationQueryResult<ChannelEntity> queryOrganizationChannels(@Valid @RequestBody OrganizationBasedPaginationQueryRequest request) {
+    public PaginationQueryResult<ChannelEntity> queryOrganizationChannels(@Valid @RequestBody OrganizationPaginationQueryRequest request) {
         Page<ChannelEntity> page = channelService.getOrganizationChannels(request.getOrganizationName(), request.getPage(), request.getPageSize());
         return new PaginationQueryResult<>(page.getTotalPages(), page.getContent());
     }

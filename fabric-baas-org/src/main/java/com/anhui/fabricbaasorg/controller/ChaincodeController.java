@@ -47,7 +47,7 @@ public class ChaincodeController {
     @Secured({Authority.ADMIN})
     @PostMapping("/getChaincodeApprovals")
     @ApiOperation("查询指定链码的投票情况")
-    public ListResult<ChaincodeApproval> getChaincodeApprovals(@Valid @RequestBody ChaincodeGetApprovalsRequest request) throws Exception {
+    public ListResult<ChaincodeApproval> getChaincodeApprovals(@Valid @RequestBody ChaincodeCheckRequest request) throws Exception {
         List<ChaincodeApproval> chaincodeApprovals = chaincodeService.getChaincodeApprovals(request);
         return new ListResult<>(chaincodeApprovals);
     }

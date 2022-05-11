@@ -11,7 +11,7 @@ import com.anhui.fabricbaasttp.entity.RegistrationEntity;
 import com.anhui.fabricbaasttp.request.OrganizationQueryRequest;
 import com.anhui.fabricbaasttp.request.RegistrationApplyRequest;
 import com.anhui.fabricbaasttp.request.RegistrationHandleRequest;
-import com.anhui.fabricbaascommon.request.StatusBasedPaginationQueryRequest;
+import com.anhui.fabricbaascommon.request.StatusPaginationQueryRequest;
 import com.anhui.fabricbaasttp.service.OrganizationService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -63,7 +63,7 @@ public class OrganizationController {
     @Secured({Authority.ADMIN})
     @PostMapping("/queryRegistrations")
     @ApiOperation(value = "对所有注册信息进行条件查询（包括已接受、已拒绝或未处理的）")
-    public PaginationQueryResult<RegistrationEntity> queryRegistrations(@Valid @RequestBody StatusBasedPaginationQueryRequest request) {
+    public PaginationQueryResult<RegistrationEntity> queryRegistrations(@Valid @RequestBody StatusPaginationQueryRequest request) {
         Page<RegistrationEntity> page = organizationService.queryRegistrations(request.getStatus(), request.getPage(), request.getPageSize());
         return new PaginationQueryResult<>(page.getTotalPages(), page.getContent());
     }

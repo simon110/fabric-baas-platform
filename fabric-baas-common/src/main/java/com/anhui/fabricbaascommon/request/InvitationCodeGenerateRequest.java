@@ -6,15 +6,13 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-@ApiModel(value = "组织相关的分页查询请求")
-public class OrganizationBasedPaginationQueryRequest extends PaginationQueryRequest {
-    @NotNull
+@ApiModel(value = "生成加入通道邀请请求")
+public class InvitationCodeGenerateRequest extends BaseChannelRequest {
     @Pattern(regexp = ParamPattern.ORGANIZATION_NAME_REGEX, message = ParamPattern.ORGANIZATION_NAME_MSG)
-    @ApiModelProperty(value = "组织名称", required = true)
-    private String organizationName;
+    @ApiModelProperty(value = "允许加入的组织名称", required = true)
+    private String invitedOrganizationName;
 }

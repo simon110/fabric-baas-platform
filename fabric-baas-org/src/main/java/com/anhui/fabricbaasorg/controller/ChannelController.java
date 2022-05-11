@@ -1,14 +1,13 @@
 package com.anhui.fabricbaasorg.controller;
 
 import com.anhui.fabricbaascommon.constant.Authority;
-import com.anhui.fabricbaascommon.request.BaseChannelRequest;
-import com.anhui.fabricbaascommon.request.NetworkChannelRequest;
-import com.anhui.fabricbaascommon.request.PaginationQueryRequest;
+import com.anhui.fabricbaascommon.request.*;
 import com.anhui.fabricbaascommon.response.PaginationQueryResult;
 import com.anhui.fabricbaascommon.response.UniqueResult;
 import com.anhui.fabricbaascommon.service.CaClientService;
 import com.anhui.fabricbaasorg.remote.TTPChannelApi;
-import com.anhui.fabricbaasorg.request.*;
+import com.anhui.fabricbaasorg.request.ChannelPeerRequest;
+import com.anhui.fabricbaascommon.request.InvitationCodeGenerateRequest;
 import com.anhui.fabricbaasorg.service.ChannelService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -49,7 +48,7 @@ public class ChannelController {
     @Secured({Authority.ADMIN})
     @PostMapping("/generateInvitationCode")
     @ApiOperation("生成邀请信息")
-    public UniqueResult<String> generateInvitationCode(@Valid @RequestBody ChannelGenerateInvitationCodeRequest request) throws Exception {
+    public UniqueResult<String> generateInvitationCode(@Valid @RequestBody InvitationCodeGenerateRequest request) throws Exception {
         String invitationCode = ttpChannelApi.generateInvitationCode(request.getChannelName(), request.getInvitedOrganizationName());
         return new UniqueResult<>(invitationCode);
     }
@@ -57,7 +56,7 @@ public class ChannelController {
     @Secured({Authority.ADMIN})
     @PostMapping("/submitInvitationCodes")
     @ApiOperation("提交邀请信息")
-    public void submitInvitationCodes(@Valid @RequestBody ChannelSubmitInvitationCodesRequest request) throws Exception {
+    public void submitInvitationCodes(@Valid @RequestBody InvitationCodeSubmitRequest request) throws Exception {
         ttpChannelApi.submitInvitationCodes(request.getChannelName(), request.getInvitationCodes());
     }
 

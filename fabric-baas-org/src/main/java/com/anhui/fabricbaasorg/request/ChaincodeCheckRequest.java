@@ -8,5 +8,5 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @ApiModel(value = "链码投票情况查询请求")
-public class ChaincodeGetApprovalsRequest extends ApprovedChaincode {
+public class ChaincodeCheckRequest extends ApprovedChaincode {
 }

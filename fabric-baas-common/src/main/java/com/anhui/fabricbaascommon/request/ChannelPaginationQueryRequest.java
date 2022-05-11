@@ -16,7 +16,7 @@ import javax.validation.constraints.Pattern;
 @AllArgsConstructor
 @NoArgsConstructor
 @ApiModel(value = "通道相关的查询请求")
-public class ChannelBasedPaginationQueryRequest extends PaginationQueryRequest {
+public class ChannelPaginationQueryRequest extends PaginationQueryRequest {
     @NotNull
     @Pattern(regexp = ParamPattern.CHANNEL_NAME_REGEX, message = ParamPattern.CHANNEL_NAME_MSG)
     @ApiModelProperty(value = "通道名称", required = true)
