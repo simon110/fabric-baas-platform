@@ -201,12 +201,8 @@ public class NetworkService {
 
         // 检查Orderer证书
         File ordererCertfileDir = CertfileUtils.getCertfileDir(ordererId, CertfileType.ORDERER);
-        CertfileUtils.assertCertfile(ordererCertfileDir);
         File ordererCertfileZip = MyFileUtils.createTempFile("zip");
-        ZipUtils.zip(ordererCertfileZip,
-                CertfileUtils.getMspDir(ordererCertfileDir),
-                CertfileUtils.getTlsDir(ordererCertfileDir)
-        );
+        CertfileUtils.packageCertfile(ordererCertfileZip, ordererCertfileDir);
         return MyResourceUtils.release(ordererCertfileZip, "zip");
     }
 
@@ -261,10 +257,7 @@ public class NetworkService {
 
         // 将新Orderer的分别保存到MinIO并复制到证书目录下
         File ordererCertfileZip = MyFileUtils.createTempFile("zip");
-        ZipUtils.zip(ordererCertfileZip,
-                CertfileUtils.getMspDir(newOrdererCertfileDir),
-                CertfileUtils.getTlsDir(newOrdererCertfileDir)
-        );
+        CertfileUtils.packageCertfile(ordererCertfileZip, newOrdererCertfileDir);
 
 
         File formalCertfileDir = CertfileUtils.getCertfileDir(caUsername, CertfileType.ORDERER);
@@ -375,10 +368,7 @@ public class NetworkService {
             // 将证书压缩
             File ordererCertfileDir = ordererCertfileDirs.get(i);
             File ordererCertZip = MyFileUtils.createTempFile("zip");
-            ZipUtils.zip(ordererCertZip,
-                    CertfileUtils.getMspDir(ordererCertfileDir),
-                    CertfileUtils.getTlsDir(ordererCertfileDir)
-            );
+            CertfileUtils.packageCertfile(ordererCertZip, ordererCertfileDir);
 
             // 将证书保存到正式的证书目录和MinIO
             String ordererId = IdentifierGenerator.generateOrdererId(networkName, orderers.get(i));

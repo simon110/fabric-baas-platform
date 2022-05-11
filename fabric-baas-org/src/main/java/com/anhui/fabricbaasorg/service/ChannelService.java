@@ -7,7 +7,6 @@ import com.anhui.fabricbaascommon.exception.NodeException;
 import com.anhui.fabricbaascommon.service.CaClientService;
 import com.anhui.fabricbaascommon.util.CertfileUtils;
 import com.anhui.fabricbaascommon.util.MyFileUtils;
-import com.anhui.fabricbaascommon.util.ZipUtils;
 import com.anhui.fabricbaasorg.entity.ChannelEntity;
 import com.anhui.fabricbaasorg.entity.PeerEntity;
 import com.anhui.fabricbaasorg.remote.TTPChannelApi;
@@ -68,9 +67,8 @@ public class ChannelService {
         PeerEntity peer = findPeerOrThrowEx(peerName);
         // 如果Peer节点已经启动必然存在证书
         File certfileDir = CertfileUtils.getCertfileDir(peer.getCaUsername(), CertfileType.PEER);
-        CertfileUtils.assertCertfile(certfileDir);
         File peerCertfileZip = MyFileUtils.createTempFile("zip");
-        ZipUtils.zip(peerCertfileZip, CertfileUtils.getMspDir(certfileDir), CertfileUtils.getTlsDir(certfileDir));
+        CertfileUtils.packageCertfile(certfileDir, peerCertfileZip);
 
         // 调用远程接口
         Node node = new Node(caClientService.getCaOrganizationDomain(), peer.getKubeNodePort());

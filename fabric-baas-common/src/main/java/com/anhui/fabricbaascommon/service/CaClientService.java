@@ -12,10 +12,10 @@ import com.anhui.fabricbaascommon.repository.CaRepo;
 import com.anhui.fabricbaascommon.repository.CertfileRepo;
 import com.anhui.fabricbaascommon.util.CertfileUtils;
 import com.anhui.fabricbaascommon.util.MyFileUtils;
-import com.anhui.fabricbaascommon.util.ZipUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
 import java.io.IOException;
@@ -35,6 +35,7 @@ public class CaClientService {
     @Autowired
     private FabricConfiguration fabricConfig;
 
+    @Transactional
     public void register(String username, String password, String usertype) throws CertfileException, CaException, IOException, InterruptedException {
         if (certfileRepo.existsById(username)) {
             throw new CertfileException("证书已注册，请勿重复操作");
@@ -80,7 +81,7 @@ public class CaClientService {
     public String getCaName() throws CaException {
         return getCaOrganizationName() + "CA";
     }
-    
+
     public void initRootCertfile(CsrConfig csrConfig) throws IOException, InterruptedException, CaException {
         boolean mkdirs = FABRIC_CA_ROOT_CERTFILE_DIR.mkdirs();
         CertfileEntity rootCertfile = new CertfileEntity();
@@ -92,7 +93,7 @@ public class CaClientService {
         log.info("CA服务管理员证书初始化成功");
     }
 
-    public void assertRootCertfile() throws CertfileException {
+    private void assertRootCertfile() throws CertfileException {
         if (!CertfileUtils.checkCertfile(FABRIC_CA_ROOT_CERTFILE_DIR)) {
             throw new CertfileException("CA管理员的证书未初始化");
         }
@@ -103,10 +104,6 @@ public class CaClientService {
     }
 
     public void getRootCertfileZip(File output) throws IOException, CertfileException {
-        CertfileUtils.assertCertfile(FABRIC_CA_ROOT_CERTFILE_DIR);
-        ZipUtils.zip(output,
-                CertfileUtils.getMspDir(FABRIC_CA_ROOT_CERTFILE_DIR),
-                CertfileUtils.getTlsDir(FABRIC_CA_ROOT_CERTFILE_DIR)
-        );
+        CertfileUtils.packageCertfile(output, FABRIC_CA_ROOT_CERTFILE_DIR);
     }
 }
