@@ -326,8 +326,29 @@ public class ChaincodeUtils {
         String[] commands = new String[commandList.size()];
         commandList.toArray(commands);
         String str = CommandUtils.exec(commands);
-        if (!str.toLowerCase().contains("successful") || !str.contains("200")) {
+        if (!str.toLowerCase().contains("invoke successful") || !str.contains("status:200")) {
             throw new ChaincodeException("智能合约调用失败：" + str);
         }
+    }
+
+    public static String query(
+            String chaincodeName,
+            JSONObject chaincodeParams,
+            String channelName,
+            CoreEnv peerCoreEnv) throws CertfileException, IOException, InterruptedException, ChaincodeException {
+        peerCoreEnv.selfAssert();
+        String str = CommandUtils.exec(
+                MyFileUtils.getWorkingDir() + "/shell/fabric-chaincode-query.sh",
+                peerCoreEnv.getMspId(),
+                peerCoreEnv.getMspConfig().getAbsolutePath(),
+                peerCoreEnv.getAddress(),
+                peerCoreEnv.getTlsRootCert().getAbsolutePath(),
+                channelName,
+                chaincodeName,
+                chaincodeParams.toString());
+        if (str.toLowerCase().contains("error: ") || str.contains("status:500")) {
+            throw new ChaincodeException("链码调用失败：" + str);
+        }
+        return str;
     }
 }
