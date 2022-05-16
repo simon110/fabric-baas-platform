@@ -1,5 +1,6 @@
 package com.anhui.fabricbaascommon.fabric;
 
+import cn.hutool.json.JSONObject;
 import com.anhui.fabricbaascommon.bean.*;
 import com.anhui.fabricbaascommon.exception.CertfileException;
 import com.anhui.fabricbaascommon.exception.ChaincodeException;
@@ -292,6 +293,41 @@ public class ChaincodeUtils {
         List<ApprovedChaincode> newApprovedChaincodes = queryCommittedChaincodes(channelName, committerPeerCoreEnv);
         if (oldApprovedChaincodes.equals(newApprovedChaincodes)) {
             throw new ChaincodeException("提交失败：" + str);
+        }
+    }
+
+    public static void invoke(
+            String chaincodeName,
+            JSONObject chaincodeParams,
+            String channelName,
+            TlsEnv ordererTlsEnv,
+            CoreEnv committerPeerCoreEnv,
+            List<TlsEnv> endorserTlsEnvs) throws CertfileException, IOException, InterruptedException, ChaincodeException {
+        ordererTlsEnv.assertTlsCert();
+        for (TlsEnv endorserTlsEnv : endorserTlsEnvs) {
+            endorserTlsEnv.assertTlsCert();
+        }
+        List<String> commandList = Arrays.asList(
+                MyFileUtils.getWorkingDir() + "/shell/fabric-chaincode-invoke.sh",
+                chaincodeName,
+                chaincodeParams.toString(),
+                channelName,
+                ordererTlsEnv.getAddress(),
+                ordererTlsEnv.getTlsRootCert().getAbsolutePath(),
+                committerPeerCoreEnv.getMspId(),
+                committerPeerCoreEnv.getMspConfig().getAbsolutePath(),
+                committerPeerCoreEnv.getAddress(),
+                committerPeerCoreEnv.getTlsRootCert().getAbsolutePath()
+        );
+        for (TlsEnv endorserTlsEnv : endorserTlsEnvs) {
+            commandList.add(endorserTlsEnv.getAddress());
+            commandList.add(endorserTlsEnv.getTlsRootCert().getAbsolutePath());
+        }
+        String[] commands = new String[commandList.size()];
+        commandList.toArray(commands);
+        String str = CommandUtils.exec(commands);
+        if (!str.toLowerCase().contains("successful") || !str.contains("200")) {
+            throw new ChaincodeException("智能合约调用失败：" + str);
         }
     }
 }

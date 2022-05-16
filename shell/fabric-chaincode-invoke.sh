@@ -26,4 +26,4 @@ for ((i = 0; i < ${#ENDORSER_PEER_ADDRESSES[@]}; i++)); do
   PEER_OPTIONS="$PEER_OPTIONS --peerAddresses ${ENDORSER_PEER_ADDRESSES[i]} --tlsRootCertFiles ${ENDORSER_PEER_TLS_CERTFILES[i]}"
 done
 
-sh -c "peer chaincode invoke -o $ORDERER_ADDR --tls --cafile $ORDERER_CERT -C $CHANNEL_NAME -n $CHAINCODE_NAME $PEER_OPTIONS -c '""$CHAINCODE_PARAMS'" >&/dev/stdout
+sh -c "peer chaincode invoke -o $ORDERER_ADDR --tls --cafile $ORDERER_CERT -C $CHANNEL_NAME -n $CHAINCODE_NAME $PEER_OPTIONS -c '$CHAINCODE_PARAMS'" >&/dev/stdout

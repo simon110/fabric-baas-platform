@@ -17,25 +17,26 @@ import java.util.*;
 
 public class ChannelUtils {
     public static ChannelInfo getChannelInfo(
-            CoreEnv coreEnv,
+            MspEnv peerMspEnv,
+            TlsEnv ordererTlsEnv,
             String channelName) throws IOException, InterruptedException, ChannelException {
         String str = CommandUtils.exec(MyFileUtils.getWorkingDir() + "/shell/fabric-get-channel-info.sh",
-                coreEnv.getMspId(),
-                coreEnv.getMspConfig().getAbsolutePath(),
-                coreEnv.getAddress(),
-                coreEnv.getTlsRootCert().getAbsolutePath(),
+                peerMspEnv.getMspId(),
+                peerMspEnv.getMspConfig().getAbsolutePath(),
+                ordererTlsEnv.getAddress(),
+                ordererTlsEnv.getTlsRootCert().getAbsolutePath(),
                 channelName);
         if (!str.toLowerCase().contains("blockchain info: ")) {
             throw new ChannelException("查询通道信息失败：" + str);
         }
-        String jsonStr = str.substring(str.indexOf('{'), str.lastIndexOf('}') + 1);
-        JSONObject jsonObject = JSONUtil.parseObj(jsonStr);
+        String json = str.substring(str.indexOf('{'), str.lastIndexOf('}') + 1);
+        JSONObject result = JSONUtil.parseObj(json);
 
         ChannelInfo info = new ChannelInfo();
         info.setChannelName(channelName);
-        info.setHeight(jsonObject.getInt("height"));
-        info.setCurrentBlockHash(jsonObject.getStr("currentBlockHash"));
-        info.setPreviousBlockHash(jsonObject.getStr("previousBlockHash"));
+        info.setHeight(result.getInt("height"));
+        info.setCurrentBlockHash(result.getStr("currentBlockHash"));
+        info.setPreviousBlockHash(result.getStr("previousBlockHash"));
         return info;
     }
 

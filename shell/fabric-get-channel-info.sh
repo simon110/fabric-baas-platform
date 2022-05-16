@@ -10,6 +10,6 @@ export ORDERER_CERT=$4
 export CHANNEL_NAME=$5
 
 peer channel getinfo \
-  -o "$ORDERER_ADDR" \
   -c "$CHANNEL_NAME" \
+  -o "$ORDERER_ADDR" \
   --cafile "$ORDERER_CERT" --tls >&/dev/stdout
