@@ -1,0 +1,29 @@
+#!/bin/bash
+# shellcheck disable=SC2003
+
+export CORE_PEER_TLS_ENABLED=true
+export CHAINCODE_NAME=$1
+export CHAINCODE_PARAMS=$2
+export CHANNEL_NAME=$3
+export ORDERER_ADDRESS=$4
+export ORDERER_TLS_CERTFILE=$5
+export CORE_PEER_LOCALMSPID=$6
+export CORE_PEER_MSPCONFIGPATH=$7
+export CORE_PEER_ADDRESS=$8
+export CORE_PEER_TLS_ROOTCERT_FILE=$9
+
+ENDORSER_PEER_ADDRESSES=()
+ENDORSER_PEER_TLS_CERTFILES=()
+PEER_OPTIONS=""
+
+for ((i1 = 8; i1 < $#; i1 += 2)); do
+  i2=$(expr "$i1" + 1)
+  ENDORSER_PEER_ADDRESSES[${#ENDORSER_PEER_ADDRESSES[*]}]=${!i1}
+  ENDORSER_PEER_TLS_CERTFILES[${#ENDORSER_PEER_TLS_CERTFILES[*]}]=${!i2}
+done
+
+for ((i = 0; i < ${#ENDORSER_PEER_ADDRESSES[@]}; i++)); do
+  PEER_OPTIONS="$PEER_OPTIONS --peerAddresses ${ENDORSER_PEER_ADDRESSES[i]} --tlsRootCertFiles ${ENDORSER_PEER_TLS_CERTFILES[i]}"
+done
+
+sh -c "peer chaincode invoke -o $ORDERER_ADDR --tls --cafile $ORDERER_CERT -C $CHANNEL_NAME -n $CHAINCODE_NAME $PEER_OPTIONS -c '""$CHAINCODE_PARAMS'" >&/dev/stdout

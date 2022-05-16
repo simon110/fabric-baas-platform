@@ -1,5 +1,7 @@
 package com.anhui.fabricbaascommon.fabric;
 
+import cn.hutool.json.JSONObject;
+import cn.hutool.json.JSONUtil;
 import com.anhui.fabricbaascommon.bean.*;
 import com.anhui.fabricbaascommon.exception.ChannelException;
 import com.anhui.fabricbaascommon.exception.EnvelopeException;
@@ -14,6 +16,29 @@ import java.io.IOException;
 import java.util.*;
 
 public class ChannelUtils {
+    public static ChannelInfo getChannelInfo(
+            CoreEnv coreEnv,
+            String channelName) throws IOException, InterruptedException, ChannelException {
+        String str = CommandUtils.exec(MyFileUtils.getWorkingDir() + "/shell/fabric-get-channel-info.sh",
+                coreEnv.getMspId(),
+                coreEnv.getMspConfig().getAbsolutePath(),
+                coreEnv.getAddress(),
+                coreEnv.getTlsRootCert().getAbsolutePath(),
+                channelName);
+        if (!str.toLowerCase().contains("blockchain info: ")) {
+            throw new ChannelException("查询通道信息失败：" + str);
+        }
+        String jsonStr = str.substring(str.indexOf('{'), str.lastIndexOf('}') + 1);
+        JSONObject jsonObject = JSONUtil.parseObj(jsonStr);
+
+        ChannelInfo info = new ChannelInfo();
+        info.setChannelName(channelName);
+        info.setHeight(jsonObject.getInt("height"));
+        info.setCurrentBlockHash(jsonObject.getStr("currentBlockHash"));
+        info.setPreviousBlockHash(jsonObject.getStr("previousBlockHash"));
+        return info;
+    }
+
     public static void joinChannel(
             CoreEnv coreEnv,
             File channelGenesisBlock)
