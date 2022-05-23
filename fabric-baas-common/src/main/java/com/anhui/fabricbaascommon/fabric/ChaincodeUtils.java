@@ -333,10 +333,14 @@ public class ChaincodeUtils {
 
     public static String executeQuery(
             String chaincodeName,
-            JSONObject chaincodeParams,
+            String functionName,
+            List<String> params,
             String channelName,
             CoreEnv peerCoreEnv) throws CertfileException, IOException, InterruptedException, ChaincodeException {
         peerCoreEnv.selfAssert();
+        JSONObject chaincodeParams = new JSONObject();
+        chaincodeParams.set("function", functionName);
+        chaincodeParams.set("Args", params);
         String str = CommandUtils.exec(
                 MyFileUtils.getWorkingDir() + "/shell/fabric-chaincode-query.sh",
                 peerCoreEnv.getMspId(),
@@ -349,6 +353,6 @@ public class ChaincodeUtils {
         if (str.toLowerCase().contains("error: ") || str.contains("status:500")) {
             throw new ChaincodeException("链码调用失败：" + str);
         }
-        return str;
+        return str.strip();
     }
 }

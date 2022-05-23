@@ -102,7 +102,13 @@ public class ChaincodeController {
     @PostMapping("/executeQuery")
     @ApiOperation("对指定智能合约进行查询操作")
     public UniqueResult<String> executeQuery(@Valid @RequestBody ChaincodeExecuteQueryRequest request) throws Exception {
-        String result = chaincodeService.executeQuery(request.getChaincodeName(), request.getChannelName(), request.getParams(), request.getPeerName());
+        String result = chaincodeService.executeQuery(
+                request.getChaincodeName(),
+                request.getChannelName(),
+                request.getFunctionName(),
+                request.getParams(),
+                request.getPeerName()
+        );
         return new UniqueResult<>(result);
     }
 }

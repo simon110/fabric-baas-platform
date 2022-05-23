@@ -11,4 +11,4 @@ export CHANNEL_NAME=$5
 export CHAINCODE_NAME=$6
 export CHAINCODE_PARAMS=$7
 
-peer chaincode query -C "$CHANNEL_NAME" -n "$CHAINCODE_NAME" -c "'$CHAINCODE_PARAMS'" >&/dev/stdout
+peer chaincode query -C "$CHANNEL_NAME" -n "$CHAINCODE_NAME" -c "$CHAINCODE_PARAMS" >&/dev/stdout

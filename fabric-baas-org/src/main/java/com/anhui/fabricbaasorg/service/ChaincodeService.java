@@ -1,6 +1,5 @@
 package com.anhui.fabricbaasorg.service;
 
-import cn.hutool.json.JSONObject;
 import com.anhui.fabricbaascommon.bean.*;
 import com.anhui.fabricbaascommon.constant.CertfileType;
 import com.anhui.fabricbaascommon.entity.CaEntity;
@@ -203,11 +202,10 @@ public class ChaincodeService {
         return approvedChaincodeRepo.findAllByChannelNameAndCommitted(channelName, true);
     }
 
-    public String executeQuery(String chaincodeName, String channelName, Map<String, Object> params, String peerName) throws Exception {
+    public String executeQuery(String chaincodeName, String channelName, String functionName, List<String> params, String peerName) throws Exception {
         channelService.findChannelOrThrowEx(channelName);
         CoreEnv peerCoreEnv = buildPeerCoreEnv(peerName);
-        JSONObject paramObject = new JSONObject(params);
-        return ChaincodeUtils.executeQuery(chaincodeName, paramObject, channelName, peerCoreEnv);
+        return ChaincodeUtils.executeQuery(chaincodeName, functionName, params, channelName, peerCoreEnv);
     }
 
     public String executeInvoke() {

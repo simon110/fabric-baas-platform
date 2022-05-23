@@ -10,7 +10,7 @@ import lombok.EqualsAndHashCode;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
-import java.util.Map;
+import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -20,9 +20,13 @@ public class ChaincodeExecuteQueryRequest extends BaseChannelRequest {
     @ApiModelProperty(value = "链码名称")
     private String chaincodeName;
 
+    @NotBlank
+    @ApiModelProperty(value = "函数名称")
+    private String functionName;
+
     @NotNull
     @ApiModelProperty(value = "请求参数")
-    private Map<String, Object> params;
+    private List<String> params;
 
     @Pattern(regexp = ParamPattern.DEPLOYMENT_NAME_REGEX, message = ParamPattern.DEPLOYMENT_NAME_MSG)
     @ApiModelProperty(value = "Peer节点名称", required = true)
