@@ -54,16 +54,17 @@ public class ConfigtxUtils {
         organization.put("ID", configtxOrganization.getId());
         organization.put("MSPDir", configtxOrganization.getMspDir().getAbsolutePath());
 
-        String rwRule = String.format("OR('%s.admin', '%s.peer', '%s.client')", configtxOrganization.getId(), configtxOrganization.getId(), configtxOrganization.getId());
+        String rRule = String.format("OR('%s.admin', '%s.peer', '%s.client')", configtxOrganization.getId(), configtxOrganization.getId(), configtxOrganization.getId());
+        String wRule = String.format("OR('%s.admin', '%s.client')", configtxOrganization.getId(), configtxOrganization.getId());
         Map<String, Object> policies = new HashMap<>();
         Map<String, Object> readersPolicy = new HashMap<>();
         readersPolicy.put("Type", "Signature");
-        readersPolicy.put("Rule", rwRule);
+        readersPolicy.put("Rule", rRule);
         policies.put("Readers", readersPolicy);
 
         Map<String, Object> writersPolicy = new HashMap<>();
         writersPolicy.put("Type", "Signature");
-        writersPolicy.put("Rule", rwRule);
+        writersPolicy.put("Rule", wRule);
         policies.put("Writers", writersPolicy);
 
         Map<String, Object> adminsPolicy = new HashMap<>();
