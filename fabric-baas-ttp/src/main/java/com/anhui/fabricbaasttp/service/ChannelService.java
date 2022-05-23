@@ -403,8 +403,8 @@ public class ChannelService {
         // 生成Orderer的TLS环境变量和Peer的MSP环境变量
         NetworkEntity network = networkService.findNetworkOrThrowEx(channel.getNetworkName());
         TlsEnv ordererTlsEnv = fabricEnvService.buildOrdererTlsEnv(RandomUtils.select(network.getOrderers()));
-        MspEnv peerMspEnv = fabricEnvService.buildPeerMspEnv(network.getName(), organizationName);
-        
-        return ChannelUtils.getChannelStatus(peerMspEnv, ordererTlsEnv, channelName);
+        CoreEnv peerCoreEnv = fabricEnvService.buildPeerCoreEnv(network.getName(), organizationName, RandomUtils.select(channel.getPeers()));
+
+        return ChannelUtils.getChannelStatus(peerCoreEnv, ordererTlsEnv, channelName);
     }
 }

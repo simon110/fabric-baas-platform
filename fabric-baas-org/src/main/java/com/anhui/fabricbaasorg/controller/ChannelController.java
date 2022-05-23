@@ -1,5 +1,6 @@
 package com.anhui.fabricbaasorg.controller;
 
+import com.anhui.fabricbaascommon.bean.ChannelStatus;
 import com.anhui.fabricbaascommon.constant.Authority;
 import com.anhui.fabricbaascommon.request.*;
 import com.anhui.fabricbaascommon.response.PaginationQueryResult;
@@ -79,6 +80,13 @@ public class ChannelController {
     @ApiOperation("获取通道的详细信息")
     public UniqueResult<Object> getChannel(@Valid @RequestBody BaseChannelRequest request) throws Exception {
         return new UniqueResult<>(ttpChannelApi.getChannel(request.getChannelName()));
+    }
+
+    @Secured({Authority.ADMIN})
+    @PostMapping("/getChannelStatus")
+    @ApiOperation("获取通道的状态")
+    public UniqueResult<ChannelStatus> getChannelStatus(@Valid @RequestBody BaseChannelRequest request) throws Exception {
+        return new UniqueResult<>(ttpChannelApi.getChannelStatus(request.getChannelName()));
     }
 }
 

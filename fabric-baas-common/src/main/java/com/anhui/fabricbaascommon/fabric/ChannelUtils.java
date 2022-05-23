@@ -17,12 +17,14 @@ import java.util.*;
 
 public class ChannelUtils {
     public static ChannelStatus getChannelStatus(
-            MspEnv peerMspEnv,
+            CoreEnv peerCoreEnv,
             TlsEnv ordererTlsEnv,
             String channelName) throws IOException, InterruptedException, ChannelException {
         String str = CommandUtils.exec(MyFileUtils.getWorkingDir() + "/shell/fabric-get-channel-info.sh",
-                peerMspEnv.getMspId(),
-                peerMspEnv.getMspConfig().getAbsolutePath(),
+                peerCoreEnv.getMspId(),
+                peerCoreEnv.getMspConfig().getAbsolutePath(),
+                peerCoreEnv.getAddress(),
+                peerCoreEnv.getTlsRootCert().getAbsolutePath(),
                 ordererTlsEnv.getAddress(),
                 ordererTlsEnv.getTlsRootCert().getAbsolutePath(),
                 channelName);

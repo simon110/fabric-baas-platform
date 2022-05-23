@@ -2,6 +2,7 @@ package com.anhui.fabricbaasorg.remote;
 
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
+import com.anhui.fabricbaascommon.bean.ChannelStatus;
 import com.anhui.fabricbaascommon.bean.Node;
 import com.anhui.fabricbaascommon.response.PaginationQueryResult;
 import com.anhui.fabricbaasorg.bean.ChannelPeer;
@@ -139,5 +140,12 @@ public class TTPChannelApi {
         JSONObject response = httpClient.request("/api/v1/channel/queryOrganizationChannels", data);
         List<Object> channels = new ArrayList<>(response.getJSONArray("items"));
         return new PaginationQueryResult<>(response.getInt("totalPages"), channels);
+    }
+
+    public ChannelStatus getChannelStatus(String channelName) throws Exception {
+        JSONObject data = new JSONObject();
+        data.set("channelName", channelName);
+        JSONObject response = httpClient.request("/api/v1/channel/getChannelStatus", data);
+        return JSONUtil.toBean(response.getJSONObject("result"), ChannelStatus.class);
     }
 }
