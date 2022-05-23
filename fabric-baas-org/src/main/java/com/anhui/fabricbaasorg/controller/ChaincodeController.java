@@ -111,5 +111,19 @@ public class ChaincodeController {
         );
         return new UniqueResult<>(result);
     }
+
+    @Secured({Authority.ADMIN})
+    @PostMapping("/executeInvoke")
+    @ApiOperation("对指定智能合约进行调用操作")
+    public void executeInvoke(@Valid @RequestBody ChaincodeExecuteInvokeRequest request) throws Exception {
+        chaincodeService.executeInvoke(
+                request.getChaincodeName(),
+                request.getChannelName(),
+                request.getFunctionName(),
+                request.getParams(),
+                request.getPeerName(),
+                request.getEndorserPeers()
+        );
+    }
 }
 

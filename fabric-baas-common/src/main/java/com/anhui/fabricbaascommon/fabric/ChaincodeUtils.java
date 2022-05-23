@@ -296,9 +296,17 @@ public class ChaincodeUtils {
         }
     }
 
+    private static JSONObject buildChaincodeParams(String functionName, List<String> params) {
+        JSONObject chaincodeParams = new JSONObject();
+        chaincodeParams.set("function", functionName);
+        chaincodeParams.set("Args", params);
+        return chaincodeParams;
+    }
+
     public static void executeInvoke(
             String chaincodeName,
-            JSONObject chaincodeParams,
+            String functionName,
+            List<String> params,
             String channelName,
             TlsEnv ordererTlsEnv,
             CoreEnv committerPeerCoreEnv,
@@ -307,6 +315,7 @@ public class ChaincodeUtils {
         for (TlsEnv endorserTlsEnv : endorserTlsEnvs) {
             endorserTlsEnv.assertTlsCert();
         }
+        JSONObject chaincodeParams = buildChaincodeParams(functionName, params);
         List<String> commandList = Arrays.asList(
                 MyFileUtils.getWorkingDir() + "/shell/fabric-chaincode-invoke.sh",
                 chaincodeName,
@@ -338,9 +347,7 @@ public class ChaincodeUtils {
             String channelName,
             CoreEnv peerCoreEnv) throws CertfileException, IOException, InterruptedException, ChaincodeException {
         peerCoreEnv.selfAssert();
-        JSONObject chaincodeParams = new JSONObject();
-        chaincodeParams.set("function", functionName);
-        chaincodeParams.set("Args", params);
+        JSONObject chaincodeParams = buildChaincodeParams(functionName, params);
         String str = CommandUtils.exec(
                 MyFileUtils.getWorkingDir() + "/shell/fabric-chaincode-query.sh",
                 peerCoreEnv.getMspId(),

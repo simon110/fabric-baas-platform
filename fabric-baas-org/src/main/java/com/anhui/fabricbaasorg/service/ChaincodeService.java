@@ -208,7 +208,16 @@ public class ChaincodeService {
         return ChaincodeUtils.executeQuery(chaincodeName, functionName, params, channelName, peerCoreEnv);
     }
 
-    public String executeInvoke() {
-        return null;
+    public void executeInvoke(String chaincodeName, String channelName, String functionName, List<String> params, String peerName, List<Node> endorserPeers) throws Exception {
+        channelService.findChannelOrThrowEx(channelName);
+        CoreEnv committerCoreEnv = buildPeerCoreEnv(peerName);
+        TlsEnv ordererTlsEnv = buildOrdererTlsEnv(channelName);
+
+        List<TlsEnv> endorserTlsEnvs = new ArrayList<>();
+        for (Node endorserPeer : endorserPeers) {
+            TlsEnv endorserTlsEnv = buildEndorserTlsEnv(channelName, endorserPeer);
+            endorserTlsEnvs.add(endorserTlsEnv);
+        }
+        ChaincodeUtils.executeInvoke(chaincodeName, functionName, params, channelName, ordererTlsEnv, committerCoreEnv, endorserTlsEnvs);
     }
 }

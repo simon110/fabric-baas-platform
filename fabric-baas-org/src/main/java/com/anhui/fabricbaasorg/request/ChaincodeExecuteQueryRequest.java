@@ -14,7 +14,7 @@ import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-@ApiModel(value = "链码操作基本请求")
+@ApiModel(value = "链码查询请求")
 public class ChaincodeExecuteQueryRequest extends BaseChannelRequest {
     @NotBlank
     @ApiModelProperty(value = "链码名称")
