@@ -296,7 +296,7 @@ public class ChaincodeUtils {
         }
     }
 
-    public static void invoke(
+    public static void executeInvoke(
             String chaincodeName,
             JSONObject chaincodeParams,
             String channelName,
@@ -331,7 +331,7 @@ public class ChaincodeUtils {
         }
     }
 
-    public static String query(
+    public static String executeQuery(
             String chaincodeName,
             JSONObject chaincodeParams,
             String channelName,

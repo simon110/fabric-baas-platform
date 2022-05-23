@@ -2,6 +2,7 @@ package com.anhui.fabricbaasorg.controller;
 
 import com.anhui.fabricbaascommon.bean.ChaincodeApproval;
 import com.anhui.fabricbaascommon.constant.Authority;
+import com.anhui.fabricbaasorg.request.ChaincodeExecuteQueryRequest;
 import com.anhui.fabricbaascommon.request.BaseChannelRequest;
 import com.anhui.fabricbaascommon.request.PaginationQueryRequest;
 import com.anhui.fabricbaascommon.response.ListResult;
@@ -95,6 +96,14 @@ public class ChaincodeController {
     @ApiOperation("查询指定Peer上已生效的所有链码")
     public ListResult<ApprovedChaincodeEntity> queryAllCommittedChaincodesOnChannel(@Valid @RequestBody BaseChannelRequest request) {
         return new ListResult<>(chaincodeService.getAllCommittedChaincodesOnChannel(request.getChannelName()));
+    }
+
+    @Secured({Authority.ADMIN})
+    @PostMapping("/executeQuery")
+    @ApiOperation("对指定智能合约进行查询操作")
+    public UniqueResult<String> executeQuery(@Valid @RequestBody ChaincodeExecuteQueryRequest request) throws Exception {
+        String result = chaincodeService.executeQuery(request.getChaincodeName(), request.getChannelName(), request.getParams(), request.getPeerName());
+        return new UniqueResult<>(result);
     }
 }
 
