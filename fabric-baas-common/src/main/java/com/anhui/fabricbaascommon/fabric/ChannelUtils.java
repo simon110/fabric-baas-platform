@@ -16,7 +16,7 @@ import java.io.IOException;
 import java.util.*;
 
 public class ChannelUtils {
-    public static ChannelInfo getChannelInfo(
+    public static ChannelStatus getChannelStatus(
             MspEnv peerMspEnv,
             TlsEnv ordererTlsEnv,
             String channelName) throws IOException, InterruptedException, ChannelException {
@@ -32,7 +32,7 @@ public class ChannelUtils {
         String json = str.substring(str.indexOf('{'), str.lastIndexOf('}') + 1);
         JSONObject result = JSONUtil.parseObj(json);
 
-        ChannelInfo info = new ChannelInfo();
+        ChannelStatus info = new ChannelStatus();
         info.setChannelName(channelName);
         info.setHeight(result.getInt("height"));
         info.setCurrentBlockHash(result.getStr("currentBlockHash"));

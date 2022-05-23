@@ -395,4 +395,16 @@ public class ChannelService {
         Pageable pageable = PageRequest.of(page - 1, pageSize);
         return channelRepo.findAllByOrganizationNamesIsContaining(organizationName, pageable);
     }
+
+    public ChannelStatus getChannelStatus(String organizationName, String channelName) throws Exception {
+        ChannelEntity channel = findChannelOrThrowEx(channelName);
+        assertOrganizationInChannel(channel, organizationName, true);
+
+        // 生成Orderer的TLS环境变量和Peer的MSP环境变量
+        NetworkEntity network = networkService.findNetworkOrThrowEx(channel.getNetworkName());
+        TlsEnv ordererTlsEnv = fabricEnvService.buildOrdererTlsEnv(RandomUtils.select(network.getOrderers()));
+        MspEnv peerMspEnv = fabricEnvService.buildPeerMspEnv(network.getName(), organizationName);
+        
+        return ChannelUtils.getChannelStatus(peerMspEnv, ordererTlsEnv, channelName);
+    }
 }

@@ -69,7 +69,7 @@ public class PeerController {
 
     @Secured({Authority.ADMIN})
     @PostMapping("/queryPeersInChannel")
-    @ApiOperation("获取组织在通道中所有的Peer节点")
+    @ApiOperation("获取通道中所有的Peer节点")
     public ListResult<ChannelPeer> queryPeersInChannel(@Valid @RequestBody BaseChannelRequest request) throws Exception {
         List<ChannelPeer> peers = ttpChannelApi.queryPeers(request.getChannelName());
         return new ListResult<>(peers);

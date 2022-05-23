@@ -1,5 +1,6 @@
 package com.anhui.fabricbaasorg.service;
 
+import com.anhui.fabricbaascommon.bean.ChannelStatus;
 import com.anhui.fabricbaascommon.bean.Node;
 import com.anhui.fabricbaascommon.constant.CertfileType;
 import com.anhui.fabricbaascommon.exception.ChannelException;
@@ -10,6 +11,7 @@ import com.anhui.fabricbaascommon.util.MyFileUtils;
 import com.anhui.fabricbaasorg.entity.ChannelEntity;
 import com.anhui.fabricbaasorg.entity.PeerEntity;
 import com.anhui.fabricbaasorg.remote.TTPChannelApi;
+import com.anhui.fabricbaasorg.remote.TTPNetworkApi;
 import com.anhui.fabricbaasorg.repository.ChannelRepo;
 import com.anhui.fabricbaasorg.repository.PeerRepo;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +33,8 @@ public class ChannelService {
     private PeerRepo peerRepo;
     @Autowired
     private ChannelRepo channelRepo;
+    @Autowired
+    private TTPNetworkApi ttpNetworkApi;
 
     public ChannelEntity findChannelOrThrowEx(String channelName) throws ChannelException {
         Optional<ChannelEntity> optional = channelRepo.findById(channelName);
@@ -76,4 +80,5 @@ public class ChannelService {
         Node node = new Node(caClientService.getCaOrganizationDomain(), peer.getKubeNodePort());
         ttpChannelApi.joinChannel(channelName, node, peerCertfileZip);
     }
+
 }

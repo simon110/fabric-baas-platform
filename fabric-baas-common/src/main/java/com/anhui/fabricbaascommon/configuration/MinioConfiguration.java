@@ -19,7 +19,10 @@ public class MinioConfiguration {
 
     @Bean
     public MinioClient minioClient() {
+        // OkHttpClient.Builder builder = new OkHttpClient.Builder();
+        // builder.hostnameVerifier(new AllowAllHostnameVerifier());
         return MinioClient.builder()
+                // .httpClient(builder.build())
                 .endpoint(host, port, false)
                 .credentials(username, password)
                 .build();

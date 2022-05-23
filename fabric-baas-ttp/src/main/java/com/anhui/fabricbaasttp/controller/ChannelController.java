@@ -1,5 +1,6 @@
 package com.anhui.fabricbaasttp.controller;
 
+import com.anhui.fabricbaascommon.bean.ChannelStatus;
 import com.anhui.fabricbaascommon.constant.Authority;
 import com.anhui.fabricbaascommon.request.*;
 import com.anhui.fabricbaascommon.response.ListResult;
@@ -104,5 +105,14 @@ public class ChannelController {
     public PaginationQueryResult<ChannelEntity> queryOrganizationChannels(@Valid @RequestBody OrganizationPaginationQueryRequest request) {
         Page<ChannelEntity> page = channelService.getOrganizationChannels(request.getOrganizationName(), request.getPage(), request.getPageSize());
         return new PaginationQueryResult<>(page.getTotalPages(), page.getContent());
+    }
+
+    @Secured({Authority.USER, Authority.ADMIN})
+    @PostMapping("/getChannelStatus")
+    @ApiOperation("获取通道当前的状态（包括区块高度、最新区块哈希、上一个区块的哈希等）")
+    public UniqueResult<ChannelStatus> getChannelStatus(@Valid @RequestBody BaseChannelRequest request) throws Exception {
+        String currentOrganizationName = SecurityUtils.getUsername();
+        ChannelStatus channelStatus = channelService.getChannelStatus(currentOrganizationName, request.getChannelName());
+        return new UniqueResult<>(channelStatus);
     }
 }
