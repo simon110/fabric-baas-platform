@@ -267,15 +267,18 @@ public class ChannelUtils {
     }
 
     public static void signEnvelope(
-            MspEnv MspEnv,
+            MspEnv mspEnv,
             File envelope)
             throws IOException, InterruptedException, EnvelopeException {
+        Assert.isTrue(envelope.exists());
+        Map<String, String> envs = CommandUtils.buildEnvs(
+                "CORE_PEER_LOCALMSPID", mspEnv.getMspId(),
+                "CORE_PEER_MSPCONFIGPATH", mspEnv.getMspConfig().getCanonicalPath()
+        );
         byte[] oldBytes = FileUtils.readFileToByteArray(envelope);
-        String str = CommandUtils.exec(
-                MyFileUtils.getWorkingDir() + "/shell/fabric-sign-envelope.sh",
-                MspEnv.getMspId(),
-                MspEnv.getMspConfig().getAbsolutePath(),
-                envelope.getCanonicalPath());
+        String str = CommandUtils.exec(envs, "peer", "channel", "signconfigtx",
+                "-f", envelope.getCanonicalPath()
+        );
         byte[] newBytes = FileUtils.readFileToByteArray(envelope);
         // 通过对比签名前后的文件内容来确定签名是否成功
         if (Arrays.equals(oldBytes, newBytes)) {
