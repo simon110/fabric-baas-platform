@@ -372,16 +372,21 @@ public class ChaincodeUtils {
             String channelName,
             CoreEnv peerCoreEnv) throws CertfileException, IOException, InterruptedException, ChaincodeException {
         peerCoreEnv.selfAssert();
+        Map<String, String> envs = CommandUtils.buildEnvs(
+                "FABRIC_CFG_PATH", MyFileUtils.getWorkingDir(),
+                "CORE_PEER_TLS_ENABLED", "true",
+                "CORE_PEER_LOCALMSPID", peerCoreEnv.getMspId(),
+                "CORE_PEER_MSPCONFIGPATH", peerCoreEnv.getMspConfig().getCanonicalPath(),
+                "CORE_PEER_ADDRESS", peerCoreEnv.getAddress(),
+                "CORE_PEER_TLS_ROOTCERT_FILE", peerCoreEnv.getTlsRootCert().getCanonicalPath()
+        );
+
         JSONObject chaincodeParams = buildChaincodeParams(functionName, params);
-        String str = CommandUtils.exec(
-                MyFileUtils.getWorkingDir() + "/shell/fabric-chaincode-query.sh",
-                peerCoreEnv.getMspId(),
-                peerCoreEnv.getMspConfig().getAbsolutePath(),
-                peerCoreEnv.getAddress(),
-                peerCoreEnv.getTlsRootCert().getAbsolutePath(),
-                channelName,
-                chaincodeName,
-                chaincodeParams.toString());
+        String str = CommandUtils.exec("peer", "chaincode", "query",
+                "-C", channelName,
+                "-n", chaincodeName,
+                "-c", chaincodeParams.toString()
+        );
         if (str.toLowerCase().contains("error: ") || str.contains("status:500")) {
             throw new ChaincodeException("链码调用失败：" + str);
         }
