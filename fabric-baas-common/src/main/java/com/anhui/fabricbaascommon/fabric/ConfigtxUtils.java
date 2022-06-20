@@ -5,11 +5,14 @@ import com.anhui.fabricbaascommon.bean.ConfigtxOrderer;
 import com.anhui.fabricbaascommon.bean.ConfigtxOrganization;
 import com.anhui.fabricbaascommon.exception.ConfigtxException;
 import com.anhui.fabricbaascommon.util.CommandUtils;
+import com.anhui.fabricbaascommon.util.JsonUtils;
 import com.anhui.fabricbaascommon.util.MyFileUtils;
 import com.anhui.fabricbaascommon.util.YamlUtils;
+import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class ConfigtxUtils {
@@ -229,13 +232,17 @@ public class ConfigtxUtils {
             File configtxDir,
             String organizationName)
             throws ConfigtxException, IOException, InterruptedException {
-        String str = CommandUtils.exec(
-                MyFileUtils.getWorkingDir() + "/shell/fabric-generate-organization-config.sh",
-                organizationName,
-                configtxDir.getCanonicalPath(),
-                outputJson.getCanonicalPath());
+        HashMap<String, String> envs = new HashMap<>();
+        envs.put("FABRIC_CFG_PATH", MyFileUtils.getWorkingDir());
+        String json = CommandUtils.exec(envs, "configtxgen",
+                "-printOrg", organizationName,
+                "-configPath", configtxDir.getCanonicalPath()
+        );
+        // 通过解析判断是否为JSON字符串
+        JsonUtils.loadAsMap(json);
+        FileUtils.writeStringToFile(outputJson, json, StandardCharsets.UTF_8);
         if (!outputJson.exists()) {
-            throw new ConfigtxException("将组织配置文件转换为JSON失败：" + str);
+            throw new ConfigtxException("将组织配置文件转换为JSON失败：" + json);
         }
     }
 }

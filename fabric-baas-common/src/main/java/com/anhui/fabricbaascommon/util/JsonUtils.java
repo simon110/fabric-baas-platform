@@ -14,14 +14,22 @@ public class JsonUtils {
     private static final JacksonJsonParser JACKSON_JSON_PARSER = new JacksonJsonParser();
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
+    public static Map<String, Object> loadAsMap(String json) throws IOException {
+        return JACKSON_JSON_PARSER.parseMap(json);
+    }
+
     public static Map<String, Object> loadAsMap(File file) throws IOException {
         String str = FileUtils.readFileToString(file, StandardCharsets.UTF_8);
-        return JACKSON_JSON_PARSER.parseMap(str);
+        return loadAsMap(str);
+    }
+
+    public static List<Object> loadAsList(String json) throws IOException {
+        return JACKSON_JSON_PARSER.parseList(json);
     }
 
     public static List<Object> loadAsList(File file) throws IOException {
         String str = FileUtils.readFileToString(file, StandardCharsets.UTF_8);
-        return JACKSON_JSON_PARSER.parseList(str);
+        return loadAsList(str);
     }
 
     public static void save(File dstFile, Object obj) throws IOException {
