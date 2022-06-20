@@ -27,8 +27,8 @@ public class ChannelUtils {
                 "CORE_PEER_TLS_ENABLED", "true",
                 "CORE_PEER_LOCALMSPID", peerCoreEnv.getMspId(),
                 "CORE_PEER_MSPCONFIGPATH", peerCoreEnv.getMspConfig().getCanonicalPath(),
-                "CORE_PEER_ADDRESS", peerCoreEnv.getTlsEnv().getAddress(),
-                "CORE_PEER_TLS_ROOTCERT_FILE", peerCoreEnv.getTlsEnv().getTlsRootCert().getCanonicalPath()
+                "CORE_PEER_ADDRESS", peerCoreEnv.getAddress(),
+                "CORE_PEER_TLS_ROOTCERT_FILE", peerCoreEnv.getTlsRootCert().getCanonicalPath()
         );
 
         String str = CommandUtils.exec(envs, "peer", "channel", "getinfo",
@@ -60,8 +60,8 @@ public class ChannelUtils {
                 "CORE_PEER_TLS_ENABLED", "true",
                 "CORE_PEER_LOCALMSPID", coreEnv.getMspId(),
                 "CORE_PEER_MSPCONFIGPATH", coreEnv.getMspConfig().getCanonicalPath(),
-                "CORE_PEER_ADDRESS", coreEnv.getTlsEnv().getAddress(),
-                "CORE_PEER_TLS_ROOTCERT_FILE", coreEnv.getTlsEnv().getTlsRootCert().getCanonicalPath()
+                "CORE_PEER_ADDRESS", coreEnv.getAddress(),
+                "CORE_PEER_TLS_ROOTCERT_FILE", coreEnv.getTlsRootCert().getCanonicalPath()
         );
         String str = CommandUtils.exec(envs, "peer", "channel", "join", "-b", channelGenesisBlock.getCanonicalPath());
         if (!str.toLowerCase().contains("successfully submitted proposal")) {
@@ -84,8 +84,9 @@ public class ChannelUtils {
         File configBlock = MyFileUtils.createTempFile("pb");
         String str = CommandUtils.exec(envs, "peer", "channel", "fetch", "config",
                 configBlock.getCanonicalPath(),
-                "-o", coreEnv.getTlsEnv().getAddress(),
+                "-o", coreEnv.getAddress(),
                 "-c", channelName,
+                "--tls", "true",
                 "--cafile", coreEnv.getTlsRootCert().getCanonicalPath()
         );
         if (!configBlock.exists()) {
@@ -106,13 +107,18 @@ public class ChannelUtils {
             String channelName,
             File genesisBlock)
             throws ChannelException, IOException, InterruptedException {
-        String blockPath = genesisBlock.getCanonicalPath();
-        String str = CommandUtils.exec(MyFileUtils.getWorkingDir() + "/shell/fabric-fetch-genesis.sh",
-                coreEnv.getMspId(),
-                coreEnv.getMspConfig().getAbsolutePath(),
-                coreEnv.getAddress(),
-                coreEnv.getTlsRootCert().getAbsolutePath(),
-                channelName, blockPath);
+        Map<String, String> envs = CommandUtils.buildEnvs(
+                "FABRIC_CFG_PATH", MyFileUtils.getWorkingDir(),
+                "CORE_PEER_TLS_ENABLED", "true",
+                "CORE_PEER_LOCALMSPID", coreEnv.getMspId(),
+                "CORE_PEER_MSPCONFIGPATH", coreEnv.getMspConfig().getCanonicalPath()
+        );
+        String str = CommandUtils.exec(envs, "peer", "channel", "fetch", "0",
+                genesisBlock.getCanonicalPath(),
+                "-o", coreEnv.getAddress(),
+                "-c", channelName,
+                "--tls", "--cafile", coreEnv.getTlsRootCert().getCanonicalPath()
+        );
         if (!genesisBlock.exists()) {
             throw new ChannelException("获取通道创世区块失败：" + str);
         }
