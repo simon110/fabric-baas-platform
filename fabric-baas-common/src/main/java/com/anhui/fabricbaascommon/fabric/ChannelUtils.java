@@ -14,6 +14,7 @@ import org.springframework.util.Base64Utils;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class ChannelUtils {
@@ -64,16 +65,29 @@ public class ChannelUtils {
             String channelName,
             File jsonConfig)
             throws ChannelException, IOException, InterruptedException {
-        String jsonPath = jsonConfig.getCanonicalPath();
-        String str = CommandUtils.exec(
-                MyFileUtils.getWorkingDir() + "/shell/fabric-fetch-config.sh",
-                coreEnv.getMspId(),
-                coreEnv.getMspConfig().getAbsolutePath(),
-                coreEnv.getAddress(),
-                coreEnv.getTlsRootCert().getAbsolutePath(),
-                channelName, jsonPath);
+        HashMap<String, String> envs = new HashMap<>();
+        envs.put("FABRIC_CFG_PATH", MyFileUtils.getWorkingDir());
+        envs.put("CORE_PEER_TLS_ENABLED", "true");
+        envs.put("CORE_PEER_LOCALMSPID", coreEnv.getMspId());
+        envs.put("CORE_PEER_MSPCONFIGPATH", coreEnv.getMspConfig().getCanonicalPath());
+
+        File configBlock = MyFileUtils.createTempFile("pb");
+        String str = CommandUtils.exec(envs, "peer", "channel", "fetch", "config",
+                configBlock.getCanonicalPath(),
+                "-o", coreEnv.getTlsEnv().getAddress(),
+                "-c", channelName,
+                "--cafile", coreEnv.getTlsRootCert().getCanonicalPath()
+        );
+        if (!configBlock.exists()) {
+            throw new ChannelException("获取通道配置区块失败：" + str);
+        }
+
+        String cmd = String.format("'configtxlator proto_decode --input %s --type common.Block | jq .data.data[0].payload.data.config'", configBlock.getCanonicalPath());
+        String json = CommandUtils.exec(envs, "sh", "-c", cmd);
+        JsonUtils.loadAsMap(json);
+        FileUtils.writeStringToFile(jsonConfig, json, StandardCharsets.UTF_8);
         if (!jsonConfig.exists()) {
-            throw new ChannelException("获取通道配置失败：" + str);
+            throw new ChannelException("解析通道配置失败：" + json);
         }
     }
 
