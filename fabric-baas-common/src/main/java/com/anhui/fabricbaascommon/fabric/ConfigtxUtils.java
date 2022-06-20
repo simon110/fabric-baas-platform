@@ -116,7 +116,7 @@ public class ConfigtxUtils {
             ConfigtxOrganization ordererOrganization,
             List<ConfigtxOrganization> otherOrganizations)
             throws IOException {
-        Map<String, Object> configtx = YamlUtils.load(new File("configtx.yaml"));
+        Map<String, Object> configtx = YamlUtils.load(new File("fabric/template/configtx.yaml"));
         // 编辑Organizations部分的配置
         List<Map<String, Object>> organizations = (List<Map<String, Object>>) configtx.get("Organizations");
         organizations.clear();
@@ -176,7 +176,7 @@ public class ConfigtxUtils {
             String channelName,
             List<String> organizationNames)
             throws IOException, ConfigtxException {
-        Map<String, Object> templateConfigtx = YamlUtils.load(new File("configtx.yaml"));
+        Map<String, Object> templateConfigtx = YamlUtils.load(new File("fabric/template/configtx.yaml"));
         Map<String, Object> profiles = (Map<String, Object>) templateConfigtx.get("Profiles");
         Map<String, Object> channel = (Map<String, Object>) profiles.get("TwoOrgsChannel");
 
@@ -221,7 +221,7 @@ public class ConfigtxUtils {
             File dstFile,
             ConfigtxOrganization configtxOrganization)
             throws IOException {
-        Map<String, Object> orgConfig = YamlUtils.load(new File("organization.yaml"));
+        Map<String, Object> orgConfig = YamlUtils.load(new File("fabric/template/organization.yaml"));
         List<Map<String, Object>> organizations = (List<Map<String, Object>>) orgConfig.get("Organizations");
         organizations.clear();
         organizations.add(buildOrg(configtxOrganization));

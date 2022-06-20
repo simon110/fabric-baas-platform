@@ -4,3 +4,7 @@ COPY bin/* /usr/local/bin/
 RUN chmod a+x /usr/local/bin/*
 VOLUME /opt/fabric-baas-org
 COPY fabric-baas-ttp/target/fabric-baas-ttp.jar /opt/fabric-baas-ttp/
+COPY core.yaml /opt/fabric-baas-ttp/
+COPY orderer.yaml /opt/fabric-baas-ttp/
+
+
