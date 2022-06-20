@@ -278,28 +278,36 @@ public class ChaincodeUtils {
             throws IOException, InterruptedException, CertfileException, ChaincodeException {
         committerPeerCoreEnv.selfAssert();
         ordererTlsEnv.assertTlsCert();
-        List<String> commandList = Arrays.asList(
-                MyFileUtils.getWorkingDir() + "/shell/fabric-chaincode-commit.sh",
-                chaincodeProperties.getName(),
-                chaincodeProperties.getVersion(),
-                chaincodeProperties.getSequence().toString(),
-                channelName,
-                ordererTlsEnv.getAddress(),
-                ordererTlsEnv.getTlsRootCert().getAbsolutePath(),
-                committerPeerCoreEnv.getMspId(),
-                committerPeerCoreEnv.getMspConfig().getAbsolutePath(),
-                committerPeerCoreEnv.getAddress(),
-                committerPeerCoreEnv.getTlsRootCert().getAbsolutePath()
+        Map<String, String> envs = CommandUtils.buildEnvs(
+                "FABRIC_CFG_PATH", MyFileUtils.getWorkingDir(),
+                "CORE_PEER_TLS_ENABLED", "true",
+                "CORE_PEER_LOCALMSPID", committerPeerCoreEnv.getMspId(),
+                "CORE_PEER_MSPCONFIGPATH", committerPeerCoreEnv.getMspConfig().getCanonicalPath(),
+                "CORE_PEER_ADDRESS", committerPeerCoreEnv.getAddress(),
+                "CORE_PEER_TLS_ROOTCERT_FILE", committerPeerCoreEnv.getTlsRootCert().getCanonicalPath()
         );
+
+        List<String> commandList = Arrays.asList("peer", "lifecycle", "chaincode", "commit",
+                "-o", ordererTlsEnv.getAddress(),
+                "-tls", "--cafile", ordererTlsEnv.getTlsRootCert().getCanonicalPath(),
+                "--channelID", channelName,
+                "--name", chaincodeProperties.getName(),
+                "--version", chaincodeProperties.getVersion(),
+                "--sequence", chaincodeProperties.getSequence().toString()
+        );
+        // Arrays.asList方法生成的列表不支持add或remove
+        commandList = new ArrayList<>(commandList);
         for (TlsEnv otherPeerTlsEnv : endorserPeerTlsEnvs) {
+            commandList.add("--peerAddresses");
             commandList.add(otherPeerTlsEnv.getAddress());
-            commandList.add(otherPeerTlsEnv.getTlsRootCert().getAbsolutePath());
+            commandList.add("--tlsRootCertFiles");
+            commandList.add(otherPeerTlsEnv.getTlsRootCert().getCanonicalPath());
         }
         String[] commands = new String[commandList.size()];
         commandList.toArray(commands);
 
         List<ApprovedChaincode> oldApprovedChaincodes = queryCommittedChaincodes(channelName, committerPeerCoreEnv);
-        String str = CommandUtils.exec(commands);
+        String str = CommandUtils.exec(envs, commands);
         List<ApprovedChaincode> newApprovedChaincodes = queryCommittedChaincodes(channelName, committerPeerCoreEnv);
         if (oldApprovedChaincodes.equals(newApprovedChaincodes)) {
             throw new ChaincodeException("提交失败：" + str);
