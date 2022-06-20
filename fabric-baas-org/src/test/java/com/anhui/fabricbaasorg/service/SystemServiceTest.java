@@ -1,7 +1,7 @@
 package com.anhui.fabricbaasorg.service;
 
 import com.anhui.fabricbaascommon.entity.CaEntity;
-import com.anhui.fabricbaascommon.service.CaContainerService;
+import com.anhui.fabricbaascommon.service.CaServerService;
 import com.anhui.fabricbaascommon.util.MyFileUtils;
 import com.anhui.fabricbaasorg.entity.RemoteUserEntity;
 import org.junit.jupiter.api.Assertions;
@@ -20,7 +20,7 @@ class SystemServiceTest {
     @Autowired
     private SystemService systemService;
     @Autowired
-    private CaContainerService caContainerService;
+    private CaServerService caServerService;
 
     @Test
     public void test() throws Exception {
@@ -45,7 +45,7 @@ class SystemServiceTest {
             Assertions.assertTrue(systemService.isAvailable());
 
         } catch (Exception e) {
-            caContainerService.cleanCaContainer();
+            caServerService.cleanCaServer();
             throw e;
         }
     }

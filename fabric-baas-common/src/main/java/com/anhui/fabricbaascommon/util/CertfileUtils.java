@@ -53,12 +53,12 @@ public class CertfileUtils {
         // 将文件写入临时目录并解压
         log.info("正在将证书文件写入：" + certfileZip.getAbsoluteFile());
         FileUtils.writeByteArrayToFile(certfileZip, zip.getBytes());
-        log.info("正在将证书文件解压到：" + tempDir.getAbsoluteFile());
-        ZipUtils.unzip(certfileZip, tempDir);
-        log.info("正在检查证书文件：" + tempDir.getAbsoluteFile());
 
         // 检查清除写入的文件
         try {
+            log.info("正在将证书文件解压到：" + tempDir.getAbsoluteFile());
+            ZipUtils.unzip(certfileZip, tempDir);
+            log.info("正在检查证书文件：" + tempDir.getAbsoluteFile());
             CertfileUtils.assertCertfile(tempDir);
         } finally {
             FileUtils.deleteQuietly(certfileZip);

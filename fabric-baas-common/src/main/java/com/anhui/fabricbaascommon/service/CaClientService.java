@@ -25,8 +25,8 @@ import java.util.Optional;
 @Service
 @Slf4j
 public class CaClientService {
-    private final static File FABRIC_CA_ROOT_CERTFILE_DIR = new File(MyFileUtils.getWorkingDir() + "/fabric/root");
-    private final static File FABRIC_CA_SERVER_CERT = new File(MyFileUtils.getWorkingDir() + "/docker/fabric-ca/tls-cert.pem");
+    private final static File FABRIC_CA_ROOT_CERTFILE_DIR = new File(MyFileUtils.getWorkingDir() + "/fabric/certfile/root");
+    private final static File FABRIC_CA_SERVER_CERT = new File(MyFileUtils.getWorkingDir() + "/fabric/caserver/tls-cert.pem");
 
     @Autowired
     private CertfileRepo certfileRepo;

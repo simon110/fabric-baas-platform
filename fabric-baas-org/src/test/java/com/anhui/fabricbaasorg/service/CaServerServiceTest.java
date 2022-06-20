@@ -4,7 +4,7 @@ import com.anhui.fabricbaascommon.bean.CsrConfig;
 import com.anhui.fabricbaascommon.configuration.FabricConfiguration;
 import com.anhui.fabricbaascommon.entity.CaEntity;
 import com.anhui.fabricbaascommon.fabric.CaUtils;
-import com.anhui.fabricbaascommon.service.CaContainerService;
+import com.anhui.fabricbaascommon.service.CaServerService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
@@ -14,15 +14,15 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
-class CaContainerServiceTest {
+class CaServerServiceTest {
     @Autowired
-    private CaContainerService caContainerService;
+    private CaServerService caServerService;
     @Autowired
     private FabricConfiguration fabricConfiguration;
 
     @Test
     void test() throws Exception {
-        Assertions.assertFalse(caContainerService.checkCaContainer());
+        Assertions.assertFalse(caServerService.checkCaServer());
 
         CaEntity ca = new CaEntity();
         ca.setOrganizationName("AnhuiTech");
@@ -33,11 +33,11 @@ class CaContainerServiceTest {
 
         CsrConfig csr = CaUtils.buildCsrConfig(ca);
         try {
-            caContainerService.startCaContainer(csr, fabricConfiguration.getRootCaUsername(), fabricConfiguration.getRootCaPassword());
-            Assertions.assertTrue(caContainerService.checkCaContainer());
+            caServerService.initCaServer(csr);
+            Assertions.assertTrue(caServerService.checkCaServer());
         } finally {
-            caContainerService.cleanCaContainer();
-            Assertions.assertFalse(caContainerService.checkCaContainer());
+            caServerService.cleanCaServer();
+            Assertions.assertFalse(caServerService.checkCaServer());
         }
     }
 }

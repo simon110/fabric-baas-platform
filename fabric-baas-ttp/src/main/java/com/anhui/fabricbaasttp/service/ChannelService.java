@@ -384,7 +384,7 @@ public class ChannelService {
         File ordererCertfileDir = CertfileUtils.getCertfileDir(peerId, CertfileType.PEER);
         CertfileUtils.assertCertfile(ordererCertfileDir);
         File ordererTlsCert = CertfileUtils.getTlsCaCert(ordererCertfileDir);
-        return MyResourceUtils.release(ordererTlsCert, "crt");
+        return MyResourceUtils.saveToDownloadDir(ordererTlsCert, "crt");
     }
 
     public List<Peer> queryPeers(String channelName) throws Exception {

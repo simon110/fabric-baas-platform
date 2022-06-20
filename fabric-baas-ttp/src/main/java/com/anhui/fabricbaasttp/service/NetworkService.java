@@ -184,7 +184,7 @@ public class NetworkService {
         File ordererCertfileDir = CertfileUtils.getCertfileDir(ordererId, CertfileType.ORDERER);
         CertfileUtils.assertCertfile(ordererCertfileDir);
         File ordererTlsCert = CertfileUtils.getTlsCaCert(ordererCertfileDir);
-        return MyResourceUtils.release(ordererTlsCert, "crt");
+        return MyResourceUtils.saveToDownloadDir(ordererTlsCert, "crt");
     }
 
     public String queryOrdererCert(String currentOrganizationName, String networkName, Node orderer) throws Exception {
@@ -204,7 +204,7 @@ public class NetworkService {
         File ordererCertfileDir = CertfileUtils.getCertfileDir(ordererId, CertfileType.ORDERER);
         File ordererCertfileZip = MyFileUtils.createTempFile("zip");
         CertfileUtils.packageCertfile(ordererCertfileZip, ordererCertfileDir);
-        return MyResourceUtils.release(ordererCertfileZip, "zip");
+        return MyResourceUtils.saveToDownloadDir(ordererCertfileZip, "zip");
     }
 
     @Transactional
@@ -279,7 +279,7 @@ public class NetworkService {
         networkRepo.save(network);
         log.info("更新网络的信息：" + network);
 
-        return MyResourceUtils.release(ordererCertfileZip, "zip");
+        return MyResourceUtils.saveToDownloadDir(ordererCertfileZip, "zip");
     }
 
     @Transactional
@@ -400,7 +400,7 @@ public class NetworkService {
         participationRepo.save(participation);
 
         // 返回创世区块下载路径
-        return MyResourceUtils.release(sysChannelGenesis, "block");
+        return MyResourceUtils.saveToDownloadDir(sysChannelGenesis, "block");
     }
 
     public Page<NetworkEntity> queryNetworks(String networkNameKeyword, String organizationNameKeyword, int page, int pageSize) {
@@ -536,7 +536,7 @@ public class NetworkService {
 
         File block = MyFileUtils.createTempFile("block");
         ChannelUtils.fetchGenesisBlock(ordererCoreEnv, fabricConfig.getSystemChannelName(), block);
-        return MyResourceUtils.release(block, "block");
+        return MyResourceUtils.saveToDownloadDir(block, "block");
     }
 
     public List<String> queryOrganizations(String networkName) throws NetworkException {

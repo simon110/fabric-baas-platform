@@ -12,7 +12,7 @@ import com.anhui.fabricbaascommon.fabric.CaUtils;
 import com.anhui.fabricbaascommon.repository.CaRepo;
 import com.anhui.fabricbaascommon.repository.UserRepo;
 import com.anhui.fabricbaascommon.service.CaClientService;
-import com.anhui.fabricbaascommon.service.CaContainerService;
+import com.anhui.fabricbaascommon.service.CaServerService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,11 +28,9 @@ public class SystemService {
     @Autowired
     private AdminConfiguration adminConfiguration;
     @Autowired
-    private FabricConfiguration fabricConfiguration;
-    @Autowired
     private UserRepo userRepo;
     @Autowired
-    private CaContainerService caContainerService;
+    private CaServerService caServerService;
     @Autowired
     private CaClientService caClientService;
     @Autowired
@@ -61,10 +59,7 @@ public class SystemService {
     @Transactional
     public void init(CaEntity ttp, String newAdminPassword) throws Exception {
         if (isAvailable()) {
-            throw new DuplicatedOperationException("系统中已存在TTP信息，请勿重复初始化系统");
-        }
-        if (caContainerService.checkCaContainer()) {
-            throw new DuplicatedOperationException("CA服务已进入运行状态，系统状态异常");
+            throw new DuplicatedOperationException("CA服务已存在，请勿重复初始化系统");
         }
 
         CsrConfig csrConfig = CaUtils.buildCsrConfig(ttp);
@@ -72,7 +67,7 @@ public class SystemService {
         log.info("生成CA服务信息：" + csrConfig);
 
         // 启动CA容器并尝试初始化管理员证书
-        caContainerService.startCaContainer(csrConfig, fabricConfiguration.getRootCaUsername(), fabricConfiguration.getRootCaPassword());
+        caServerService.initCaServer(csrConfig);
         caClientService.initRootCertfile(csrConfig);
         caRepo.save(ttp);
 

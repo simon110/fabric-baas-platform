@@ -11,7 +11,7 @@ import com.anhui.fabricbaascommon.fabric.CaUtils;
 import com.anhui.fabricbaascommon.repository.CaRepo;
 import com.anhui.fabricbaascommon.repository.UserRepo;
 import com.anhui.fabricbaascommon.service.CaClientService;
-import com.anhui.fabricbaascommon.service.CaContainerService;
+import com.anhui.fabricbaascommon.service.CaServerService;
 import com.anhui.fabricbaascommon.util.MyFileUtils;
 import com.anhui.fabricbaasorg.entity.RemoteUserEntity;
 import com.anhui.fabricbaasorg.remote.RemoteHttpClient;
@@ -41,13 +41,11 @@ public class SystemService {
     @Autowired
     private AdminConfiguration adminConfiguration;
     @Autowired
-    private FabricConfiguration fabricConfiguration;
-    @Autowired
     private PasswordEncoder passwordEncoder;
     @Autowired
     private CaClientService caClientService;
     @Autowired
-    private CaContainerService caContainerService;
+    private CaServerService caServerService;
     @Autowired
     private CaRepo caRepo;
     @Autowired
@@ -67,18 +65,15 @@ public class SystemService {
     }
 
     public void initCaService(CaEntity ca) throws DuplicatedOperationException, DockerException, InterruptedException, IOException, CaException {
-        if (caRepo.count() != 0 || caContainerService.checkCaContainer()) {
-            throw new DuplicatedOperationException("CA服务已进入运行状态，请勿重复初始化系统");
+        if (caRepo.count() != 0) {
+            throw new DuplicatedOperationException("CA服务存在，请勿重复初始化系统");
         }
         log.info("可信第三方信息：" + ca);
         CsrConfig csrConfig = CaUtils.buildCsrConfig(ca);
         log.info("生成CA服务信息：" + csrConfig);
         // 启动CA容器并尝试初始化管理员证书
         log.info("正在启动CA服务容器...");
-        caContainerService.startCaContainer(csrConfig,
-                fabricConfiguration.getRootCaUsername(),
-                fabricConfiguration.getRootCaPassword()
-        );
+        caServerService.initCaServer(csrConfig);
         log.info("正在初始化CA服务管理员证书...");
         caClientService.initRootCertfile(csrConfig);
         caRepo.save(ca);
@@ -125,7 +120,7 @@ public class SystemService {
                 setAdminPassword(adminPassword);
             }
         } catch (Exception e) {
-            caContainerService.cleanCaContainer();
+            caServerService.cleanCaServer();
             throw e;
         }
     }
