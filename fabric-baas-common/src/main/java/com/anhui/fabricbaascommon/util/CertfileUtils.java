@@ -43,6 +43,43 @@ public class CertfileUtils {
         }
     }
 
+    public static void arrangeRawCertfile(File dir) throws IOException {
+        FileUtils.copyDirectoryToDirectory(new File(dir + "/tls/tlscacerts"), new File(dir + "/msp"));
+
+        // 重命名MSP秘钥和证书文件
+        File[] caCerts = new File(dir + "/msp/cacerts").listFiles();
+        assert caCerts != null && caCerts.length == 1;
+        FileUtils.moveFile(caCerts[0], new File(dir + "/msp/cacerts/ca.pem"));
+
+        File[] keystore = new File(dir + "/msp/keystore").listFiles();
+        assert keystore != null && keystore.length == 1;
+        FileUtils.moveFile(keystore[0], new File(dir + "/msp/keystore/key.pem"));
+
+        File[] signCerts = new File(dir + "/msp/signcerts").listFiles();
+        assert signCerts != null && signCerts.length == 1;
+        FileUtils.moveFile(signCerts[0], new File(dir + "/msp/signcerts/cert.pem"));
+
+        // 复制TLS秘钥和证书文件
+        File[] tlsCaCerts = new File(dir + "/tls/tlscacerts").listFiles();
+        assert tlsCaCerts != null && tlsCaCerts.length == 1;
+        FileUtils.copyFile(tlsCaCerts[0], new File(dir + "/tls/ca.crt"));
+
+        File[] tlsKeystore = new File(dir + "/tls/keystore").listFiles();
+        assert tlsKeystore != null && tlsKeystore.length == 1;
+        FileUtils.copyFile(tlsKeystore[0], new File(dir + "/tls/server.key"));
+
+        File[] tlsSignCerts = new File(dir + "/tls/signcerts").listFiles();
+        assert tlsSignCerts != null && tlsSignCerts.length == 1;
+        FileUtils.copyFile(tlsSignCerts[0], new File(dir + "/tls/server.crt"));
+
+        // 生成MSP配置文件
+        File mspConfigTemplate = new File(MyFileUtils.getWorkingDir() + "/fabric/template/fabric-ca-msp-config.yaml");
+        File mspConfig = new File(dir + "/msp/config.yaml");
+        Assert.isTrue(mspConfigTemplate.exists());
+        Assert.isFalse(mspConfig.exists());
+        FileUtils.copyFile(mspConfigTemplate, mspConfig);
+    }
+
     /**
      * 检查完成后返回压缩包的随机路径，如果检查不通过则抛出异常。
      */

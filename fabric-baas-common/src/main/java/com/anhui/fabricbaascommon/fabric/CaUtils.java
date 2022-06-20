@@ -62,16 +62,38 @@ public class CaUtils {
         Assert.notBlank(certfile.getCaPassword());
         Assert.isTrue(csrHosts.size() >= 2);
 
+        // 如果目录已存在则删除并重新创建
+        if (certfileDir.exists()) {
+            Assert.isTrue(certfileDir.isDirectory());
+            FileUtils.deleteDirectory(certfileDir);
+        }
+        boolean mkdirs = certfileDir.mkdirs();
+        Assert.isTrue(mkdirs);
+
+        // 分别注册MSP和TLS证书
         MyFileUtils.assertFileExists(caTlsCert);
-        CommandUtils.exec(
-                MyFileUtils.getWorkingDir() + "/shell/fabric-ca-enroll.sh",
-                certfileDir.getCanonicalPath(),
-                caName, caAddr,
-                caTlsCert.getCanonicalPath(),
-                certfile.getCaUsername(),
-                certfile.getCaPassword(),
-                String.join(",", csrHosts)
+        String caServerUrl = String.format("https://%s:%s@%s", certfile.getCaUsername(), certfile.getCaPassword(), caAddr);
+        String csrHostStr = String.join(",", csrHosts);
+        HashMap<String, String> envs = new HashMap<>();
+        envs.put("FABRIC_CA_CLIENT_HOME", certfileDir.getCanonicalPath());
+        CommandUtils.exec(envs, "fabric-ca-client", "enroll",
+                "-u", caServerUrl,
+                "--caname", caName,
+                "--mspdir", CertfileUtils.getMspDir(certfileDir).getCanonicalPath(),
+                "--csr.hosts", csrHostStr,
+                "--tls.certfiles", caTlsCert.getCanonicalPath()
         );
+        CommandUtils.exec(envs, "fabric-ca-client", "enroll",
+                "-u", caServerUrl,
+                "--caname", caName,
+                "--mspdir", CertfileUtils.getTlsDir(certfileDir).getCanonicalPath(),
+                "--csr.hosts", csrHostStr,
+                "--tls.certfiles", caTlsCert.getCanonicalPath(),
+                "--enrollment.profile", "tls"
+        );
+
+        // 对下载到本地的证书文件进行整理
+        CertfileUtils.arrangeRawCertfile(certfileDir);
         if (!CertfileUtils.checkCertfile(certfileDir)) {
             FileUtils.deleteDirectory(certfileDir);
             throw new CaException("登记证书失败");

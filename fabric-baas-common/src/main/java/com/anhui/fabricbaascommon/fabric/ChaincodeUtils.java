@@ -42,9 +42,9 @@ public class ChaincodeUtils {
             throw new ChaincodeException("读取已提交的代码失败：" + str);
         }
 
-        //将shell的返回值str处理为CommittedChaincode
-        //Committed chaincode definitions on channel 'mychannel':
-        //Name: basic, Version: 1.0, Sequence: 1, Endorsement Plugin: escc, Validation Plugin: vscc
+        // 将shell的返回值str处理为CommittedChaincode
+        // Committed chaincode definitions on channel 'mychannel':
+        // Name: basic, Version: 1.0, Sequence: 1, Endorsement Plugin: escc, Validation Plugin: vscc
         String[] outputLines = str.split("\n");
         Assert.isTrue(outputLines.length > 0);
 
