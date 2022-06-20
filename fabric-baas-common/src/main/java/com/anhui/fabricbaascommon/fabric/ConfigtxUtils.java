@@ -96,12 +96,15 @@ public class ConfigtxUtils {
             File configtxDir)
             throws IOException, ConfigtxException, InterruptedException {
         Assert.isTrue(configtxDir.isDirectory());
-        String str = CommandUtils.exec(
-                MyFileUtils.getWorkingDir() + "/shell/fabric-generate-genesis.sh",
-                ordererGenesisName,
-                systemChannelName,
-                genesisBlock.getCanonicalPath(),
-                configtxDir.getCanonicalPath());
+
+        HashMap<String, String> envs = new HashMap<>();
+        envs.put("FABRIC_CFG_PATH", MyFileUtils.getWorkingDir());
+
+        String str = CommandUtils.exec(envs, "configtxgen",
+                "-profile", ordererGenesisName,
+                "-channelID", systemChannelName,
+                "-outputBlock", genesisBlock.getCanonicalPath(),
+                "-configPath", configtxDir.getCanonicalPath());
         if (!genesisBlock.exists()) {
             throw new ConfigtxException("生成创世区块失败：" + str);
         }
