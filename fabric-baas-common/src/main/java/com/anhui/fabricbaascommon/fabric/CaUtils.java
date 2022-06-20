@@ -15,10 +15,7 @@ import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 @Slf4j
 public class CaUtils {
@@ -35,8 +32,7 @@ public class CaUtils {
         MyFileUtils.assertFileExists(caTlsCert);
         CertfileUtils.assertCertfile(adminCertfileDir);
 
-        HashMap<String, String> envs = new HashMap<>();
-        envs.put("FABRIC_CA_CLIENT_HOME", adminCertfileDir.getCanonicalPath());
+        Map<String, String> envs = CommandUtils.buildEnvs("FABRIC_CA_CLIENT_HOME", adminCertfileDir.getCanonicalPath());
         String str = CommandUtils.exec(envs, "fabric-ca-client", "register",
                 "--caname", caName,
                 "--id.name", certfile.getCaUsername(),
@@ -73,8 +69,7 @@ public class CaUtils {
         MyFileUtils.assertFileExists(caTlsCert);
         String caServerUrl = String.format("https://%s:%s@%s", certfile.getCaUsername(), certfile.getCaPassword(), caAddr);
         String csrHostStr = String.join(",", csrHosts);
-        HashMap<String, String> envs = new HashMap<>();
-        envs.put("FABRIC_CA_CLIENT_HOME", certfileDir.getCanonicalPath());
+        Map<String, String> envs = CommandUtils.buildEnvs("FABRIC_CA_CLIENT_HOME", certfileDir.getCanonicalPath());
         CommandUtils.exec(envs, "fabric-ca-client", "enroll",
                 "-u", caServerUrl,
                 "--caname", caName,

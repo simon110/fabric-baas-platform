@@ -65,11 +65,12 @@ public class ChannelUtils {
             String channelName,
             File jsonConfig)
             throws ChannelException, IOException, InterruptedException {
-        HashMap<String, String> envs = new HashMap<>();
-        envs.put("FABRIC_CFG_PATH", MyFileUtils.getWorkingDir());
-        envs.put("CORE_PEER_TLS_ENABLED", "true");
-        envs.put("CORE_PEER_LOCALMSPID", coreEnv.getMspId());
-        envs.put("CORE_PEER_MSPCONFIGPATH", coreEnv.getMspConfig().getCanonicalPath());
+        Map<String, String> envs = CommandUtils.buildEnvs(
+                "FABRIC_CFG_PATH", MyFileUtils.getWorkingDir(),
+                "CORE_PEER_TLS_ENABLED", "true",
+                "CORE_PEER_LOCALMSPID", coreEnv.getMspId(),
+                "CORE_PEER_MSPCONFIGPATH", coreEnv.getMspConfig().getCanonicalPath()
+        );
 
         File configBlock = MyFileUtils.createTempFile("pb");
         String str = CommandUtils.exec(envs, "peer", "channel", "fetch", "config",
@@ -307,11 +308,12 @@ public class ChannelUtils {
             String channelName,
             File channelGenesis)
             throws ChannelException, IOException, InterruptedException {
-        HashMap<String, String> envs = new HashMap<>();
-        envs.put("FABRIC_CFG_PATH", MyFileUtils.getWorkingDir());
-        envs.put("CORE_PEER_TLS_ENABLED", "true");
-        envs.put("CORE_PEER_LOCALMSPID", organizationMspEnv.getMspId());
-        envs.put("CORE_PEER_MSPCONFIGPATH", organizationMspEnv.getMspConfig().getCanonicalPath());
+        Map<String, String> envs = CommandUtils.buildEnvs(
+                "FABRIC_CFG_PATH", MyFileUtils.getWorkingDir(),
+                "CORE_PEER_TLS_ENABLED", "true",
+                "CORE_PEER_LOCALMSPID", organizationMspEnv.getMspId(),
+                "CORE_PEER_MSPCONFIGPATH", organizationMspEnv.getMspConfig().getCanonicalPath()
+        );
 
         File channelCreateTx = MyFileUtils.createTempFile("tx");
         String str = CommandUtils.exec(envs, "configtxgen",

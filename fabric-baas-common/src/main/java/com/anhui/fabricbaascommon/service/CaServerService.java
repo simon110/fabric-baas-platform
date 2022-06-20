@@ -19,7 +19,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -97,11 +96,12 @@ public class CaServerService {
 
     public void startCaServer(CsrConfig csrConfig) throws IOException {
         // 运行Fabric CA Server容器（如果已经启动则更新）
-        Map<String, String> envs = new HashMap<>();
-        envs.put("FABRIC_CA_HOME", MyFileUtils.getWorkingDir() + "/fabric/caserver");
-        envs.put("FABRIC_CA_SERVER_CA_NAME", csrConfig.getCaName());
-        envs.put("FABRIC_CA_SERVER_TLS_ENABLED", "true");
-        envs.put("FABRIC_CA_SERVER_PORT", "7054");
+        Map<String, String> envs = CommandUtils.buildEnvs(
+                "FABRIC_CA_HOME", MyFileUtils.getWorkingDir() + "/fabric/caserver",
+                "FABRIC_CA_SERVER_CA_NAME", csrConfig.getCaName(),
+                "FABRIC_CA_SERVER_TLS_ENABLED", "true",
+                "FABRIC_CA_SERVER_PORT", "7054"
+        );
         log.info("生成用户环境变量：" + envs);
         String bootOption = fabricConfig.getRootCaUsername() + ':' + fabricConfig.getRootCaPassword();
         caServerProcess = CommandUtils.asyncExec(envs, "fabric-ca-server", "start", "-b", bootOption, "-d");

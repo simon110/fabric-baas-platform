@@ -97,9 +97,7 @@ public class ConfigtxUtils {
             throws IOException, ConfigtxException, InterruptedException {
         Assert.isTrue(configtxDir.isDirectory());
 
-        HashMap<String, String> envs = new HashMap<>();
-        envs.put("FABRIC_CFG_PATH", MyFileUtils.getWorkingDir());
-
+        Map<String, String> envs = CommandUtils.buildEnvs("FABRIC_CFG_PATH", MyFileUtils.getWorkingDir());
         String str = CommandUtils.exec(envs, "configtxgen",
                 "-profile", ordererGenesisName,
                 "-channelID", systemChannelName,
@@ -235,8 +233,7 @@ public class ConfigtxUtils {
             File configtxDir,
             String organizationName)
             throws ConfigtxException, IOException, InterruptedException {
-        HashMap<String, String> envs = new HashMap<>();
-        envs.put("FABRIC_CFG_PATH", MyFileUtils.getWorkingDir());
+        Map<String, String> envs = CommandUtils.buildEnvs("FABRIC_CFG_PATH", MyFileUtils.getWorkingDir());
         String json = CommandUtils.exec(envs, "configtxgen",
                 "-printOrg", organizationName,
                 "-configPath", configtxDir.getCanonicalPath()

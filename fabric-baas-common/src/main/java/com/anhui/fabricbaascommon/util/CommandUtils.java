@@ -1,16 +1,27 @@
 package com.anhui.fabricbaascommon.util;
 
 
+import cn.hutool.core.lang.Assert;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
 public class CommandUtils {
+    public static Map<String, String> buildEnvs(String... params) {
+        Assert.isTrue(params.length % 2 == 0);
+        Map<String, String> result = new HashMap<>();
+        for (int i = 0; i < params.length; i += 2) {
+            result.put(params[i], params[i + 1]);
+        }
+        return result;
+    }
+
     public static String exec(String... cmd) throws IOException, InterruptedException {
         return exec(Collections.emptyMap(), cmd);
     }
