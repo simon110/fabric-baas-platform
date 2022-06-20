@@ -116,19 +116,25 @@ public class ChaincodeUtils {
             File srcCodeDir,
             String chaincodeLabel,
             File outputPackage) throws ChaincodeException, IOException, InterruptedException {
-        if (!srcCodeDir.exists() && MyFileUtils.exists(srcCodeDir.getAbsolutePath() + "/go.mod")) {
+        if (!srcCodeDir.exists() || !MyFileUtils.exists(srcCodeDir + "/go.mod")) {
             throw new ChaincodeException("未找到Chaincode源代码");
         }
         if (outputPackage.exists()) {
             throw new ChaincodeException("目标路径已存在文件");
         }
-        CommandUtils.exec(
-                MyFileUtils.getWorkingDir() + "/shell/fabric-chaincode-package.sh",
-                srcCodeDir.getCanonicalPath(),
-                chaincodeLabel,
-                outputPackage.getCanonicalPath());
-        if (!MyFileUtils.exists(outputPackage.getAbsolutePath())) {
-            throw new ChaincodeException("链码打包失败：" + outputPackage.getAbsolutePath());
+        Map<String, String> envs = CommandUtils.buildEnvs(
+                "GO111MODULE", "on",
+                "FABRIC_CFG_PATH", MyFileUtils.getWorkingDir()
+        );
+        CommandUtils.exec(envs, "sh", "-c", String.format("'cd %s; go mod vendor;'", srcCodeDir.getCanonicalPath()));
+        CommandUtils.exec(envs, "peer", "lifecycle", "chaincode", "package",
+                outputPackage.getCanonicalPath(),
+                "--path", srcCodeDir.getCanonicalPath(),
+                "--lang", "golang",
+                "--label", chaincodeLabel
+        );
+        if (!outputPackage.exists()) {
+            throw new ChaincodeException("链码打包失败：" + outputPackage);
         }
     }
 
