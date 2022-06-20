@@ -27,14 +27,16 @@ public class ChaincodeUtils {
             CoreEnv peerCoreEnv)
             throws IOException, InterruptedException, CertfileException, ChaincodeException {
         peerCoreEnv.selfAssert();
+        Map<String, String> envs = CommandUtils.buildEnvs(
+                "CORE_PEER_TLS_ENABLED", "true",
+                "CORE_PEER_LOCALMSPID", peerCoreEnv.getMspId(),
+                "CORE_PEER_MSPCONFIGPATH", peerCoreEnv.getMspConfig().getCanonicalPath(),
+                "CORE_PEER_ADDRESS", peerCoreEnv.getAddress(),
+                "CORE_PEER_TLS_ROOTCERT_FILE", peerCoreEnv.getTlsRootCert().getCanonicalPath()
+        );
 
-        String str = CommandUtils.exec(
-                MyFileUtils.getWorkingDir() + "/shell/fabric-chaincode-query-committed.sh",
-                peerCoreEnv.getMspId(),
-                peerCoreEnv.getTlsRootCert().getAbsolutePath(),
-                peerCoreEnv.getMspConfig().getAbsolutePath(),
-                peerCoreEnv.getAddress(),
-                channelName);
+        String cmd = String.format("peer lifecycle chaincode querycommitted -C %s | grep 'Name:'", channelName);
+        String str = CommandUtils.exec(envs, "sh", "-c", cmd);
         List<ApprovedChaincode> approvedChaincodes = new ArrayList<>();
         if (str.isBlank()) {
             return approvedChaincodes;
@@ -76,13 +78,15 @@ public class ChaincodeUtils {
     public static List<InstalledChaincode> queryInstalledChaincodes(CoreEnv peerCoreEnv)
             throws IOException, InterruptedException, CertfileException, ChaincodeException {
         peerCoreEnv.selfAssert();
+        Map<String, String> envs = CommandUtils.buildEnvs(
+                "CORE_PEER_TLS_ENABLED", "true",
+                "CORE_PEER_LOCALMSPID", peerCoreEnv.getMspId(),
+                "CORE_PEER_MSPCONFIGPATH", peerCoreEnv.getMspConfig().getCanonicalPath(),
+                "CORE_PEER_ADDRESS", peerCoreEnv.getAddress(),
+                "CORE_PEER_TLS_ROOTCERT_FILE", peerCoreEnv.getTlsRootCert().getCanonicalPath()
+        );
 
-        String str = CommandUtils.exec(
-                MyFileUtils.getWorkingDir() + "/shell/fabric-chaincode-query-installed.sh",
-                peerCoreEnv.getMspId(),
-                peerCoreEnv.getTlsRootCert().getAbsolutePath(),
-                peerCoreEnv.getMspConfig().getAbsolutePath(),
-                peerCoreEnv.getAddress());
+        String str = CommandUtils.exec(envs, "sh", "-c", "peer lifecycle chaincode queryinstalled | grep 'Package ID:'");
         List<InstalledChaincode> installedChaincodes = new ArrayList<>();
         if (str.isBlank()) {
             return installedChaincodes;
@@ -126,7 +130,7 @@ public class ChaincodeUtils {
                 "GO111MODULE", "on",
                 "FABRIC_CFG_PATH", MyFileUtils.getWorkingDir()
         );
-        CommandUtils.exec(envs, "sh", "-c", String.format("'cd %s; go mod vendor;'", srcCodeDir.getCanonicalPath()));
+        CommandUtils.exec(envs, "sh", "-c", String.format("cd %s; go mod vendor;", srcCodeDir.getCanonicalPath()));
         CommandUtils.exec(envs, "peer", "lifecycle", "chaincode", "package",
                 outputPackage.getCanonicalPath(),
                 "--path", srcCodeDir.getCanonicalPath(),

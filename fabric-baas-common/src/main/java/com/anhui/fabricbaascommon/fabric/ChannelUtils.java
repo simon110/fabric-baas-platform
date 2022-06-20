@@ -93,7 +93,7 @@ public class ChannelUtils {
             throw new ChannelException("获取通道配置区块失败：" + str);
         }
 
-        String cmd = String.format("'configtxlator proto_decode --input %s --type common.Block | jq .data.data[0].payload.data.config'", configBlock.getCanonicalPath());
+        String cmd = String.format("configtxlator proto_decode --input %s --type common.Block | jq .data.data[0].payload.data.config", configBlock.getCanonicalPath());
         String json = CommandUtils.exec(envs, "sh", "-c", cmd);
         JsonUtils.loadAsMap(json);
         FileUtils.writeStringToFile(jsonConfig, json, StandardCharsets.UTF_8);
@@ -272,32 +272,32 @@ public class ChannelUtils {
             throws EnvelopeException, IOException, InterruptedException {
         File oldProtobuf = MyFileUtils.createTempFile("pb");
         Map<String, String> envs = CommandUtils.buildEnvs("FABRIC_CFG_PATH", MyFileUtils.getWorkingDir());
-        String cmd = String.format("'configtxlator proto_encode --input %s --type common.Config > %s'", oldConfig.getCanonicalPath(), oldProtobuf.getCanonicalPath());
+        String cmd = String.format("configtxlator proto_encode --input %s --type common.Config > %s", oldConfig.getCanonicalPath(), oldProtobuf.getCanonicalPath());
         CommandUtils.exec(envs, "sh", "-c", cmd);
         if (!oldProtobuf.exists()) {
             throw new EnvelopeException("将JSON配置文件转换为Protobuf失败：" + oldConfig);
         }
 
         File newProtobuf = MyFileUtils.createTempFile("pb");
-        cmd = String.format("'configtxlator proto_encode --input %s --type common.Config > %s'", newConfig.getCanonicalPath(), newProtobuf.getCanonicalPath());
+        cmd = String.format("configtxlator proto_encode --input %s --type common.Config > %s", newConfig.getCanonicalPath(), newProtobuf.getCanonicalPath());
         CommandUtils.exec(envs, "sh", "-c", cmd);
         if (!newProtobuf.exists()) {
             throw new EnvelopeException("将JSON配置文件转换为Protobuf失败：" + newConfig);
         }
 
         File updateProtobuf = MyFileUtils.createTempFile("pb");
-        cmd = String.format("'configtxlator compute_update --channel_id %s --original %s --updated %s > %s'",
+        cmd = String.format("configtxlator compute_update --channel_id %s --original %s --updated %s > %s",
                 channelName, oldProtobuf.getCanonicalPath(), newProtobuf.getCanonicalPath(), updateProtobuf.getCanonicalPath());
         CommandUtils.exec(envs, "sh", "-c", cmd);
         Assert.isTrue(updateProtobuf.exists(), "计算Protobuf差异失败");
 
-        cmd = String.format("'configtxlator proto_decode --input %s --type common.ConfigUpdate'", updateProtobuf.getCanonicalPath());
+        cmd = String.format("configtxlator proto_decode --input %s --type common.ConfigUpdate", updateProtobuf.getCanonicalPath());
         String jsonConfigUpdate = CommandUtils.exec(envs, "sh", "-c", cmd);
         File jsonEnvelope = MyFileUtils.createTempFile("json");
         generateJsonEnvelope(channelName, jsonConfigUpdate, jsonEnvelope);
         Assert.isTrue(jsonEnvelope.exists(), "将Protobuf差异转换为JSON失败");
 
-        cmd = String.format("'configtxlator proto_encode --input %s --type common.Envelope > %s'", jsonEnvelope.getCanonicalPath(), envelope.getCanonicalPath());
+        cmd = String.format("configtxlator proto_encode --input %s --type common.Envelope > %s", jsonEnvelope.getCanonicalPath(), envelope.getCanonicalPath());
         CommandUtils.exec(envs, "sh", "-c", cmd);
         if (!envelope.exists()) {
             throw new EnvelopeException("生成通道更新Envelope失败：" + envelope);
