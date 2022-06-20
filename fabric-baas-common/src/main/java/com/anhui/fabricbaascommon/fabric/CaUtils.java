@@ -18,6 +18,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 
 @Slf4j
@@ -34,13 +35,16 @@ public class CaUtils {
 
         MyFileUtils.assertFileExists(caTlsCert);
         CertfileUtils.assertCertfile(adminCertfileDir);
-        String str = CommandUtils.exec(
-                MyFileUtils.getWorkingDir() + "/shell/fabric-ca-register.sh",
-                adminCertfileDir.getCanonicalPath(),
-                caTlsCert.getCanonicalPath(), caName,
-                certfile.getCaUsername(),
-                certfile.getCaPassword(),
-                certfile.getCaUsertype());
+
+        HashMap<String, String> envs = new HashMap<>();
+        envs.put("FABRIC_CA_CLIENT_HOME", adminCertfileDir.getCanonicalPath());
+        String str = CommandUtils.exec(envs, "fabric-ca-client", "register",
+                "--caname", caName,
+                "--id.name", certfile.getCaUsername(),
+                "--id.secret", certfile.getCaPassword(),
+                "--id.type", certfile.getCaUsertype(),
+                "--tls.certfiles", caTlsCert.getCanonicalPath()
+        );
         if (!str.contains("Password: ") && !str.contains("is already registered")) {
             throw new CaException("注册证书失败");
         }
