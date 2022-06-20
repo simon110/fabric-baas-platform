@@ -293,13 +293,29 @@ public class ChannelUtils {
             String channelName,
             File channelGenesis)
             throws ChannelException, IOException, InterruptedException {
-        String str = CommandUtils.exec(MyFileUtils.getWorkingDir() + "/shell/fabric-create-channel.sh",
-                organizationMspEnv.getMspId(),
-                organizationMspEnv.getMspConfig().getAbsolutePath(),
-                ordererTlsEnv.getAddress(),
-                ordererTlsEnv.getTlsRootCert().getAbsolutePath(),
-                configtxDir.getCanonicalPath(),
-                channelName, channelGenesis.getCanonicalPath());
+        HashMap<String, String> envs = new HashMap<>();
+        envs.put("FABRIC_CFG_PATH", MyFileUtils.getWorkingDir());
+        envs.put("CORE_PEER_TLS_ENABLED", "true");
+        envs.put("CORE_PEER_LOCALMSPID", organizationMspEnv.getMspId());
+        envs.put("CORE_PEER_MSPCONFIGPATH", organizationMspEnv.getMspConfig().getCanonicalPath());
+
+        File channelCreateTx = MyFileUtils.createTempFile("tx");
+        String str = CommandUtils.exec(envs, "configtxgen",
+                "-profile", channelName,
+                "-outputCreateChannelTx", channelCreateTx.getCanonicalPath(),
+                "-channelID", channelName,
+                "-configPath", configtxDir.getCanonicalPath()
+        );
+        if (!channelCreateTx.exists()) {
+            throw new ChannelException("生成创建通道交易失败：" + str);
+        }
+        str = CommandUtils.exec(envs, "peer", "channel", "create",
+                "-o", ordererTlsEnv.getAddress(),
+                "-c", channelName,
+                "-f", channelCreateTx.getCanonicalPath(),
+                "--outputBlock", channelGenesis.getCanonicalPath(),
+                "--tls", "--cafile", ordererTlsEnv.getTlsRootCert().getCanonicalPath()
+        );
         if (!channelGenesis.exists()) {
             throw new ChannelException("创建通道失败：" + str);
         }
