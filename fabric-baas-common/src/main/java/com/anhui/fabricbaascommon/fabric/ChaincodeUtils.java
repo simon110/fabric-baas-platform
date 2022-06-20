@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 public class ChaincodeUtils {
     /**
@@ -179,22 +180,26 @@ public class ChaincodeUtils {
             BasicChaincodeProperties chaincodeProperties) throws IOException, InterruptedException, CertfileException, ChaincodeException {
         peerCoreEnv.selfAssert();
         ordererTlsEnv.assertTlsCert();
+        Map<String, String> envs = CommandUtils.buildEnvs(
+                "FABRIC_CFG_PATH", MyFileUtils.getWorkingDir(),
+                "CORE_PEER_TLS_ENABLED", "true",
+                "CORE_PEER_LOCALMSPID", peerCoreEnv.getMspId(),
+                "CORE_PEER_MSPCONFIGPATH", peerCoreEnv.getMspConfig().getCanonicalPath(),
+                "CORE_PEER_ADDRESS", peerCoreEnv.getAddress(),
+                "CORE_PEER_TLS_ROOTCERT_FILE", peerCoreEnv.getTlsRootCert().getCanonicalPath()
+        );
 
         //检查链码批准情况
         List<ChaincodeApproval> oldCheckCommitReadiness = checkCommittedReadiness(ordererTlsEnv, peerCoreEnv, channelName, chaincodeProperties);
-        String str = CommandUtils.exec(
-                MyFileUtils.getWorkingDir() + "/shell/fabric-chaincode-approve.sh",
-                peerCoreEnv.getMspId(),
-                peerCoreEnv.getTlsRootCert().getAbsolutePath(),
-                peerCoreEnv.getMspConfig().getAbsolutePath(),
-                peerCoreEnv.getAddress(),
-                packageId,
-                chaincodeProperties.getName(),
-                chaincodeProperties.getVersion(),
-                chaincodeProperties.getSequence().toString(),
-                channelName,
-                ordererTlsEnv.getAddress(),
-                ordererTlsEnv.getTlsRootCert().getAbsolutePath());
+        String str = CommandUtils.exec(envs, "peer", "lifecycle", "chaincode", "approveformyorg",
+                "-o", ordererTlsEnv.getAddress(),
+                "--tls", "--cafile", ordererTlsEnv.getTlsRootCert().getCanonicalPath(),
+                "--channelID", channelName,
+                "--name", chaincodeProperties.getName(),
+                "--version", chaincodeProperties.getVersion(),
+                "--sequence", chaincodeProperties.getSequence().toString(),
+                "--package-id", packageId
+        );
         List<ChaincodeApproval> newCheckCommitReadiness = checkCommittedReadiness(ordererTlsEnv, peerCoreEnv, channelName, chaincodeProperties);
         if (newCheckCommitReadiness.equals(oldCheckCommitReadiness)) {
             throw new ChaincodeException("投票失败：" + str);
@@ -216,19 +221,23 @@ public class ChaincodeUtils {
             throws IOException, InterruptedException, CertfileException, ChaincodeException {
         peerCoreEnv.selfAssert();
         ordererTlsEnv.assertTlsCert();
+        Map<String, String> envs = CommandUtils.buildEnvs(
+                "FABRIC_CFG_PATH", MyFileUtils.getWorkingDir(),
+                "CORE_PEER_TLS_ENABLED", "true",
+                "CORE_PEER_LOCALMSPID", peerCoreEnv.getMspId(),
+                "CORE_PEER_MSPCONFIGPATH", peerCoreEnv.getMspConfig().getCanonicalPath(),
+                "CORE_PEER_ADDRESS", peerCoreEnv.getAddress(),
+                "CORE_PEER_TLS_ROOTCERT_FILE", peerCoreEnv.getTlsRootCert().getCanonicalPath()
+        );
 
-        String str = CommandUtils.exec(
-                MyFileUtils.getWorkingDir() + "/shell/fabric-chaincode-check-readiness.sh",
-                peerCoreEnv.getMspId(),
-                peerCoreEnv.getTlsRootCert().getAbsolutePath(),
-                peerCoreEnv.getMspConfig().getAbsolutePath(),
-                peerCoreEnv.getAddress(),
-                chaincodeProperties.getName(),
-                chaincodeProperties.getVersion(),
-                chaincodeProperties.getSequence().toString(),
-                channelName,
-                ordererTlsEnv.getAddress(),
-                ordererTlsEnv.getTlsRootCert().getAbsolutePath());
+        String str = CommandUtils.exec(envs, "peer", "lifecycle", "chaincode", "checkcommitreadiness",
+                "-o", ordererTlsEnv.getAddress(),
+                "--tls", "--cafile", ordererTlsEnv.getTlsRootCert().getCanonicalPath(),
+                "--channelID", channelName,
+                "--name", chaincodeProperties.getName(),
+                "--version", chaincodeProperties.getVersion(),
+                "--sequence", chaincodeProperties.getSequence().toString()
+        );
         if (!str.toLowerCase().startsWith("chaincode definition for chaincode ")) {
             throw new ChaincodeException("检查链码失败：" + str);
         }
