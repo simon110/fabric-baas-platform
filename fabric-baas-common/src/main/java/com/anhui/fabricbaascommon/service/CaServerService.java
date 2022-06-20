@@ -10,7 +10,6 @@ import com.anhui.fabricbaascommon.util.CommandUtils;
 import com.anhui.fabricbaascommon.util.MyFileUtils;
 import com.anhui.fabricbaascommon.util.WatcherUtils;
 import com.anhui.fabricbaascommon.util.YamlUtils;
-import com.spotify.docker.client.DockerClient;
 import com.spotify.docker.client.exceptions.DockerException;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -34,8 +33,6 @@ public class CaServerService {
     private Process caServerProcess;
 
     @Autowired
-    private DockerClient dockerClient;
-    @Autowired
     private FabricConfiguration fabricConfig;
     @Autowired
     private CaRepo caRepo;
@@ -45,7 +42,7 @@ public class CaServerService {
         autoStartCaServer();
     }
 
-    public void autoStartCaServer() throws IOException {
+    private void autoStartCaServer() throws IOException {
         Optional<CaEntity> caOptional = caRepo.findFirstByOrganizationNameIsNotNull();
         if (caOptional.isPresent()) {
             CaEntity ca = caOptional.get();
@@ -61,13 +58,15 @@ public class CaServerService {
         return caServerProcess != null && caServerProcess.isAlive();
     }
 
-    public void stopCaServer() {
+    public void stopCaServer() throws InterruptedException {
         if (checkCaServer()) {
             caServerProcess.destroy();
+            // Process.destroy方法返回后进程并不一定马上结束，需要调用Process.waitFor函数进行等待
+            caServerProcess.waitFor();
         }
     }
 
-    public void cleanCaServer() throws IOException {
+    public void cleanCaServer() throws IOException, InterruptedException {
         stopCaServer();
         File caServerDir = new File(MyFileUtils.getWorkingDir() + "/fabric/caserver");
         FileUtils.deleteDirectory(caServerDir);
