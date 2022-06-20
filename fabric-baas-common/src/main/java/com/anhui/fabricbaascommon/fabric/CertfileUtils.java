@@ -1,8 +1,10 @@
-package com.anhui.fabricbaascommon.util;
+package com.anhui.fabricbaascommon.fabric;
 
 import cn.hutool.core.lang.Assert;
 import com.anhui.fabricbaascommon.constant.CertfileType;
 import com.anhui.fabricbaascommon.exception.CertfileException;
+import com.anhui.fabricbaascommon.util.MyFileUtils;
+import com.anhui.fabricbaascommon.util.ZipUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -44,37 +46,41 @@ public class CertfileUtils {
     }
 
     public static void arrangeRawCertfile(File dir) throws IOException {
-        FileUtils.copyDirectoryToDirectory(new File(dir + "/tls/tlscacerts"), new File(dir + "/msp"));
+        File mspDir = getMspDir(dir);
+        File tlsDir = getTlsDir(dir);
+        Assert.isTrue(mspDir.isDirectory());
+        Assert.isTrue(tlsDir.isDirectory());
+        FileUtils.copyDirectoryToDirectory(new File(dir + "/tls/tlscacerts"), mspDir);
 
         // 重命名MSP秘钥和证书文件
-        File[] caCerts = new File(dir + "/msp/cacerts").listFiles();
+        File[] caCerts = new File(mspDir + "/cacerts").listFiles();
         assert caCerts != null && caCerts.length == 1;
-        FileUtils.moveFile(caCerts[0], new File(dir + "/msp/cacerts/ca.pem"));
+        FileUtils.moveFile(caCerts[0], new File(mspDir + "/cacerts/ca.pem"));
 
-        File[] keystore = new File(dir + "/msp/keystore").listFiles();
+        File[] keystore = new File(mspDir + "/keystore").listFiles();
         assert keystore != null && keystore.length == 1;
-        FileUtils.moveFile(keystore[0], new File(dir + "/msp/keystore/key.pem"));
+        FileUtils.moveFile(keystore[0], new File(mspDir + "/keystore/key.pem"));
 
-        File[] signCerts = new File(dir + "/msp/signcerts").listFiles();
+        File[] signCerts = new File(mspDir + "/signcerts").listFiles();
         assert signCerts != null && signCerts.length == 1;
-        FileUtils.moveFile(signCerts[0], new File(dir + "/msp/signcerts/cert.pem"));
+        FileUtils.moveFile(signCerts[0], new File(mspDir + "/signcerts/cert.pem"));
 
         // 复制TLS秘钥和证书文件
-        File[] tlsCaCerts = new File(dir + "/tls/tlscacerts").listFiles();
+        File[] tlsCaCerts = new File(tlsDir + "/tlscacerts").listFiles();
         assert tlsCaCerts != null && tlsCaCerts.length == 1;
-        FileUtils.copyFile(tlsCaCerts[0], new File(dir + "/tls/ca.crt"));
+        FileUtils.copyFile(tlsCaCerts[0], new File(tlsDir + "/ca.crt"));
 
-        File[] tlsKeystore = new File(dir + "/tls/keystore").listFiles();
+        File[] tlsKeystore = new File(tlsDir + "/keystore").listFiles();
         assert tlsKeystore != null && tlsKeystore.length == 1;
-        FileUtils.copyFile(tlsKeystore[0], new File(dir + "/tls/server.key"));
+        FileUtils.copyFile(tlsKeystore[0], new File(tlsDir + "/server.key"));
 
-        File[] tlsSignCerts = new File(dir + "/tls/signcerts").listFiles();
+        File[] tlsSignCerts = new File(tlsDir + "/signcerts").listFiles();
         assert tlsSignCerts != null && tlsSignCerts.length == 1;
-        FileUtils.copyFile(tlsSignCerts[0], new File(dir + "/tls/server.crt"));
+        FileUtils.copyFile(tlsSignCerts[0], new File(tlsDir + "/server.crt"));
 
         // 生成MSP配置文件
         File mspConfigTemplate = new File(MyFileUtils.getWorkingDir() + "/fabric/template/fabric-ca-msp-config.yaml");
-        File mspConfig = new File(dir + "/msp/config.yaml");
+        File mspConfig = new File(mspDir + "/config.yaml");
         Assert.isTrue(mspConfigTemplate.exists());
         Assert.isFalse(mspConfig.exists());
         FileUtils.copyFile(mspConfigTemplate, mspConfig);

@@ -4,6 +4,7 @@ import cn.hutool.core.lang.Assert;
 import com.anhui.fabricbaascommon.bean.*;
 import com.anhui.fabricbaascommon.constant.CertfileType;
 import com.anhui.fabricbaascommon.exception.*;
+import com.anhui.fabricbaascommon.fabric.CertfileUtils;
 import com.anhui.fabricbaascommon.fabric.ChannelUtils;
 import com.anhui.fabricbaascommon.fabric.ConfigtxUtils;
 import com.anhui.fabricbaascommon.service.CaClientService;

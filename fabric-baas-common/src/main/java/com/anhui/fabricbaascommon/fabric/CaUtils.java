@@ -8,7 +8,6 @@ import com.anhui.fabricbaascommon.entity.CaEntity;
 import com.anhui.fabricbaascommon.entity.CertfileEntity;
 import com.anhui.fabricbaascommon.exception.CaException;
 import com.anhui.fabricbaascommon.exception.CertfileException;
-import com.anhui.fabricbaascommon.util.CertfileUtils;
 import com.anhui.fabricbaascommon.util.CommandUtils;
 import com.anhui.fabricbaascommon.util.MyFileUtils;
 import lombok.extern.slf4j.Slf4j;

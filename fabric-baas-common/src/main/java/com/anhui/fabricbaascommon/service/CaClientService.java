@@ -10,7 +10,7 @@ import com.anhui.fabricbaascommon.exception.CertfileException;
 import com.anhui.fabricbaascommon.fabric.CaUtils;
 import com.anhui.fabricbaascommon.repository.CaRepo;
 import com.anhui.fabricbaascommon.repository.CertfileRepo;
-import com.anhui.fabricbaascommon.util.CertfileUtils;
+import com.anhui.fabricbaascommon.fabric.CertfileUtils;
 import com.anhui.fabricbaascommon.util.MyFileUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

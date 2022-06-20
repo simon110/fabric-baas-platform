@@ -2,7 +2,7 @@ package com.anhui.fabricbaascommon.bean;
 
 import cn.hutool.core.lang.Assert;
 import com.anhui.fabricbaascommon.exception.CertfileException;
-import com.anhui.fabricbaascommon.util.CertfileUtils;
+import com.anhui.fabricbaascommon.fabric.CertfileUtils;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 

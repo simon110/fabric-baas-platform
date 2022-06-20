@@ -6,7 +6,7 @@ import com.anhui.fabricbaascommon.entity.CertfileEntity;
 import com.anhui.fabricbaascommon.exception.CertfileException;
 import com.anhui.fabricbaascommon.fabric.CaUtils;
 import com.anhui.fabricbaascommon.service.CaClientService;
-import com.anhui.fabricbaascommon.util.CertfileUtils;
+import com.anhui.fabricbaascommon.fabric.CertfileUtils;
 import com.anhui.fabricbaasorg.entity.PeerEntity;
 import com.anhui.fabricbaasorg.exception.KubernetesException;
 import com.anhui.fabricbaasorg.repository.PeerRepo;

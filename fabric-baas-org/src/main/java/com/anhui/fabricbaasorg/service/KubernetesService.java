@@ -3,7 +3,7 @@ package com.anhui.fabricbaasorg.service;
 import cn.hutool.core.lang.Assert;
 import com.anhui.fabricbaascommon.exception.NodeException;
 import com.anhui.fabricbaascommon.function.ThrowableSupplier;
-import com.anhui.fabricbaascommon.util.CertfileUtils;
+import com.anhui.fabricbaascommon.fabric.CertfileUtils;
 import com.anhui.fabricbaascommon.util.MyFileUtils;
 import com.anhui.fabricbaascommon.util.WatcherUtils;
 import com.anhui.fabricbaasorg.entity.OrdererEntity;

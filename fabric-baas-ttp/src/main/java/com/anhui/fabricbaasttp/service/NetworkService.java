@@ -10,6 +10,7 @@ import com.anhui.fabricbaascommon.constant.ApplStatus;
 import com.anhui.fabricbaascommon.constant.CertfileType;
 import com.anhui.fabricbaascommon.exception.*;
 import com.anhui.fabricbaascommon.fabric.CaUtils;
+import com.anhui.fabricbaascommon.fabric.CertfileUtils;
 import com.anhui.fabricbaascommon.fabric.ChannelUtils;
 import com.anhui.fabricbaascommon.fabric.ConfigtxUtils;
 import com.anhui.fabricbaascommon.service.CaClientService;
