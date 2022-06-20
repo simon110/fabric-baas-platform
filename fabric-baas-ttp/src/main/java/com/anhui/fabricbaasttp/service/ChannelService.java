@@ -1,5 +1,6 @@
 package com.anhui.fabricbaasttp.service;
 
+import cn.hutool.core.lang.Assert;
 import com.anhui.fabricbaascommon.bean.*;
 import com.anhui.fabricbaascommon.constant.CertfileType;
 import com.anhui.fabricbaascommon.exception.*;
@@ -115,7 +116,7 @@ public class ChannelService {
 
     public CoreEnv fetchChannelConfig(ChannelEntity channel, File config) throws NetworkException, CaException, IOException, InterruptedException, ChannelException {
         List<Orderer> orderers = networkService.getNetworkOrderers(channel.getNetworkName());
-        assert !orderers.isEmpty();
+        Assert.notEmpty(orderers);
         // Orderer orderer = RandomUtils.select(orderers);
         Orderer orderer = orderers.get(0);
         log.info("选择Orderer节点：" + orderer);

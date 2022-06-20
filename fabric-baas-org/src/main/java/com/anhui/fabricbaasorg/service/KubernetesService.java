@@ -1,5 +1,6 @@
 package com.anhui.fabricbaasorg.service;
 
+import cn.hutool.core.lang.Assert;
 import com.anhui.fabricbaascommon.exception.NodeException;
 import com.anhui.fabricbaascommon.function.ThrowableSupplier;
 import com.anhui.fabricbaascommon.util.CertfileUtils;
@@ -82,7 +83,7 @@ public class KubernetesService {
 
     public String getCompletePodName(String keyword) {
         List<Pod> podList = kubernetesClient.findPodsByKeyword(keyword);
-        assert podList.size() == 1;
+        Assert.isTrue(podList.size() == 1);
         Pod pod = podList.get(0);
         return pod.getMetadata().getName();
     }
@@ -92,7 +93,7 @@ public class KubernetesService {
         if (pods.isEmpty()) {
             throw new KubernetesException("未找到相应名称的Pod：" + podName);
         }
-        assert pods.size() == 1;
+        Assert.isTrue(pods.size() == 1);
         return pods.get(0).getStatus();
     }
 
@@ -164,7 +165,7 @@ public class KubernetesService {
                     containerName = containerStatus.getName();
                 }
             }
-            assert containerName != null;
+            Assert.notNull(containerName);
 
             CertfileUtils.assertCertfile(peerCertfileDir);
             File peerCertfileMSPDir = CertfileUtils.getMspDir(peerCertfileDir);

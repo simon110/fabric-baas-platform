@@ -1,5 +1,6 @@
 package com.anhui.fabricbaascommon.fabric;
 
+import cn.hutool.core.lang.Assert;
 import cn.hutool.json.JSONObject;
 import com.anhui.fabricbaascommon.bean.*;
 import com.anhui.fabricbaascommon.exception.CertfileException;
@@ -45,16 +46,16 @@ public class ChaincodeUtils {
         //Committed chaincode definitions on channel 'mychannel':
         //Name: basic, Version: 1.0, Sequence: 1, Endorsement Plugin: escc, Validation Plugin: vscc
         String[] outputLines = str.split("\n");
-        assert outputLines.length > 0;
+        Assert.isTrue(outputLines.length > 0);
 
         for (String outputLine : outputLines) {
             String[] parts = outputLine.split(", ");
-            assert parts.length == 5;
-            assert parts[0].startsWith("Name: ");
-            assert parts[1].startsWith("Version: ");
-            assert parts[2].startsWith("Sequence: ");
-            assert parts[3].startsWith("Endorsement Plugin: ");
-            assert parts[4].startsWith("Validation Plugin: ");
+            Assert.isTrue(parts.length == 5);
+            Assert.isTrue(parts[0].startsWith("Name: "));
+            Assert.isTrue(parts[1].startsWith("Version: "));
+            Assert.isTrue(parts[2].startsWith("Sequence: "));
+            Assert.isTrue(parts[3].startsWith("Endorsement Plugin: "));
+            Assert.isTrue(parts[4].startsWith("Validation Plugin: "));
 
             ApprovedChaincode approvedChaincode = new ApprovedChaincode();
             approvedChaincode.setChannelName(channelName);
@@ -95,8 +96,8 @@ public class ChaincodeUtils {
         for (String outputLine : outputLines) {
             InstalledChaincode installedChaincode = new InstalledChaincode();
             String[] parts = outputLine.strip().split(", ");
-            assert parts[0].startsWith("Package ID: ");
-            assert parts[1].startsWith("Label: ");
+            Assert.isTrue(parts[0].startsWith("Package ID: "));
+            Assert.isTrue(parts[1].startsWith("Label: "));
             installedChaincode.setIdentifier(parts[0].replaceFirst("Package ID: ", ""));
             installedChaincode.setLabel(parts[1].replaceFirst("Label: ", ""));
             installedChaincodes.add(installedChaincode);

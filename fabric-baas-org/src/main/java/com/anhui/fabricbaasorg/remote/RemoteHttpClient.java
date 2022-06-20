@@ -1,6 +1,7 @@
 package com.anhui.fabricbaasorg.remote;
 
 
+import cn.hutool.core.lang.Assert;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpResponse;
 import cn.hutool.json.JSONObject;
@@ -23,7 +24,7 @@ public class RemoteHttpClient {
     }
 
     public void init(String baseUrl) {
-        assert this.baseUrl == null;
+        Assert.isNull(this.baseUrl);
         this.baseUrl = baseUrl;
     }
 

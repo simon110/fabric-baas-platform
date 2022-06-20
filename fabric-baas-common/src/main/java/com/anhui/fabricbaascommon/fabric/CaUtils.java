@@ -1,6 +1,7 @@
 package com.anhui.fabricbaascommon.fabric;
 
 
+import cn.hutool.core.lang.Assert;
 import com.anhui.fabricbaascommon.bean.CsrConfig;
 import com.anhui.fabricbaascommon.constant.CertfileType;
 import com.anhui.fabricbaascommon.entity.CaEntity;
@@ -12,7 +13,6 @@ import com.anhui.fabricbaascommon.util.CommandUtils;
 import com.anhui.fabricbaascommon.util.MyFileUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,9 +29,9 @@ public class CaUtils {
             String caName,
             CertfileEntity certfile)
             throws IOException, InterruptedException, CertfileException, CaException {
-        assert !StringUtils.isBlank(certfile.getCaUsername());
-        assert !StringUtils.isBlank(certfile.getCaPassword());
-        assert CertfileType.exists(certfile.getCaUsertype());
+        Assert.notBlank(certfile.getCaUsername());
+        Assert.notBlank(certfile.getCaPassword());
+        Assert.isTrue(CertfileType.exists(certfile.getCaUsertype()));
 
         MyFileUtils.assertFileExists(caTlsCert);
         CertfileUtils.assertCertfile(adminCertfileDir);
@@ -58,9 +58,9 @@ public class CaUtils {
             CertfileEntity certfile,
             List<String> csrHosts)
             throws IOException, InterruptedException, CaException {
-        assert !StringUtils.isBlank(certfile.getCaUsername());
-        assert !StringUtils.isBlank(certfile.getCaPassword());
-        assert csrHosts.size() >= 2;
+        Assert.notBlank(certfile.getCaUsername());
+        Assert.notBlank(certfile.getCaPassword());
+        Assert.isTrue(csrHosts.size() >= 2);
 
         MyFileUtils.assertFileExists(caTlsCert);
         CommandUtils.exec(

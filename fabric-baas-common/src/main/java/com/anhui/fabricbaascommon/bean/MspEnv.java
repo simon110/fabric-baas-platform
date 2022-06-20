@@ -1,5 +1,6 @@
 package com.anhui.fabricbaascommon.bean;
 
+import cn.hutool.core.lang.Assert;
 import com.anhui.fabricbaascommon.exception.CertfileException;
 import com.anhui.fabricbaascommon.util.CertfileUtils;
 import lombok.Data;
@@ -14,7 +15,7 @@ public class MspEnv {
     private File mspConfig;
 
     public MspEnv(String mspId, File mspConfig) {
-        assert mspConfig.isDirectory();
+        Assert.isTrue(mspConfig.isDirectory());
         this.mspId = mspId;
         this.mspConfig = mspConfig;
     }

@@ -1,5 +1,6 @@
 package com.anhui.fabricbaascommon.fabric;
 
+import cn.hutool.core.lang.Assert;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.anhui.fabricbaascommon.bean.*;
@@ -106,7 +107,7 @@ public class ChannelUtils {
         Map<String, Object> groups = (Map<String, Object>) channelGroup.get("groups");
         Map<String, Object> consortiums = (Map<String, Object>) groups.get("Application");
         groups = (Map<String, Object>) consortiums.get("groups");
-        assert !groups.isEmpty();
+        Assert.notEmpty(groups);
         if (groups.containsKey(newOrgName)) {
             throw new ChannelException("组织已存在于通道配置中：" + newOrgName);
         }
@@ -127,7 +128,7 @@ public class ChannelUtils {
         Map<String, Object> groups = (Map<String, Object>) channelGroup.get("groups");
         Map<String, Object> consortiums = (Map<String, Object>) groups.get("Consortiums");
         groups = (Map<String, Object>) consortiums.get("groups");
-        assert groups.size() == 1;
+        Assert.isTrue(groups.size() == 1);
         Map<String, Object> consortium = (Map<String, Object>) groups.values().toArray()[0];
         groups = (Map<String, Object>) consortium.get("groups");
         if (groups.containsKey(newOrgName)) {
@@ -151,7 +152,7 @@ public class ChannelUtils {
         Map<String, Object> groups = (Map<String, Object>) channelGroup.get("groups");
         Map<String, Object> ordererConfig = (Map<String, Object>) groups.get("Orderer");
         Map<String, Object> ordererConfigGroups = (Map<String, Object>) ordererConfig.get("groups");
-        assert ordererConfigGroups.size() == 1;
+        Assert.isTrue(ordererConfigGroups.size() == 1);
         Map<String, Object> ordererConfigGroup = (Map<String, Object>) ordererConfigGroups.values().toArray()[0];
         Map<String, Object> ordererConfigGroupValues = (Map<String, Object>) ordererConfigGroup.get("values");
         Map<String, Object> endpoints = (Map<String, Object>) ordererConfigGroupValues.get("Endpoints");
@@ -179,7 +180,7 @@ public class ChannelUtils {
         Map<String, Object> ordererAddresses = (Map<String, Object>) values.get("OrdererAddresses");
         Map<String, Object> ordererAddressesValue = (Map<String, Object>) ordererAddresses.get("value");
         addresses = (List<String>) ordererAddressesValue.get("addresses");
-        assert !addresses.contains(addr);
+        Assert.isFalse(addresses.contains(addr));
         addresses.add(addr);
 
         JsonUtils.save(channelJsonConfig, channelConfig);

@@ -1,5 +1,6 @@
 package com.anhui.fabricbaascommon.util;
 
+import cn.hutool.core.lang.Assert;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -38,7 +39,7 @@ public class MyFileUtils {
             throw new IOException("路径已存在文件或文件夹：" + path);
         }
         boolean mkdirs = dir.mkdirs();
-        assert mkdirs;
+        Assert.isTrue(mkdirs);
         return dir;
     }
 

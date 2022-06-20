@@ -1,8 +1,8 @@
 package com.anhui.fabricbaasorg.service;
 
+import cn.hutool.core.lang.Assert;
 import com.anhui.fabricbaascommon.bean.CsrConfig;
 import com.anhui.fabricbaascommon.configuration.AdminConfiguration;
-import com.anhui.fabricbaascommon.configuration.FabricConfiguration;
 import com.anhui.fabricbaascommon.entity.CaEntity;
 import com.anhui.fabricbaascommon.entity.UserEntity;
 import com.anhui.fabricbaascommon.exception.CaException;
@@ -88,7 +88,7 @@ public class SystemService {
 
     public void setAdminPassword(String password) {
         Optional<UserEntity> adminOptional = userRepo.findById(adminConfiguration.getDefaultUsername());
-        assert adminOptional.isPresent();
+        Assert.isTrue(adminOptional.isPresent());
         adminOptional.ifPresent(admin -> {
             log.info("正在初始化管理员信息");
             String encodedPassword = passwordEncoder.encode(password);

@@ -1,5 +1,6 @@
 package com.anhui.fabricbaascommon.util;
 
+import cn.hutool.core.lang.Assert;
 import com.anhui.fabricbaascommon.constant.CertfileType;
 import com.anhui.fabricbaascommon.exception.CertfileException;
 import lombok.extern.slf4j.Slf4j;
@@ -74,10 +75,10 @@ public class CertfileUtils {
      * @return CA账户证书应该被存放的位置
      */
     public static File getCertfileDir(String name, String type) {
-        assert type.equals(CertfileType.ORDERER) ||
+        Assert.isTrue(type.equals(CertfileType.ORDERER) ||
                 type.equals(CertfileType.ADMIN) ||
                 type.equals(CertfileType.CLIENT) ||
-                type.equals(CertfileType.PEER);
+                type.equals(CertfileType.PEER));
         return new File(String.format("%s/fabric/certfile/%s/%s", MyFileUtils.getWorkingDir(), type, name));
     }
 

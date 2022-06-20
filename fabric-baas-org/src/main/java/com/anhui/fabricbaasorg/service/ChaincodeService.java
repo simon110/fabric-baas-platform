@@ -1,5 +1,6 @@
 package com.anhui.fabricbaasorg.service;
 
+import cn.hutool.core.lang.Assert;
 import com.anhui.fabricbaascommon.bean.*;
 import com.anhui.fabricbaascommon.constant.CertfileType;
 import com.anhui.fabricbaascommon.entity.CaEntity;
@@ -123,7 +124,7 @@ public class ChaincodeService {
         List<ApprovedChaincodeEntity> approvedChaincodes = approvedChaincodeRepo.findAllByChannelNameAndNameAndSequenceAndVersion(
                 approvedChaincode.getChannelName(), approvedChaincode.getName(), approvedChaincode.getSequence(), approvedChaincode.getVersion()
         );
-        assert approvedChaincodes.size() == 1;
+        Assert.isTrue(approvedChaincodes.size() == 1);
         return approvedChaincodes.get(0);
     }
 

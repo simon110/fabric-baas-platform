@@ -1,5 +1,6 @@
 package com.anhui.fabricbaascommon.util;
 
+import cn.hutool.core.lang.Assert;
 import com.anhui.fabricbaascommon.bean.Invitation;
 import org.springframework.util.Base64Utils;
 
@@ -36,7 +37,7 @@ public class InvitationUtils {
         byte[] decryptedData = AesUtils.decrypt(encryptedData, AES_SECRET_KEY_SPEC);
         String str = new String(decryptedData, StandardCharsets.UTF_8);
         String[] properties = str.split("---");
-        assert properties.length == 4;
+        Assert.isTrue(properties.length == 4);
 
         Invitation invitation = new Invitation();
         invitation.setInvitorOrgName(properties[0]);

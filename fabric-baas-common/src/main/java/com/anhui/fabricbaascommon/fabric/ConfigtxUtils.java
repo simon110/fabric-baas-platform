@@ -1,5 +1,6 @@
 package com.anhui.fabricbaascommon.fabric;
 
+import cn.hutool.core.lang.Assert;
 import com.anhui.fabricbaascommon.bean.ConfigtxOrderer;
 import com.anhui.fabricbaascommon.bean.ConfigtxOrganization;
 import com.anhui.fabricbaascommon.exception.ConfigtxException;
@@ -91,7 +92,7 @@ public class ConfigtxUtils {
             File genesisBlock,
             File configtxDir)
             throws IOException, ConfigtxException, InterruptedException {
-        assert configtxDir.isDirectory();
+        Assert.isTrue(configtxDir.isDirectory());
         String str = CommandUtils.exec(
                 MyFileUtils.getWorkingDir() + "/shell/fabric-generate-genesis.sh",
                 ordererGenesisName,
@@ -185,7 +186,7 @@ public class ConfigtxUtils {
         // 获取联盟名称
         Map<String, Object> ordererGenesis = (Map<String, Object>) profiles.get("OrdererGenesis");
         Map<String, Object> ordererGenesisConsortiums = (Map<String, Object>) ordererGenesis.get("Consortiums");
-        assert ordererGenesisConsortiums.size() == 1;
+        Assert.isTrue(ordererGenesisConsortiums.size() == 1);
         String consortiumName = (String) ordererGenesisConsortiums.keySet().toArray()[0];
         // 对通道进行配置
         channel.put("Consortium", consortiumName);

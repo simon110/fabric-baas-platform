@@ -1,5 +1,6 @@
 package com.anhui.fabricbaasorg.configuration;
 
+import cn.hutool.core.lang.Assert;
 import com.anhui.fabricbaasorg.entity.RemoteUserEntity;
 import com.anhui.fabricbaasorg.remote.RemoteHttpClient;
 import com.anhui.fabricbaasorg.remote.TTPChannelApi;
@@ -33,7 +34,7 @@ public class RemoteApiConfiguration {
     public TTPOrganizationApi ttpOrganizationApi() throws Exception {
         TTPOrganizationApi ttpOrganizationApi = new TTPOrganizationApi(remoteHttpClient);
         List<RemoteUserEntity> ttpEntities = remoteUserRepo.findAll();
-        assert ttpEntities.size() <= 1;
+        Assert.isTrue(ttpEntities.size() <= 1);
         if (!ttpEntities.isEmpty()) {
             RemoteUserEntity ttpAccount = ttpEntities.get(0);
             ttpOrganizationApi.login(ttpAccount.getOrganizationName(), ttpAccount.getPassword());

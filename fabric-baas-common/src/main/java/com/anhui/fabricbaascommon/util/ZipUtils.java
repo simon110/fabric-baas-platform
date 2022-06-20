@@ -1,5 +1,6 @@
 package com.anhui.fabricbaascommon.util;
 
+import cn.hutool.core.lang.Assert;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tools.zip.ZipEntry;
 import org.apache.tools.zip.ZipFile;
@@ -41,7 +42,7 @@ public class ZipUtils {
      * @param srcFilesOrDirs Zip压缩包根目录下的文件或文件夹
      */
     public static void zip(File dst, File... srcFilesOrDirs) throws IOException {
-        assert dst.getPath().endsWith(".zip");
+        Assert.isTrue(dst.getPath().endsWith(".zip"));
         try (FileOutputStream fileOut = new FileOutputStream(dst);
              ZipOutputStream zipOut = new ZipOutputStream(fileOut)) {
             zipOut.setEncoding("GBK");

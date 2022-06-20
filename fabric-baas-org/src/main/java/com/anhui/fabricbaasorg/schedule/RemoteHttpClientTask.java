@@ -1,5 +1,6 @@
 package com.anhui.fabricbaasorg.schedule;
 
+import cn.hutool.core.lang.Assert;
 import com.anhui.fabricbaasorg.entity.RemoteUserEntity;
 import com.anhui.fabricbaasorg.remote.TTPOrganizationApi;
 import com.anhui.fabricbaasorg.repository.RemoteUserRepo;
@@ -21,7 +22,7 @@ public class RemoteHttpClientTask {
     @Scheduled(fixedDelay = 3600000)
     public void refreshToken() throws Exception {
         List<RemoteUserEntity> ttpEntities = remoteUserRepo.findAll();
-        assert ttpEntities.size() <= 1;
+        Assert.isTrue(ttpEntities.size() <= 1);
         if (!ttpEntities.isEmpty()) {
             RemoteUserEntity ttpAccount = ttpEntities.get(0);
             String token = ttpOrganizationApi.login(ttpAccount.getOrganizationName(), ttpAccount.getPassword());

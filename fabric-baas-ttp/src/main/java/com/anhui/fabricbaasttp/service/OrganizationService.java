@@ -1,5 +1,6 @@
 package com.anhui.fabricbaasttp.service;
 
+import cn.hutool.core.lang.Assert;
 import com.anhui.fabricbaascommon.constant.ApplStatus;
 import com.anhui.fabricbaascommon.constant.Authority;
 import com.anhui.fabricbaascommon.entity.UserEntity;
@@ -75,7 +76,7 @@ public class OrganizationService {
     public RegistrationEntity findUnhandledRegistration(String organizationName) {
         List<RegistrationEntity> registrations = registrationRepo.findAllByOrganizationNameAndStatus(organizationName, ApplStatus.UNHANDLED);
         if (!registrations.isEmpty()) {
-            assert registrations.size() == 1;
+            Assert.isTrue(registrations.size() == 1);
             // 判断最后一次注册申请的状态
             RegistrationEntity registration = registrations.get(0);
             if (registration.getStatus() == ApplStatus.UNHANDLED) {
@@ -133,8 +134,8 @@ public class OrganizationService {
 
         if (isAllowed) {
             registration.setStatus(ApplStatus.ACCEPTED);
-            assert !organizationRepo.existsById(organizationName);
-            assert !userRepo.existsById(organizationName);
+            Assert.isFalse(organizationRepo.existsById(organizationName));
+            Assert.isFalse(userRepo.existsById(organizationName));
 
             OrganizationEntity organization = new OrganizationEntity();
             organization.setName(registration.getOrganizationName());

@@ -1,5 +1,6 @@
 package com.anhui.fabricbaasttp.service;
 
+import cn.hutool.core.lang.Assert;
 import com.anhui.fabricbaascommon.bean.ConfigtxOrderer;
 import com.anhui.fabricbaascommon.bean.ConfigtxOrganization;
 import com.anhui.fabricbaascommon.bean.CoreEnv;
@@ -366,7 +367,7 @@ public class NetworkService {
         minioService.putBytes(MinioBucket.ADMIN_CERTFILE_BUCKET_NAME, organizationCertfileId, adminCertZip.getBytes());
         ZipUtils.unzip(organizationCertfileZip, CertfileUtils.getCertfileDir(organizationCertfileId, CertfileType.ADMIN));
 
-        assert ordererCertfileDirs.size() == orderers.size();
+        Assert.isTrue(ordererCertfileDirs.size() == orderers.size());
         for (int i = 0, size = ordererCertfileDirs.size(); i < size; i++) {
             // 将证书压缩
             File ordererCertfileDir = ordererCertfileDirs.get(i);

@@ -1,5 +1,6 @@
 package com.anhui.fabricbaascommon.bean;
 
+import cn.hutool.core.lang.Assert;
 import com.anhui.fabricbaascommon.exception.CertfileException;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,7 +14,7 @@ public class TlsEnv {
     private File tlsRootCert;
 
     public TlsEnv(String address, File tlsRootCert) {
-        assert tlsRootCert.isFile();
+        Assert.isTrue(tlsRootCert.isFile());
         this.address = address;
         this.tlsRootCert = tlsRootCert;
     }
