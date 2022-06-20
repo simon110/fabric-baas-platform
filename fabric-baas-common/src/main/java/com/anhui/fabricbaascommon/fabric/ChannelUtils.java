@@ -289,13 +289,20 @@ public class ChannelUtils {
             String channelName,
             File envelope)
             throws IOException, InterruptedException, ChannelException {
-        String str = CommandUtils.exec(
-                MyFileUtils.getWorkingDir() + "/shell/fabric-submit-envelope.sh",
-                organizationMspEnv.getMspId(),
-                organizationMspEnv.getMspConfig().getAbsolutePath(),
-                ordererTlsEnv.getAddress(),
-                ordererTlsEnv.getTlsRootCert().getAbsolutePath(),
-                channelName, envelope.getCanonicalPath());
+        Assert.isTrue(envelope.exists());
+        Map<String, String> envs = CommandUtils.buildEnvs(
+                "FABRIC_CFG_PATH", MyFileUtils.getWorkingDir(),
+                "CORE_PEER_TLS_ENABLED", "true",
+                "CORE_PEER_LOCALMSPID", organizationMspEnv.getMspId(),
+                "CORE_PEER_MSPCONFIGPATH", organizationMspEnv.getMspConfig().getCanonicalPath()
+        );
+        String str = CommandUtils.exec(envs, "peer", "channel", "update",
+                "-f", envelope.getCanonicalPath(),
+                "-c", channelName,
+                "-o", ordererTlsEnv.getAddress(),
+                "--tls", "true",
+                "--cafile", ordererTlsEnv.getTlsRootCert().getCanonicalPath()
+        );
         if (!str.toLowerCase().contains("successfully submitted channel update")) {
             throw new ChannelException("更新通道失败：" + str);
         }
