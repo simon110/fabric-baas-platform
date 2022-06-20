@@ -143,19 +143,20 @@ public class ChaincodeUtils {
             CoreEnv peerCoreEnv)
             throws IOException, InterruptedException, CertfileException, ChaincodeException {
         peerCoreEnv.selfAssert();
+        Map<String, String> envs = CommandUtils.buildEnvs(
+                "CORE_PEER_TLS_ENABLED", "true",
+                "CORE_PEER_LOCALMSPID", peerCoreEnv.getMspId(),
+                "CORE_PEER_MSPCONFIGPATH", peerCoreEnv.getMspConfig().getCanonicalPath(),
+                "CORE_PEER_ADDRESS", peerCoreEnv.getAddress(),
+                "CORE_PEER_TLS_ROOTCERT_FILE", peerCoreEnv.getTlsRootCert().getCanonicalPath()
+        );
 
         if (!chaincodePackage.exists()) {
             throw new ChaincodeException("链码文件不存在：" + chaincodePackage.getCanonicalPath());
         }
         // 查询installed链码
         List<InstalledChaincode> oldInstalledChaincodes = queryInstalledChaincodes(peerCoreEnv);
-        String str = CommandUtils.exec(
-                MyFileUtils.getWorkingDir() + "/shell/fabric-chaincode-install.sh",
-                peerCoreEnv.getMspId(),
-                peerCoreEnv.getTlsRootCert().getAbsolutePath(),
-                peerCoreEnv.getMspConfig().getAbsolutePath(),
-                peerCoreEnv.getAddress(),
-                chaincodePackage.getCanonicalPath());
+        String str = CommandUtils.exec(envs, "peer", "lifecycle", "chaincode", "install", chaincodePackage.getCanonicalPath());
         // 查询peer链码有无变化
         List<InstalledChaincode> newInstalledChaincodes = queryInstalledChaincodes(peerCoreEnv);
         if (newInstalledChaincodes.size() == oldInstalledChaincodes.size() || !str.toLowerCase().contains("chaincode code package identifier")) {
