@@ -111,38 +111,6 @@ public class ChaincodeUtils {
     }
 
     /**
-     * @param srcCodeDir     链码源代码（包含go.mod文件那个）
-     * @param chaincodeLabel 链码标签
-     * @param outputPackage  输出的tar文件的路径
-     * @throws ChaincodeException 编译智能合约出错（任何生成tar失败的情况都应该抛出异常）
-     */
-    public static void buildChaincodePackage(
-            File srcCodeDir,
-            String chaincodeLabel,
-            File outputPackage) throws ChaincodeException, IOException, InterruptedException {
-        if (!srcCodeDir.exists() || !MyFileUtils.exists(srcCodeDir + "/go.mod")) {
-            throw new ChaincodeException("未找到Chaincode源代码");
-        }
-        if (outputPackage.exists()) {
-            throw new ChaincodeException("目标路径已存在文件");
-        }
-        Map<String, String> envs = CommandUtils.buildEnvs(
-                "GO111MODULE", "on",
-                "FABRIC_CFG_PATH", MyFileUtils.getWorkingDir()
-        );
-        CommandUtils.exec(envs, "sh", "-c", String.format("cd %s; go mod vendor;", srcCodeDir.getCanonicalPath()));
-        CommandUtils.exec(envs, "peer", "lifecycle", "chaincode", "package",
-                outputPackage.getCanonicalPath(),
-                "--path", srcCodeDir.getCanonicalPath(),
-                "--lang", "golang",
-                "--label", chaincodeLabel
-        );
-        if (!outputPackage.exists()) {
-            throw new ChaincodeException("链码打包失败：" + outputPackage);
-        }
-    }
-
-    /**
      * @param chaincodePackage 输出的tar文件的路径
      * @param peerCoreEnv      对应Peer的环境变量
      * @return 链码安装成功后返回的Package ID
