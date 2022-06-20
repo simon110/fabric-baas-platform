@@ -48,13 +48,15 @@ public class ChannelUtils {
             CoreEnv coreEnv,
             File channelGenesisBlock)
             throws IOException, ChannelException, InterruptedException {
-        String str = CommandUtils.exec(
-                MyFileUtils.getWorkingDir() + "/shell/fabric-join-channel.sh",
-                coreEnv.getMspId(),
-                coreEnv.getMspConfig().getAbsolutePath(),
-                coreEnv.getAddress(),
-                coreEnv.getTlsRootCert().getAbsolutePath(),
-                channelGenesisBlock.getCanonicalPath());
+        Map<String, String> envs = CommandUtils.buildEnvs(
+                "FABRIC_CFG_PATH", MyFileUtils.getWorkingDir(),
+                "CORE_PEER_TLS_ENABLED", "true",
+                "CORE_PEER_LOCALMSPID", coreEnv.getMspId(),
+                "CORE_PEER_MSPCONFIGPATH", coreEnv.getMspConfig().getCanonicalPath(),
+                "CORE_PEER_ADDRESS", coreEnv.getTlsEnv().getAddress(),
+                "CORE_PEER_TLS_ROOTCERT_FILE", coreEnv.getTlsEnv().getTlsRootCert().getCanonicalPath()
+        );
+        String str = CommandUtils.exec(envs, "peer", "channel", "join", "-b", channelGenesisBlock.getCanonicalPath());
         if (!str.toLowerCase().contains("successfully submitted proposal")) {
             throw new ChannelException("加入通道失败" + str);
         }
@@ -276,9 +278,7 @@ public class ChannelUtils {
                 "CORE_PEER_MSPCONFIGPATH", mspEnv.getMspConfig().getCanonicalPath()
         );
         byte[] oldBytes = FileUtils.readFileToByteArray(envelope);
-        String str = CommandUtils.exec(envs, "peer", "channel", "signconfigtx",
-                "-f", envelope.getCanonicalPath()
-        );
+        String str = CommandUtils.exec(envs, "peer", "channel", "signconfigtx", "-f", envelope.getCanonicalPath());
         byte[] newBytes = FileUtils.readFileToByteArray(envelope);
         // 通过对比签名前后的文件内容来确定签名是否成功
         if (Arrays.equals(oldBytes, newBytes)) {
