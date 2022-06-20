@@ -341,25 +341,34 @@ public class ChaincodeUtils {
             endorserTlsEnv.assertTlsCert();
         }
         JSONObject chaincodeParams = buildChaincodeParams(functionName, params);
-        List<String> commandList = Arrays.asList(
-                MyFileUtils.getWorkingDir() + "/shell/fabric-chaincode-invoke.sh",
-                chaincodeName,
-                chaincodeParams.toString(),
-                channelName,
-                ordererTlsEnv.getAddress(),
-                ordererTlsEnv.getTlsRootCert().getAbsolutePath(),
-                committerPeerCoreEnv.getMspId(),
-                committerPeerCoreEnv.getMspConfig().getAbsolutePath(),
-                committerPeerCoreEnv.getAddress(),
-                committerPeerCoreEnv.getTlsRootCert().getAbsolutePath()
+
+
+        Map<String, String> envs = CommandUtils.buildEnvs(
+                "FABRIC_CFG_PATH", MyFileUtils.getWorkingDir(),
+                "CORE_PEER_TLS_ENABLED", "true",
+                "CORE_PEER_LOCALMSPID", committerPeerCoreEnv.getMspId(),
+                "CORE_PEER_MSPCONFIGPATH", committerPeerCoreEnv.getMspConfig().getCanonicalPath(),
+                "CORE_PEER_ADDRESS", committerPeerCoreEnv.getAddress(),
+                "CORE_PEER_TLS_ROOTCERT_FILE", committerPeerCoreEnv.getTlsRootCert().getCanonicalPath()
         );
+
+        List<String> commandList = Arrays.asList("peer", "chaincode", "invoke",
+                "-o", ordererTlsEnv.getAddress(),
+                "--tls", "--cafile", ordererTlsEnv.getTlsRootCert().getCanonicalPath(),
+                "-C", channelName,
+                "-n", chaincodeName,
+                "-c", chaincodeParams.toString()
+        );
+        commandList = new ArrayList<>(commandList);
         for (TlsEnv endorserTlsEnv : endorserTlsEnvs) {
+            commandList.add("--peerAddresses");
             commandList.add(endorserTlsEnv.getAddress());
+            commandList.add("--tlsRootCertFiles");
             commandList.add(endorserTlsEnv.getTlsRootCert().getAbsolutePath());
         }
         String[] commands = new String[commandList.size()];
         commandList.toArray(commands);
-        String str = CommandUtils.exec(commands);
+        String str = CommandUtils.exec(envs, commands);
         if (!str.toLowerCase().contains("invoke successful") || !str.contains("status:200")) {
             throw new ChaincodeException("智能合约调用失败：" + str);
         }
