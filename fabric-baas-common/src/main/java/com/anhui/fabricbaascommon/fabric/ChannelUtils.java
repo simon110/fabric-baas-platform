@@ -22,14 +22,20 @@ public class ChannelUtils {
             CoreEnv peerCoreEnv,
             TlsEnv ordererTlsEnv,
             String channelName) throws IOException, InterruptedException, ChannelException {
-        String str = CommandUtils.exec(MyFileUtils.getWorkingDir() + "/shell/fabric-get-channel-info.sh",
-                peerCoreEnv.getMspId(),
-                peerCoreEnv.getMspConfig().getAbsolutePath(),
-                peerCoreEnv.getAddress(),
-                peerCoreEnv.getTlsRootCert().getAbsolutePath(),
-                ordererTlsEnv.getAddress(),
-                ordererTlsEnv.getTlsRootCert().getAbsolutePath(),
-                channelName);
+        Map<String, String> envs = CommandUtils.buildEnvs(
+                "FABRIC_CFG_PATH", MyFileUtils.getWorkingDir(),
+                "CORE_PEER_TLS_ENABLED", "true",
+                "CORE_PEER_LOCALMSPID", peerCoreEnv.getMspId(),
+                "CORE_PEER_MSPCONFIGPATH", peerCoreEnv.getMspConfig().getCanonicalPath(),
+                "CORE_PEER_ADDRESS", peerCoreEnv.getTlsEnv().getAddress(),
+                "CORE_PEER_TLS_ROOTCERT_FILE", peerCoreEnv.getTlsEnv().getTlsRootCert().getCanonicalPath()
+        );
+
+        String str = CommandUtils.exec(envs, "peer", "channel", "getinfo",
+                "-c", channelName,
+                "-o", ordererTlsEnv.getAddress(),
+                "--tls", "--cafile", ordererTlsEnv.getTlsRootCert().getCanonicalPath()
+        );
         if (!str.toLowerCase().contains("blockchain info: ")) {
             throw new ChannelException("查询通道信息失败：" + str);
         }
@@ -48,6 +54,7 @@ public class ChannelUtils {
             CoreEnv coreEnv,
             File channelGenesisBlock)
             throws IOException, ChannelException, InterruptedException {
+        Assert.isTrue(channelGenesisBlock.exists());
         Map<String, String> envs = CommandUtils.buildEnvs(
                 "FABRIC_CFG_PATH", MyFileUtils.getWorkingDir(),
                 "CORE_PEER_TLS_ENABLED", "true",
