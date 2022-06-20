@@ -32,4 +32,17 @@ public class CommandUtils {
         log.info("命令输出：\n" + output);
         return output;
     }
+
+    public static Process asyncExec(String... cmd) throws IOException {
+        return Runtime.getRuntime().exec(cmd);
+    }
+
+    public static Process asyncExec(Map<String, String> envs, String... cmd) throws IOException {
+        ProcessBuilder builder = new ProcessBuilder(cmd);
+        Map<String, String> environment = builder.environment();
+        for (Map.Entry<String, String> entry : envs.entrySet()) {
+            environment.put(entry.getKey(), entry.getValue());
+        }
+        return builder.start();
+    }
 }
