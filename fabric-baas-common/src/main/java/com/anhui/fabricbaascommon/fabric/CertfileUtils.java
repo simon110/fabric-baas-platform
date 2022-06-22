@@ -34,14 +34,14 @@ public class CertfileUtils {
         return checkMSPDir(new File(dir + "/msp")) && checkTLSDir(new File(dir + "/tls"));
     }
 
-    public static void packageCertfile(File dir, File output) throws CertfileException, IOException {
+    public static void packageCertfile(File output, File dir) throws CertfileException, IOException {
         assertCertfile(dir);
         ZipUtils.zip(output, getMspDir(dir), getTlsDir(dir));
     }
 
     public static void assertCertfile(File dir) throws CertfileException {
         if (!checkCertfile(dir)) {
-            throw new CertfileException("证书格式不正确");
+            throw new CertfileException("证书格式不正确：" + dir);
         }
     }
 

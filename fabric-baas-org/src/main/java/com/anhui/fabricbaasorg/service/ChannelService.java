@@ -73,7 +73,7 @@ public class ChannelService {
         // 如果Peer节点已经启动必然存在证书
         File certfileDir = CertfileUtils.getCertfileDir(peer.getCaUsername(), CertfileType.PEER);
         File peerCertfileZip = MyFileUtils.createTempFile("zip");
-        CertfileUtils.packageCertfile(certfileDir, peerCertfileZip);
+        CertfileUtils.packageCertfile(peerCertfileZip, certfileDir);
 
         // 调用远程接口
         Node node = new Node(caClientService.getCaOrganizationDomain(), peer.getKubeNodePort());
