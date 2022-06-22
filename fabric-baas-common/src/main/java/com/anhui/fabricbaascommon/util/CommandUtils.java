@@ -33,10 +33,10 @@ public class CommandUtils {
         for (Map.Entry<String, String> entry : envs.entrySet()) {
             environment.put(entry.getKey(), entry.getValue());
         }
-        builder.inheritIO();
+        log.info("环境变量：" + environment);
         Process process = builder.start();
         process.waitFor();
-        String output = IOUtils.toString(process.getInputStream(), StandardCharsets.UTF_8);
+        String output = IOUtils.toString(process.getInputStream(), StandardCharsets.UTF_8) + IOUtils.toString(process.getErrorStream(), StandardCharsets.UTF_8);
         log.info("命令输出：\n" + output);
         return output;
     }
