@@ -55,28 +55,46 @@ public class CertfileUtils {
         // 重命名MSP秘钥和证书文件
         File[] caCerts = new File(mspDir + "/cacerts").listFiles();
         assert caCerts != null && caCerts.length == 1;
-        FileUtils.moveFile(caCerts[0], new File(mspDir + "/cacerts/ca.pem"));
+        File targetCaCert = new File(mspDir + "/cacerts/ca.pem");
+        if (!targetCaCert.exists()) {
+            FileUtils.moveFile(caCerts[0], targetCaCert);
+        }
 
         File[] keystore = new File(mspDir + "/keystore").listFiles();
         assert keystore != null && keystore.length == 1;
-        FileUtils.moveFile(keystore[0], new File(mspDir + "/keystore/key.pem"));
+        File targetKeystore = new File(mspDir + "/keystore/key.pem");
+        if (!targetKeystore.exists()) {
+            FileUtils.moveFile(keystore[0], targetKeystore);
+        }
 
         File[] signCerts = new File(mspDir + "/signcerts").listFiles();
         assert signCerts != null && signCerts.length == 1;
-        FileUtils.moveFile(signCerts[0], new File(mspDir + "/signcerts/cert.pem"));
+        File targetSignCert = new File(mspDir + "/signcerts/cert.pem");
+        if (!targetSignCert.exists()) {
+            FileUtils.moveFile(signCerts[0], targetSignCert);
+        }
 
         // 复制TLS秘钥和证书文件
         File[] tlsCaCerts = new File(tlsDir + "/tlscacerts").listFiles();
         assert tlsCaCerts != null && tlsCaCerts.length == 1;
-        FileUtils.copyFile(tlsCaCerts[0], new File(tlsDir + "/ca.crt"));
+        File targetTlsCaCert = new File(tlsDir + "/ca.crt");
+        if (!targetTlsCaCert.exists()) {
+            FileUtils.copyFile(tlsCaCerts[0], targetTlsCaCert);
+        }
 
         File[] tlsKeystore = new File(tlsDir + "/keystore").listFiles();
         assert tlsKeystore != null && tlsKeystore.length == 1;
-        FileUtils.copyFile(tlsKeystore[0], new File(tlsDir + "/server.key"));
+        File targetTlsKeystore = new File(tlsDir + "/server.key");
+        if (!targetTlsKeystore.exists()) {
+            FileUtils.copyFile(tlsKeystore[0], targetTlsKeystore);
+        }
 
         File[] tlsSignCerts = new File(tlsDir + "/signcerts").listFiles();
         assert tlsSignCerts != null && tlsSignCerts.length == 1;
-        FileUtils.copyFile(tlsSignCerts[0], new File(tlsDir + "/server.crt"));
+        File targetTlsSignCert = new File(tlsDir + "/server.crt");
+        if (!targetTlsSignCert.exists()) {
+            FileUtils.copyFile(tlsSignCerts[0], targetTlsSignCert);
+        }
 
         // 生成MSP配置文件
         File mspConfigTemplate = new File(MyFileUtils.getWorkingDir() + "/fabric/template/fabric-ca-msp-config.yaml");

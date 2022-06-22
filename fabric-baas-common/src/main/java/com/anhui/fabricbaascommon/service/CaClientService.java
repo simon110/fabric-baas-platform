@@ -64,7 +64,7 @@ public class CaClientService {
 
     public CaEntity findCaEntityOrThrowEx() throws CaException {
         Optional<CaEntity> caOptional = caRepo.findFirstByOrganizationNameIsNotNull();
-        if (caOptional.isPresent()) {
+        if (caOptional != null && caOptional.isPresent()) {
             return caOptional.get();
         }
         throw new CaException("未找到CA信息，请确认系统已经初始化");

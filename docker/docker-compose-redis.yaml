@@ -1,8 +1,8 @@
-version: "3"
+version: '3'
 
 services:
-  fabric-baas-platform-redis:
-    # container_name: fabric-baas-platform-redis
+  fabric-baas-redis:
+    container_name: fabric-baas-redis
     restart: always
     image: "redis:6.2"
     ports:

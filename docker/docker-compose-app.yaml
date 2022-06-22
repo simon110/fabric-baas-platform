@@ -1,0 +1,16 @@
+version: '3'
+
+services:
+  fabric-baas-app:
+    container_name: fabric-baas-app
+    image: anhui-tech/fabric-baas-env:1.0.0
+    restart: always
+    ports:
+      - 8080:8080
+    volumes:
+      - ./application:/opt/fabric-baas-app
+    environment:
+      FABRIC_CFG_PATH: "/opt/fabric-baas-app"
+      CORE_PEER_TLS_ENABLED: "true"
+    working_dir: /opt/fabric-baas-app
+    command: "java -ea -jar fabric-baas-app.jar -Dspring.config.location=application.properties"

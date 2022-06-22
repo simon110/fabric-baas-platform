@@ -5,9 +5,8 @@ import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
 
-@PropertySource("classpath:fabricbaascommon.properties")
+// @PropertySource("classpath:fabricbaascommon.properties")
 @Configuration
 @ConfigurationProperties(prefix = "minio")
 @Data

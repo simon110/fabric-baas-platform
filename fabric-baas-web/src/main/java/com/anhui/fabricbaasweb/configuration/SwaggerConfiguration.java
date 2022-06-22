@@ -3,7 +3,6 @@ package com.anhui.fabricbaasweb.configuration;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
 import springfox.documentation.builders.ApiInfoBuilder;
 import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
@@ -16,7 +15,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-@PropertySource("classpath:fabricbaasweb.properties")
+// @PropertySource("classpath:fabricbaasweb.properties")
 @Configuration
 public class SwaggerConfiguration {
     @Bean

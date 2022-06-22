@@ -14,7 +14,6 @@ import com.spotify.docker.client.exceptions.DockerException;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -31,19 +30,19 @@ public class CaServerService {
     private final static File FABRIC_CA_SERVER_TLSCERT = new File(MyFileUtils.getWorkingDir() + "/fabric/caserver/tls-cert.pem");
     private Process caServerProcess;
 
-    @Autowired
-    private FabricConfiguration fabricConfig;
-    @Autowired
-    private CaRepo caRepo;
+    private final FabricConfiguration fabricConfig;
+    private final CaRepo caRepo;
 
-    @SneakyThrows
-    public CaServerService() {
+    public CaServerService(CaRepo caRepo, FabricConfiguration fabricConfig) {
+        this.caRepo = caRepo;
+        this.fabricConfig = fabricConfig;
         autoStartCaServer();
     }
 
-    private void autoStartCaServer() throws IOException {
+    @SneakyThrows
+    private void autoStartCaServer() {
         Optional<CaEntity> caOptional = caRepo.findFirstByOrganizationNameIsNotNull();
-        if (caOptional.isPresent()) {
+        if (caOptional != null && caOptional.isPresent()) {
             CaEntity ca = caOptional.get();
             CsrConfig csrConfig = CaUtils.buildCsrConfig(ca);
             startCaServer(csrConfig);
