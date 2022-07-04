@@ -363,7 +363,7 @@ public class ChaincodeUtils {
         );
 
         JSONObject chaincodeParams = buildChaincodeParams(functionName, params);
-        String str = CommandUtils.exec("peer", "chaincode", "query",
+        String str = CommandUtils.exec(envs, "peer", "chaincode", "query",
                 "-C", channelName,
                 "-n", chaincodeName,
                 "-c", chaincodeParams.toString()

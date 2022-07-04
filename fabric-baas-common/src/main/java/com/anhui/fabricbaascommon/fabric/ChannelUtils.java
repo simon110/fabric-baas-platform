@@ -86,8 +86,7 @@ public class ChannelUtils {
                 configBlock.getCanonicalPath(),
                 "-o", coreEnv.getAddress(),
                 "-c", channelName,
-                "--tls", "true",
-                "--cafile", coreEnv.getTlsRootCert().getCanonicalPath()
+                "--tls", "--cafile", coreEnv.getTlsRootCert().getCanonicalPath()
         );
         if (!configBlock.exists()) {
             throw new ChannelException("获取通道配置区块失败：" + str);
@@ -358,8 +357,7 @@ public class ChannelUtils {
                 "-f", envelope.getCanonicalPath(),
                 "-c", channelName,
                 "-o", ordererTlsEnv.getAddress(),
-                "--tls", "true",
-                "--cafile", ordererTlsEnv.getTlsRootCert().getCanonicalPath()
+                "--tls", "--cafile", ordererTlsEnv.getTlsRootCert().getCanonicalPath()
         );
         if (!str.toLowerCase().contains("successfully submitted channel update")) {
             throw new ChannelException("更新通道失败：" + str);
