@@ -268,7 +268,7 @@ public class ChaincodeUtils {
 
         List<String> commandList = Arrays.asList("peer", "lifecycle", "chaincode", "commit",
                 "-o", ordererTlsEnv.getAddress(),
-                "-tls", "--cafile", ordererTlsEnv.getTlsRootCert().getCanonicalPath(),
+                "--tls", "--cafile", ordererTlsEnv.getTlsRootCert().getCanonicalPath(),
                 "--channelID", channelName,
                 "--name", chaincodeProperties.getName(),
                 "--version", chaincodeProperties.getVersion(),
