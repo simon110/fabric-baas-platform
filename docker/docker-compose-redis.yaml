@@ -7,6 +7,6 @@ services:
     image: "redis:6.2"
     ports:
       - "6379:6379"
-    command: "redis-server --requirepass vc8wNxd1pY9Sj6Qw"
+    command: "redis-server --requirepass vc8wNxd1pY9Sj6Qw --maxmemory 2048m"
     volumes:
       - ./redis:/data

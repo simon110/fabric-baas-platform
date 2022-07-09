@@ -1,10 +1,10 @@
 package com.anhui.fabricbaasweb.configuration;
 
-import com.anhui.fabricbaasweb.bean.AntMatchers;
 import com.anhui.fabricbaasweb.filter.DosFilter;
 import com.anhui.fabricbaasweb.filter.JwtFilter;
 import com.anhui.fabricbaasweb.service.JwtUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.List;
 
 // @PropertySource("classpath:fabricbaasweb.properties")
+@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true)
@@ -30,9 +31,8 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
     private DosFilter dosFilter;
     @Autowired
     private JwtUserDetailsService jwtUserDetailsService;
-    @Autowired
-    private AntMatchers antMatchers;
-
+    @Value("#{'${spring.security.ant-matchers}'.split(',')}")
+    private String[] antMatchers;
 
     @Override
     public void configure(HttpSecurity http) throws Exception {
@@ -53,7 +53,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
                 "/swagger-ui/*",
                 "/swagger-resources/**",
                 "/v3/api-docs");
-        Collections.addAll(list, antMatchers.get());
+        Collections.addAll(list, antMatchers);
         String[] antMatchers = new String[list.size()];
         list.toArray(antMatchers);
         web.ignoring().antMatchers(antMatchers);
