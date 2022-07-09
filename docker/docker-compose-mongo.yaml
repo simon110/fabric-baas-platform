@@ -13,19 +13,3 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: aDqKVcITnoVYwhzA
-
-  fabric-baas-mongo-express:
-    container_name: fabric-baas-mongo-express
-    image: mongo-express:1.0.0-alpha
-    restart: always
-    depends_on:
-      - fabric-baas-mongo
-    ports:
-      - 8081:8081
-    environment:
-      ME_CONFIG_MONGODB_ADMINUSERNAME: root
-      ME_CONFIG_MONGODB_ADMINPASSWORD: aDqKVcITnoVYwhzA
-      ME_CONFIG_MONGODB_URL: mongodb://root:aDqKVcITnoVYwhzA@fabric-baas-mongo:27017/
-      ME_CONFIG_BASICAUTH_USERNAME: admin
-      ME_CONFIG_BASICAUTH_PASSWORD: niXy8U9a1VAKw23E
-      ME_CONFIG_OPTIONS_EDITORTHEME: 3024-night
