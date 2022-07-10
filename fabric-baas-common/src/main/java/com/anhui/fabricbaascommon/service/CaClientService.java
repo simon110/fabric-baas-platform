@@ -85,8 +85,8 @@ public class CaClientService {
     public void initRootCertfile(CsrConfig csrConfig) throws IOException, InterruptedException, CaException {
         boolean mkdirs = FABRIC_CA_ROOT_CERTFILE_DIR.mkdirs();
         CertfileEntity rootCertfile = new CertfileEntity();
-        rootCertfile.setCaUsername(fabricConfig.getRootCaUsername());
-        rootCertfile.setCaPassword(fabricConfig.getRootCaPassword());
+        rootCertfile.setCaUsername(fabricConfig.getCaRootUsername());
+        rootCertfile.setCaPassword(fabricConfig.getCaRootPassword());
         rootCertfile.setCaUsertype(CertfileType.ADMIN);
         String caServerAddr = "localhost:" + fabricConfig.getCaServerPort();
         CaUtils.enroll(FABRIC_CA_ROOT_CERTFILE_DIR, FABRIC_CA_SERVER_CERT, csrConfig.getCaName(), caServerAddr, rootCertfile, csrConfig.getCsrHosts());

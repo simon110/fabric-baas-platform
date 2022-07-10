@@ -3,7 +3,6 @@ package com.anhui.fabricbaasttp.service;
 
 import com.anhui.fabricbaascommon.bean.CsrConfig;
 import com.anhui.fabricbaascommon.configuration.AdminConfiguration;
-import com.anhui.fabricbaascommon.configuration.FabricConfiguration;
 import com.anhui.fabricbaascommon.entity.CaEntity;
 import com.anhui.fabricbaascommon.entity.UserEntity;
 import com.anhui.fabricbaascommon.exception.DuplicatedOperationException;
@@ -66,7 +65,7 @@ public class SystemService {
         log.info("可信第三方信息：" + ttp);
         log.info("生成CA服务信息：" + csrConfig);
 
-        // 启动CA容器并尝试初始化管理员证书
+        // 启动CA服务并尝试初始化管理员证书
         caServerService.initCaServer(csrConfig);
         caClientService.initRootCertfile(csrConfig);
         caRepo.save(ttp);

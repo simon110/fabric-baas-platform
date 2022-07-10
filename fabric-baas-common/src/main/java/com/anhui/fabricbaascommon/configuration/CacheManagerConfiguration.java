@@ -17,24 +17,25 @@ import static org.springframework.data.redis.serializer.RedisSerializationContex
 
 @Configuration
 public class CacheManagerConfiguration {
-    @Value("${spring.cache.redis.default-key-prefix}")
-    private String defaultKeyPrefix;
-    @Value("${spring.cache.redis.default-cache-name}")
-    private String defaultCacheName;
+    @Value("#{'${spring.cache.redis.cache-names}'.split(',')}")
+    private String[] cacheNames;
 
     @SuppressWarnings({"deprecation", "SpringJavaInjectionPointsAutowiringInspection"})
     @Bean
     public CacheManager cacheManager(RedisConnectionFactory redisConnectionFactory) {
         RedisSerializationContext.SerializationPair<String> keySerializer = fromSerializer(new StringRedisSerializer());
         RedisSerializationContext.SerializationPair<Object> valueSerializer = fromSerializer(new GenericJackson2JsonRedisSerializer());
+        RedisCacheManager.RedisCacheManagerBuilder builder = RedisCacheManager.builder(redisConnectionFactory);
 
-        RedisCacheConfiguration cacheConfig = RedisCacheConfiguration.defaultCacheConfig()
-                .entryTtl(Duration.ofMinutes(10))
-                .prefixKeysWith(defaultKeyPrefix)
-                .disableCachingNullValues()
-                .serializeKeysWith(keySerializer)
-                .serializeValuesWith(valueSerializer);
-        return RedisCacheManager.builder(redisConnectionFactory)
-                .withCacheConfiguration(defaultCacheName, cacheConfig).build();
+        for (String cacheName : cacheNames) {
+            RedisCacheConfiguration cacheConfig = RedisCacheConfiguration.defaultCacheConfig()
+                    .entryTtl(Duration.ofMinutes(10))
+                    .prefixKeysWith(cacheName + ':')
+                    .disableCachingNullValues()
+                    .serializeKeysWith(keySerializer)
+                    .serializeValuesWith(valueSerializer);
+            builder = builder.withCacheConfiguration(cacheName, cacheConfig);
+        }
+        return builder.build();
     }
 }

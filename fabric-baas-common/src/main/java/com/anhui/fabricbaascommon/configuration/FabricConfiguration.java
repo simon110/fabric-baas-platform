@@ -21,8 +21,8 @@ import java.util.Optional;
 @Slf4j
 public class FabricConfiguration {
     private String systemChannelName;
-    private String rootCaUsername;
-    private String rootCaPassword;
+    private String caRootUsername;
+    private String caRootPassword;
     private int caServerPort;
 
     @Autowired
@@ -32,10 +32,10 @@ public class FabricConfiguration {
     public CommandLineRunner adminCertfileInitializer() {
         return args -> {
             log.info("正在检查CA管理员信息...");
-            Optional<CertfileEntity> adminCertfileOptional = certfileRepo.findById(rootCaUsername);
+            Optional<CertfileEntity> adminCertfileOptional = certfileRepo.findById(caRootUsername);
             if (adminCertfileOptional.isEmpty()) {
                 log.info("正在初始化CA管理员信息...");
-                CertfileEntity certfile = new CertfileEntity(rootCaUsername, rootCaPassword, CertfileType.ADMIN);
+                CertfileEntity certfile = new CertfileEntity(caRootUsername, caRootPassword, CertfileType.ADMIN);
                 certfileRepo.save(certfile);
             }
         };

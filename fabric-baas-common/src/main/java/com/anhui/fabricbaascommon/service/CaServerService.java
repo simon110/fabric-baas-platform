@@ -78,8 +78,8 @@ public class CaServerService {
         caOption.put("name", csrConfig.getCaName());
         Map<String, Object> registryOption = (Map<String, Object>) caServerConfigYaml.get("registry");
         Map<String, Object> identitiesOption = ((List<Map<String, Object>>) registryOption.get("identities")).get(0);
-        identitiesOption.put("name", fabricConfig.getRootCaUsername());
-        identitiesOption.put("pass", fabricConfig.getRootCaPassword());
+        identitiesOption.put("name", fabricConfig.getCaRootUsername());
+        identitiesOption.put("pass", fabricConfig.getCaRootPassword());
         Map<String, Object> csrOption = (Map<String, Object>) caServerConfigYaml.get("csr");
         csrOption.put("cn", csrConfig.getCsrCommonName());
         csrOption.put("hosts", csrConfig.getCsrHosts());
@@ -102,7 +102,7 @@ public class CaServerService {
                 "FABRIC_CA_SERVER_PORT", "7054"
         );
         log.info("生成用户环境变量：" + envs);
-        String bootOption = fabricConfig.getRootCaUsername() + ':' + fabricConfig.getRootCaPassword();
+        String bootOption = fabricConfig.getCaRootUsername() + ':' + fabricConfig.getCaRootPassword();
         caServerProcess = CommandUtils.asyncExec(envs, "fabric-ca-server", "start", "-b", bootOption, "-d");
     }
 
