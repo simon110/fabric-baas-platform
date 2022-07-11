@@ -15,7 +15,10 @@ import com.anhui.fabricbaascommon.fabric.ChannelUtils;
 import com.anhui.fabricbaascommon.fabric.ConfigtxUtils;
 import com.anhui.fabricbaascommon.service.CaClientService;
 import com.anhui.fabricbaascommon.service.MinioService;
-import com.anhui.fabricbaascommon.util.*;
+import com.anhui.fabricbaascommon.util.MyFileUtils;
+import com.anhui.fabricbaascommon.util.MyResourceUtils;
+import com.anhui.fabricbaascommon.util.PasswordUtils;
+import com.anhui.fabricbaascommon.util.ZipUtils;
 import com.anhui.fabricbaasttp.bean.Orderer;
 import com.anhui.fabricbaasttp.constant.MinioBucket;
 import com.anhui.fabricbaasttp.entity.ChannelEntity;
@@ -30,6 +33,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,6 +46,7 @@ import java.util.*;
 
 @Service
 @Slf4j
+@CacheConfig(cacheNames = "ttp")
 public class NetworkService {
     @Autowired
     private MinioService minioService;
@@ -476,6 +482,7 @@ public class NetworkService {
         participationRepo.save(participation);
     }
 
+
     @Transactional
     public void handleParticipation(String currentOrganizationName, String networkName, String applierOrganizationName, boolean isAllowed) throws Exception {
         // 找到相应的申请
@@ -540,7 +547,7 @@ public class NetworkService {
         ChannelUtils.fetchGenesisBlock(ordererCoreEnv, fabricConfig.getSystemChannelName(), block);
         return MyResourceUtils.saveToDownloadDir(block, "block");
     }
-    
+
     public List<String> queryOrganizations(String networkName) throws NetworkException {
         NetworkEntity network = findNetworkOrThrowEx(networkName);
         return network.getOrganizationNames();

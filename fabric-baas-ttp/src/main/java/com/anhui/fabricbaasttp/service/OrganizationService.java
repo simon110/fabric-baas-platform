@@ -135,10 +135,10 @@ public class OrganizationService {
      * 3. 增加相应的组织和用户定义（如果需要）
      */
     @CacheClean(patterns = {
-            "OrganizationService:queryRegistrations:*",
-            "OrganizationService:queryOrganizations:*"
+            "'OrganizationService:queryRegistrations:*'",
+            "'OrganizationService:queryOrganizations:*'"
     })
-    @CacheEvict(key = "'OrganizationService:findUnhandledRegistration:'+organizationName")
+    @CacheEvict(key = "'OrganizationService:findUnhandledRegistration:'+#organizationName")
     @Transactional
     public void handleRegistration(String organizationName, boolean isAllowed) throws Exception {
         RegistrationEntity registration = findUnhandledRegistration(organizationName);
