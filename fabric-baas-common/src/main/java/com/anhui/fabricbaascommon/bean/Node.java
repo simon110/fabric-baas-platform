@@ -27,4 +27,9 @@ public class Node {
     public String getAddr() {
         return String.format("%s:%d", host, port);
     }
+
+    @Override
+    public String toString() {
+        return getAddr();
+    }
 }

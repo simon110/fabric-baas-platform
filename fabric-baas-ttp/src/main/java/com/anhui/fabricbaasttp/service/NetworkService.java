@@ -1,6 +1,7 @@
 package com.anhui.fabricbaasttp.service;
 
 import cn.hutool.core.lang.Assert;
+import com.anhui.fabricbaascommon.annotation.CacheClean;
 import com.anhui.fabricbaascommon.bean.ConfigtxOrderer;
 import com.anhui.fabricbaascommon.bean.ConfigtxOrganization;
 import com.anhui.fabricbaascommon.bean.CoreEnv;
@@ -21,7 +22,6 @@ import com.anhui.fabricbaascommon.util.PasswordUtils;
 import com.anhui.fabricbaascommon.util.ZipUtils;
 import com.anhui.fabricbaasttp.bean.Orderer;
 import com.anhui.fabricbaasttp.constant.MinioBucket;
-import com.anhui.fabricbaasttp.entity.ChannelEntity;
 import com.anhui.fabricbaasttp.entity.NetworkEntity;
 import com.anhui.fabricbaasttp.entity.ParticipationEntity;
 import com.anhui.fabricbaasttp.repository.ChannelRepo;
@@ -34,7 +34,9 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -69,7 +71,7 @@ public class NetworkService {
         }
     }
 
-    private static void assertOrdererInNetwork(NetworkEntity network, Node orderer, boolean expected) throws NodeException {
+    private void assertOrdererInNetwork(NetworkEntity network, Node orderer, boolean expected) throws NodeException {
         Set<String> set = new TreeSet<>();
         network.getOrderers().forEach(o -> set.add(o.getAddr()));
         String addr = orderer.getAddr();
@@ -78,7 +80,7 @@ public class NetworkService {
         }
     }
 
-    private static void assertOrderersNotDuplicated(List<Node> orderers) throws NodeException {
+    private void assertNoDuplicatedOrderers(List<Node> orderers) throws NodeException {
         Set<String> set = new TreeSet<>();
         for (Node node : orderers) {
             String addr = node.getAddr();
@@ -92,6 +94,7 @@ public class NetworkService {
     /**
      * 如果网络存在则返回相应的实体，否则抛出异常。
      */
+    @Cacheable(keyGenerator = "keyGenerator")
     public NetworkEntity findNetworkOrThrowEx(String networkName) throws NetworkException {
         Optional<NetworkEntity> networkOptional = networkRepo.findById(networkName);
         if (networkOptional.isEmpty()) {
@@ -100,7 +103,7 @@ public class NetworkService {
         return networkOptional.get();
     }
 
-    private String findOrdererOrganizationNameOrThrowEx(NetworkEntity network, Node orderer) throws NodeNotFoundException {
+    private static String findOrdererOrganizationNameOrThrowEx(NetworkEntity network, Node orderer) throws NodeNotFoundException {
         String targetAddr = orderer.getAddr();
         List<Orderer> orderers = network.getOrderers();
         for (Orderer endpoint : orderers) {
@@ -111,7 +114,8 @@ public class NetworkService {
         throw new NodeNotFoundException("未找到相应的Orderer：" + targetAddr);
     }
 
-    private ParticipationEntity findUnhandledParticipationOrThrowEx(String networkName, String organizationName) throws ParticipationException {
+    @Cacheable(keyGenerator = "keyGenerator")
+    public ParticipationEntity findUnhandledParticipationOrThrowEx(String networkName, String organizationName) throws ParticipationException {
         Optional<ParticipationEntity> participationOptional = participationRepo.findFirstByNetworkNameAndOrganizationNameAndStatus(networkName, organizationName, ApplStatus.UNHANDLED);
         if (participationOptional.isEmpty()) {
             throw new ParticipationException("该组织不存在待处理的加入网络申请：" + organizationName);
@@ -177,10 +181,12 @@ public class NetworkService {
         ChannelUtils.submitChannelUpdate(ordererCoreEnv.getMspEnv(), ordererCoreEnv.getTlsEnv(), fabricConfig.getSystemChannelName(), envelope);
     }
 
+    @Cacheable(keyGenerator = "keyGenerator")
     public List<Orderer> getNetworkOrderers(String networkName) throws NetworkException {
         return findNetworkOrThrowEx(networkName).getOrderers();
     }
 
+    @Cacheable(keyGenerator = "keyGenerator")
     public String queryOrdererTlsCert(String currentOrganizationName, String networkName, Node orderer) throws Exception {
         // 检查网络是否存在
         NetworkEntity network = findNetworkOrThrowEx(networkName);
@@ -195,6 +201,7 @@ public class NetworkService {
         return MyResourceUtils.saveToDownloadDir(ordererTlsCert, "crt");
     }
 
+    @Cacheable(keyGenerator = "keyGenerator")
     public String queryOrdererCert(String currentOrganizationName, String networkName, Node orderer) throws Exception {
         // 检查网络是否存在
         NetworkEntity network = findNetworkOrThrowEx(networkName);
@@ -215,6 +222,11 @@ public class NetworkService {
         return MyResourceUtils.saveToDownloadDir(ordererCertfileZip, "zip");
     }
 
+    @Caching(evict = {
+            @CacheEvict(key = "'NetworkService:findNetworkOrThrowEx'+#networkName"),
+            @CacheEvict(key = "'NetworkService:getNetworkOrderers:'+#networkName")
+    })
+    @CacheClean(patterns = "'NetworkService:queryNetworks:'+#networkName+'*'")
     @Transactional
     public String addOrderer(String currentOrganizationName, String networkName, Node orderer) throws Exception {
         // 检查网络是否存在
@@ -290,6 +302,7 @@ public class NetworkService {
         return MyResourceUtils.saveToDownloadDir(ordererCertfileZip, "zip");
     }
 
+    @CacheClean(patterns = "'NetworkService:queryNetworks:'+#networkName+'*'")
     @Transactional
     public String createNetwork(
             String currentOrganizationName,
@@ -299,7 +312,7 @@ public class NetworkService {
             MultipartFile adminCertZip)
             throws Exception {
         // 检查是否存在重复的Orderer地址
-        assertOrderersNotDuplicated(orderers);
+        assertNoDuplicatedOrderers(orderers);
 
         // 检查相同名称的网络是否已存在
         if (networkRepo.existsById(networkName)) {
@@ -411,6 +424,7 @@ public class NetworkService {
         return MyResourceUtils.saveToDownloadDir(sysChannelGenesis, "block");
     }
 
+    @Cacheable(keyGenerator = "keyGenerator")
     public Page<NetworkEntity> queryNetworks(String networkNameKeyword, String organizationNameKeyword, int page, int pageSize) {
         Sort sort = Sort.by(Sort.Direction.ASC, "name");
         Pageable pageable = PageRequest.of(page - 1, pageSize, sort);
@@ -448,6 +462,8 @@ public class NetworkService {
         }
     }
 
+    @CacheClean(patterns = "'NetworkService:queryParticipations:'+#networkName+'*'")
+    @CacheEvict(key = "'NetworkService:findUnhandledParticipationOrThrowEx:'+#networkName+','+#currentOrganizationName")
     @Transactional
     public void applyParticipation(
             String currentOrganizationName,
@@ -482,7 +498,15 @@ public class NetworkService {
         participationRepo.save(participation);
     }
 
-
+    @Caching(evict = {
+            @CacheEvict(key = "'NetworkService:findUnhandledParticipationOrThrowEx:'+#networkName+','+#applierOrganizationName"),
+            @CacheEvict(key = "'NetworkService:queryOrganizations:'+#networkName"),
+            @CacheEvict(key = "'NetworkService:findNetworkOrThrowEx'+#networkName")
+    })
+    @CacheClean(patterns = {
+            "'NetworkService:queryParticipations:'+#networkName+'*'",
+            "'NetworkService:queryNetworks:'+#networkName+'*'"
+    })
     @Transactional
     public void handleParticipation(String currentOrganizationName, String networkName, String applierOrganizationName, boolean isAllowed) throws Exception {
         // 找到相应的申请
@@ -529,6 +553,7 @@ public class NetworkService {
         networkRepo.save(network);
     }
 
+    @Cacheable(keyGenerator = "keyGenerator")
     public Page<ParticipationEntity> queryParticipations(String networkName, int status, int page, int pageSize) throws NetworkException {
         findNetworkOrThrowEx(networkName);
         Sort sort = Sort.by(Sort.Direction.DESC, "timestamp");
@@ -548,21 +573,10 @@ public class NetworkService {
         return MyResourceUtils.saveToDownloadDir(block, "block");
     }
 
+    @Cacheable(keyGenerator = "keyGenerator")
     public List<String> queryOrganizations(String networkName) throws NetworkException {
         NetworkEntity network = findNetworkOrThrowEx(networkName);
         return network.getOrganizationNames();
-    }
-
-    public List<String> queryChannels(String networkName) {
-        List<ChannelEntity> channels = channelRepo.findAllByNetworkName(networkName);
-        List<String> channelNames = new ArrayList<>(channels.size());
-        channels.forEach(channel -> channelNames.add(channel.getName()));
-        return channelNames;
-    }
-
-    public List<Orderer> queryOrderers(String networkName) throws NetworkException {
-        NetworkEntity network = findNetworkOrThrowEx(networkName);
-        return network.getOrderers();
     }
 
     public List<ConfigtxOrderer> generateConfigtxOrderers(List<Orderer> orderers) {

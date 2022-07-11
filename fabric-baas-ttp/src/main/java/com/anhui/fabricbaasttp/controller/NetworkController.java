@@ -5,11 +5,17 @@ import com.anhui.fabricbaascommon.request.BaseNetworkRequest;
 import com.anhui.fabricbaascommon.request.ParticipationApplyRequest;
 import com.anhui.fabricbaascommon.request.ParticipationHandleRequest;
 import com.anhui.fabricbaascommon.request.ParticipationQueryRequest;
-import com.anhui.fabricbaascommon.response.*;
+import com.anhui.fabricbaascommon.response.ListResult;
+import com.anhui.fabricbaascommon.response.PaginationQueryResult;
+import com.anhui.fabricbaascommon.response.ResourceResult;
+import com.anhui.fabricbaascommon.response.UniqueResult;
 import com.anhui.fabricbaasttp.bean.Orderer;
 import com.anhui.fabricbaasttp.entity.NetworkEntity;
 import com.anhui.fabricbaasttp.entity.ParticipationEntity;
-import com.anhui.fabricbaasttp.request.*;
+import com.anhui.fabricbaasttp.request.NetworkCreateRequest;
+import com.anhui.fabricbaasttp.request.NetworkOrdererRequest;
+import com.anhui.fabricbaasttp.request.NetworkQueryRequest;
+import com.anhui.fabricbaasttp.service.ChannelService;
 import com.anhui.fabricbaasttp.service.NetworkService;
 import com.anhui.fabricbaasweb.util.SecurityUtils;
 import io.swagger.annotations.Api;
@@ -30,6 +36,8 @@ import java.util.List;
 public class NetworkController {
     @Autowired
     private NetworkService networkService;
+    @Autowired
+    private ChannelService channelService;
 
     @Secured({Authority.USER})
     @PostMapping("/createNetwork")
@@ -130,7 +138,7 @@ public class NetworkController {
     @PostMapping("/queryNetworkChannels")
     @ApiOperation("查询指定网络中的通道信息")
     public ListResult<String> queryChannels(@Valid @RequestBody BaseNetworkRequest request) throws Exception {
-        List<String> channelNames = networkService.queryChannels(request.getNetworkName());
+        List<String> channelNames = channelService.queryChannels(request.getNetworkName());
         return new ListResult<>(channelNames);
     }
 
@@ -138,7 +146,7 @@ public class NetworkController {
     @PostMapping("/queryOrderers")
     @ApiOperation("查询指定网络中的Orderer信息")
     public ListResult<Orderer> queryOrderers(@Valid @RequestBody BaseNetworkRequest request) throws Exception {
-        List<Orderer> orderers = networkService.queryOrderers(request.getNetworkName());
+        List<Orderer> orderers = networkService.getNetworkOrderers(request.getNetworkName());
         return new ListResult<>(orderers);
     }
 }

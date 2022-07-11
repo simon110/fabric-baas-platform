@@ -36,6 +36,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -58,6 +59,7 @@ public class OrganizationService {
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
 
+    @Cacheable(keyGenerator = "keyGenerator")
     public UserDetails findOrganizationUserDetailsOrThrowEx(String organizationName) throws OrganizationException {
         UserDetails userDetails = jwtUserDetailsService.loadUserByUsername(organizationName);
         if (userDetails == null) {
@@ -82,17 +84,17 @@ public class OrganizationService {
     }
 
     @Cacheable(keyGenerator = "keyGenerator")
-    public RegistrationEntity findUnhandledRegistration(String organizationName) {
+    public Optional<RegistrationEntity> findUnhandledRegistration(String organizationName) {
         List<RegistrationEntity> registrations = registrationRepo.findAllByOrganizationNameAndStatus(organizationName, ApplStatus.UNHANDLED);
         if (!registrations.isEmpty()) {
             Assert.isTrue(registrations.size() == 1);
             // 判断最后一次注册申请的状态
             RegistrationEntity registration = registrations.get(0);
             if (registration.getStatus() == ApplStatus.UNHANDLED) {
-                return registration;
+                return Optional.of(registration);
             }
         }
-        return null;
+        return Optional.empty();
     }
 
     /**
@@ -102,6 +104,8 @@ public class OrganizationService {
      * 3. 将注册申请保存至数据库
      */
     @Transactional
+    @CacheEvict(key = "'OrganizationService:findUnhandledRegistration:'+#organizationName")
+    @CacheClean(patterns = {"'OrganizationService:queryRegistrations:*'"})
     public void applyRegistration(
             String organizationName,
             String password,
@@ -112,7 +116,7 @@ public class OrganizationService {
         if (userRepo.existsById(organizationName)) {
             throw new DuplicatedOperationException("该组织已经成功注册，请勿重复申请");
         }
-        if (findUnhandledRegistration(organizationName) != null) {
+        if (findUnhandledRegistration(organizationName).isPresent()) {
             throw new DuplicatedOperationException("该组织的注册申请仍在审核当中，请勿重复提交");
         }
 
@@ -141,10 +145,11 @@ public class OrganizationService {
     @CacheEvict(key = "'OrganizationService:findUnhandledRegistration:'+#organizationName")
     @Transactional
     public void handleRegistration(String organizationName, boolean isAllowed) throws Exception {
-        RegistrationEntity registration = findUnhandledRegistration(organizationName);
-        if (registration == null) {
+        Optional<RegistrationEntity> registrationOptional = findUnhandledRegistration(organizationName);
+        if (registrationOptional.isEmpty()) {
             throw new RegistrationException("该组织不存在未处理的注册申请");
         }
+        RegistrationEntity registration = registrationOptional.get();
 
         if (isAllowed) {
             registration.setStatus(ApplStatus.ACCEPTED);

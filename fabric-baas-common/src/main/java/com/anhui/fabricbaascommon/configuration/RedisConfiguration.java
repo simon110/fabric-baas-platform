@@ -18,7 +18,7 @@ public class RedisConfiguration {
             builder.append(target.getClass().getSimpleName()).append(':');
             builder.append(method.getName()).append(':');
             for (Object param : params) {
-                builder.append(param.toString()).append(',');
+                builder.append(param.toString().replace(" ", "")).append(',');
             }
             return builder.substring(0, builder.length() - 1);
         };

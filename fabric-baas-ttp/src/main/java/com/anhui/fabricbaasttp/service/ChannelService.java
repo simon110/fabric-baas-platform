@@ -409,4 +409,11 @@ public class ChannelService {
 
         return ChannelUtils.getChannelStatus(peerCoreEnv, ordererTlsEnv, channelName);
     }
+
+    public List<String> queryChannels(String networkName) {
+        List<ChannelEntity> channels = channelRepo.findAllByNetworkName(networkName);
+        List<String> channelNames = new ArrayList<>(channels.size());
+        channels.forEach(channel -> channelNames.add(channel.getName()));
+        return channelNames;
+    }
 }
