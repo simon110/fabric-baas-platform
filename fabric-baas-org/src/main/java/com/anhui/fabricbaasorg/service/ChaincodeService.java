@@ -128,7 +128,7 @@ public class ChaincodeService {
         List<ApprovedChaincodeEntity> entities = approvedChaincodeRepo.findAllByCommitted(false);
         Map<String, List<ApprovedChaincode>> map = new HashMap<>();
 
-        Set<String> redisKeysToDelete = new HashSet<>();
+        Set<String> expiredRedisKeySet = new HashSet<>();
         boolean isUpdated = false;
         for (ApprovedChaincodeEntity entity : entities) {
             // 如果已经知道链码生效了就不必要更新状态了
@@ -154,17 +154,17 @@ public class ChaincodeService {
                     log.info("已更新链码状态：" + entity);
 
                     // 增加删除的缓存键值
-                    redisKeysToDelete.add("ChaincodeService:findApprovedChaincodeOrThrowEx:" + approvedChaincode);
-                    redisKeysToDelete.add("ChaincodeService:getAllCommittedChaincodesOnChannel:" + approvedChaincode.getChannelName());
+                    expiredRedisKeySet.add("org:ChaincodeService:findApprovedChaincodeOrThrowEx:" + approvedChaincode);
+                    expiredRedisKeySet.add("org:ChaincodeService:getAllCommittedChaincodesOnChannel:" + approvedChaincode.getChannelName());
                 }
             }
         }
 
         if (isUpdated) {
-            redisKeysToDelete.add("ChaincodeService:queryApprovedChaincodes:*");
-            redisKeysToDelete.add("ChaincodeService:queryCommittedChaincodes:*");
+            expiredRedisKeySet.add("org:ChaincodeService:queryApprovedChaincodes:*");
+            expiredRedisKeySet.add("org:ChaincodeService:queryCommittedChaincodes:*");
         }
-        redisTemplate.delete(redisKeysToDelete);
+        redisTemplate.delete(expiredRedisKeySet);
     }
 
     @Cacheable(keyGenerator = "keyGenerator")
