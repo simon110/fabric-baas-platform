@@ -1,6 +1,7 @@
 package com.anhui.fabricbaasttp.service;
 
 import cn.hutool.core.lang.Assert;
+import com.anhui.fabricbaascommon.annotation.CacheClean;
 import com.anhui.fabricbaascommon.bean.*;
 import com.anhui.fabricbaascommon.constant.CertfileType;
 import com.anhui.fabricbaascommon.exception.*;
@@ -20,6 +21,10 @@ import com.anhui.fabricbaasttp.util.IdentifierGenerator;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -37,6 +42,7 @@ import java.util.*;
  */
 @Service
 @Slf4j
+@CacheConfig(cacheNames = "ttp")
 public class ChannelService {
     @Autowired
     private NetworkService networkService;
@@ -49,12 +55,13 @@ public class ChannelService {
     @Autowired
     private FabricEnvService fabricEnvService;
 
-    private void assertOrganizationInChannel(ChannelEntity channel, String organizationName, boolean expected) throws OrganizationException {
+    private static void assertOrganizationInChannel(ChannelEntity channel, String organizationName, boolean expected) throws OrganizationException {
         if (channel.getOrganizationNames().contains(organizationName) != expected) {
             throw new OrganizationException("组织在通道中的存在不符合断言：" + organizationName);
         }
     }
 
+    @Cacheable(keyGenerator = "keyGenerator")
     public ChannelEntity findChannelOrThrowEx(String channelName) throws ChannelException {
         Optional<ChannelEntity> channelOptional = channelRepo.findById(channelName);
         if (channelOptional.isEmpty()) {
@@ -63,7 +70,7 @@ public class ChannelService {
         return channelOptional.get();
     }
 
-    private void assertPeerInChannel(ChannelEntity channel, Node peer, boolean expected) throws NodeException {
+    private static void assertPeerInChannel(ChannelEntity channel, Node peer, boolean expected) throws NodeException {
         Set<String> set = new HashSet<>();
         channel.getPeers().forEach(p -> set.add(p.getAddr()));
         String addr = peer.getAddr();
@@ -72,7 +79,7 @@ public class ChannelService {
         }
     }
 
-    private void assertPeerOwnership(ChannelEntity channel, Node peer, String organizationName) throws NodeException {
+    private static void assertPeerOwnership(ChannelEntity channel, Node peer, String organizationName) throws NodeException {
         String targetAddr = peer.getAddr();
         boolean result = false;
         List<Peer> peers = channel.getPeers();
@@ -93,7 +100,7 @@ public class ChannelService {
         }
     }
 
-    private void assertInvitationCodes(List<String> invitationCodes, List<String> invitorOrgNames, String inviteeOrgName, String channelName) throws Exception {
+    private static void assertInvitationCodes(List<String> invitationCodes, List<String> invitorOrgNames, String inviteeOrgName, String channelName) throws Exception {
         Set<String> actualInvitorSet = new HashSet<>();
         Set<String> givenInvitorSet = new HashSet<>(invitorOrgNames);
         log.info("邀请码应包含组织：" + givenInvitorSet);
@@ -113,7 +120,6 @@ public class ChannelService {
             throw new InvitationException("必须包含所有通道中的组织的邀请码");
         }
     }
-
 
     public CoreEnv fetchChannelConfig(ChannelEntity channel, File config) throws NetworkException, CaException, IOException, InterruptedException, ChannelException {
         List<Orderer> orderers = networkService.getNetworkOrderers(channel.getNetworkName());
@@ -143,6 +149,10 @@ public class ChannelService {
     }
 
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(key = "'ChannelService:findChannelOrThrowEx:'+#channelName"),
+    })
+    @CacheClean(patterns = "'ChannelService:getOrganizationChannels:*'")
     public void submitInvitationCodes(String currentOrganizationName, String channelName, List<String> invitationCodes) throws Exception {
         ChannelEntity channel = findChannelOrThrowEx(channelName);
         assertOrganizationInChannel(channel, currentOrganizationName, false);
@@ -199,6 +209,8 @@ public class ChannelService {
     }
 
     @Transactional
+    @CacheEvict(key = "'ChannelService:queryChannels:'+#networkName")
+    @CacheClean(patterns = "'ChannelService:getOrganizationChannels:*'")
     public void createChannel(String currentOrganizationName, String channelName, String networkName) throws Exception {
         // 检查操作的组织是否属于相应的网络
         NetworkEntity network = networkService.findNetworkOrThrowEx(networkName);
@@ -262,6 +274,11 @@ public class ChannelService {
     }
 
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(key = "'ChannelService:queryPeers:'+#channelName"),
+            @CacheEvict(key = "'ChannelService:findChannelOrThrowEx:'+#channelName"),
+    })
+    @CacheClean(patterns = "'ChannelService:getOrganizationChannels:*'")
     public void joinChannel(String currentOrganizationName, String channelName, Node peer, MultipartFile peerCertZip) throws Exception {
         ChannelEntity channel = findChannelOrThrowEx(channelName);
 
@@ -375,6 +392,7 @@ public class ChannelService {
         ChannelUtils.submitChannelUpdate(organizationMspEnv, ordererCoreEnv.getTlsEnv(), channel.getName(), envelope);
     }
 
+    @Cacheable(keyGenerator = "keyGenerator")
     public String queryPeerTlsCert(String currentOrganizationName, String channelName, Node peer) throws Exception {
         // 检查通道是否存在
         ChannelEntity channel = findChannelOrThrowEx(channelName);
@@ -389,10 +407,12 @@ public class ChannelService {
         return MyResourceUtils.saveToDownloadDir(ordererTlsCert, "crt");
     }
 
+    @Cacheable(keyGenerator = "keyGenerator")
     public List<Peer> queryPeers(String channelName) throws Exception {
         return findChannelOrThrowEx(channelName).getPeers();
     }
 
+    @Cacheable(keyGenerator = "keyGenerator")
     public Page<ChannelEntity> getOrganizationChannels(String organizationName, int page, int pageSize) {
         Pageable pageable = PageRequest.of(page - 1, pageSize);
         return channelRepo.findAllByOrganizationNamesIsContaining(organizationName, pageable);
@@ -410,6 +430,7 @@ public class ChannelService {
         return ChannelUtils.getChannelStatus(peerCoreEnv, ordererTlsEnv, channelName);
     }
 
+    @Cacheable(keyGenerator = "keyGenerator")
     public List<String> queryChannels(String networkName) {
         List<ChannelEntity> channels = channelRepo.findAllByNetworkName(networkName);
         List<String> channelNames = new ArrayList<>(channels.size());
