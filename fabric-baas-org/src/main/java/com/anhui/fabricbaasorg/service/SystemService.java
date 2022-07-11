@@ -22,6 +22,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,6 +36,7 @@ import java.util.Optional;
 
 @Slf4j
 @Service
+@CacheConfig(cacheNames = "org")
 public class SystemService {
     @Autowired
     private KubernetesService kubernetesService;
@@ -55,7 +59,7 @@ public class SystemService {
     @Autowired
     private TTPOrganizationApi ttpOrganizationApi;
 
-    public void initRemoteUser(RemoteUserEntity remoteUser) throws Exception {
+    private void initRemoteUser(RemoteUserEntity remoteUser) throws Exception {
         if (remoteUserRepo.count() != 0) {
             throw new DuplicatedOperationException("可信第三方的信息已经存在！");
         }
@@ -64,7 +68,7 @@ public class SystemService {
         remoteUserRepo.save(remoteUser);
     }
 
-    public void initCaService(CaEntity ca) throws DuplicatedOperationException, DockerException, InterruptedException, IOException, CaException {
+    private void initCaService(CaEntity ca) throws DuplicatedOperationException, DockerException, InterruptedException, IOException, CaException {
         if (caRepo.count() != 0) {
             throw new DuplicatedOperationException("CA服务存在，请勿重复初始化系统");
         }
@@ -79,7 +83,7 @@ public class SystemService {
         caRepo.save(ca);
     }
 
-    public void initKubernetesService(MultipartFile kubernetesConfig) throws Exception {
+    private void initKubernetesService(MultipartFile kubernetesConfig) throws Exception {
         // 将证书导入到KubernetesService中
         File tempKubernetesConfig = MyFileUtils.createTempFile("yaml");
         FileUtils.writeByteArrayToFile(tempKubernetesConfig, kubernetesConfig.getBytes());
@@ -105,6 +109,7 @@ public class SystemService {
      * 4. 初始化TTP远程用户
      */
     @Transactional
+    @CacheEvict(key = "'SystemService:isAvailable'")
     public void init(CaEntity org, RemoteUserEntity remoteUser, String adminPassword, MultipartFile kubernetesConfig) throws Exception {
         if (isAvailable()) {
             throw new DuplicatedOperationException("请勿重复初始化系统");
@@ -125,6 +130,7 @@ public class SystemService {
         }
     }
 
+    @Cacheable(keyGenerator = "keyGenerator")
     public boolean isAvailable() {
         return caRepo.count() != 0;
     }

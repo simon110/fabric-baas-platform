@@ -61,7 +61,7 @@ public class NetworkService {
     @Autowired
     private FabricConfiguration fabricConfig;
     @Autowired
-    private FabricEnvService fabricEnvService;
+    private FabricService fabricService;
     @Autowired
     private ChannelRepo channelRepo;
 
@@ -127,7 +127,7 @@ public class NetworkService {
         // Orderer orderer = RandomUtils.select(network.getOrderers());
         Orderer orderer = network.getOrderers().get(0);
         log.info("从网络中选择了Orderer：" + orderer.getAddr());
-        CoreEnv ordererCoreEnv = fabricEnvService.buildOrdererCoreEnv(orderer);
+        CoreEnv ordererCoreEnv = fabricService.buildOrdererCoreEnv(orderer);
         log.info("生成Orderer的环境变量：" + ordererCoreEnv);
         ChannelUtils.fetchConfig(ordererCoreEnv, fabricConfig.getSystemChannelName(), config);
         log.info("从网络的系统通道拉取配置：" + config.getAbsolutePath());
@@ -566,7 +566,7 @@ public class NetworkService {
         assertOrganizationInNetwork(network, currentOrganizationName, true);
 
         Orderer orderer = network.getOrderers().get(0);
-        CoreEnv ordererCoreEnv = fabricEnvService.buildOrdererCoreEnv(orderer);
+        CoreEnv ordererCoreEnv = fabricService.buildOrdererCoreEnv(orderer);
 
         File block = MyFileUtils.createTempFile("block");
         ChannelUtils.fetchGenesisBlock(ordererCoreEnv, fabricConfig.getSystemChannelName(), block);

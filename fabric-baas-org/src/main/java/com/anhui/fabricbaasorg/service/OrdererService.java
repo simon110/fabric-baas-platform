@@ -1,10 +1,11 @@
 package com.anhui.fabricbaasorg.service;
 
 import cn.hutool.core.util.ZipUtil;
+import com.anhui.fabricbaascommon.annotation.CacheClean;
 import com.anhui.fabricbaascommon.bean.Node;
 import com.anhui.fabricbaascommon.constant.CertfileType;
-import com.anhui.fabricbaascommon.service.CaClientService;
 import com.anhui.fabricbaascommon.fabric.CertfileUtils;
+import com.anhui.fabricbaascommon.service.CaClientService;
 import com.anhui.fabricbaascommon.util.MyFileUtils;
 import com.anhui.fabricbaasorg.entity.OrdererEntity;
 import com.anhui.fabricbaasorg.remote.TTPNetworkApi;
@@ -12,6 +13,8 @@ import com.anhui.fabricbaasorg.remote.TTPOrganizationApi;
 import com.anhui.fabricbaasorg.repository.OrdererRepo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -21,6 +24,7 @@ import java.io.File;
 
 @Slf4j
 @Service
+@CacheConfig(cacheNames = "org")
 public class OrdererService {
     @Autowired
     private TTPNetworkApi ttpNetworkApi;
@@ -33,6 +37,7 @@ public class OrdererService {
     @Autowired
     private TTPOrganizationApi ttpOrganizationApi;
 
+    @CacheClean(patterns = "'OrdererService:queryOrderersInCluster:*'")
     public void startOrderer(String networkName, OrdererEntity orderer, File sysChannelGenesisBlock) throws Exception {
         // 获取集群域名
         String domain = caClientService.getCaOrganizationDomain();
@@ -50,6 +55,7 @@ public class OrdererService {
         kubernetesService.startOrderer(ordererOrganizationName, orderer, certfileDir, sysChannelGenesisBlock);
     }
 
+
     public void startOrderer(String networkName, OrdererEntity orderer) throws Exception {
         // 获取网络的创世区块
         File sysChannelGenesisBlock = MyFileUtils.createTempFile("block");
@@ -57,10 +63,12 @@ public class OrdererService {
         startOrderer(networkName, orderer, sysChannelGenesisBlock);
     }
 
+    @CacheClean(patterns = "'OrdererService:queryOrderersInCluster:*'")
     public void stopOrderer(String ordererName) throws Exception {
         kubernetesService.stopOrderer(ordererName);
     }
 
+    @Cacheable(keyGenerator = "keyGenerator")
     public Page<OrdererEntity> queryOrderersInCluster(int page, int pageSize) {
         Pageable pageable = PageRequest.of(page - 1, pageSize);
         return ordererRepo.findAll(pageable);

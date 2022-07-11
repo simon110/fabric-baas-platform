@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 
 @Service
-public class FabricEnvService {
+public class FabricService {
     @Autowired
     private CaClientService caClientService;
 

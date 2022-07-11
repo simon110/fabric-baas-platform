@@ -3,18 +3,18 @@ package com.anhui.fabricbaasorg.service;
 import com.anhui.fabricbaascommon.bean.Node;
 import com.anhui.fabricbaascommon.constant.CertfileType;
 import com.anhui.fabricbaascommon.exception.ChannelException;
-import com.anhui.fabricbaascommon.exception.NodeException;
-import com.anhui.fabricbaascommon.service.CaClientService;
 import com.anhui.fabricbaascommon.fabric.CertfileUtils;
+import com.anhui.fabricbaascommon.service.CaClientService;
 import com.anhui.fabricbaascommon.util.MyFileUtils;
 import com.anhui.fabricbaasorg.entity.ChannelEntity;
 import com.anhui.fabricbaasorg.entity.PeerEntity;
 import com.anhui.fabricbaasorg.remote.TTPChannelApi;
-import com.anhui.fabricbaasorg.remote.TTPNetworkApi;
 import com.anhui.fabricbaasorg.repository.ChannelRepo;
-import com.anhui.fabricbaasorg.repository.PeerRepo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,18 +23,18 @@ import java.util.Optional;
 
 @Service
 @Slf4j
+@CacheConfig(cacheNames = "org")
 public class ChannelService {
     @Autowired
     private TTPChannelApi ttpChannelApi;
     @Autowired
     private CaClientService caClientService;
     @Autowired
-    private PeerRepo peerRepo;
+    private PeerService peerService;
     @Autowired
     private ChannelRepo channelRepo;
-    @Autowired
-    private TTPNetworkApi ttpNetworkApi;
 
+    @Cacheable(keyGenerator = "keyGenerator")
     public ChannelEntity findChannelOrThrowEx(String channelName) throws ChannelException {
         Optional<ChannelEntity> optional = channelRepo.findById(channelName);
         if (optional.isPresent()) {
@@ -43,15 +43,8 @@ public class ChannelService {
         throw new ChannelException("通道不存在：" + channelName);
     }
 
-    public PeerEntity findPeerOrThrowEx(String peerName) throws NodeException {
-        Optional<PeerEntity> peerOptional = peerRepo.findById(peerName);
-        if (peerOptional.isEmpty()) {
-            throw new NodeException("未找到相应的Peer节点：" + peerName);
-        }
-        return peerOptional.get();
-    }
-
     @Transactional
+    @CacheEvict(key = "'ChannelService:findChannelOrThrowEx:'+#channelName")
     public void create(String channelName, String networkName) throws Exception {
         ttpChannelApi.createChannel(networkName, channelName);
         ChannelEntity channel = new ChannelEntity(channelName, networkName);
@@ -63,13 +56,13 @@ public class ChannelService {
         String domain = caClientService.getCaOrganizationDomain();
 
         // 查询相应的Peer的端口
-        PeerEntity peer = findPeerOrThrowEx(peerName);
+        PeerEntity peer = peerService.findPeerOrThrowEx(peerName);
         Node anchor = new Node(domain, peer.getKubeNodePort());
         ttpChannelApi.setAnchorPeer(channelName, anchor);
     }
 
     public void join(String channelName, String peerName) throws Exception {
-        PeerEntity peer = findPeerOrThrowEx(peerName);
+        PeerEntity peer = peerService.findPeerOrThrowEx(peerName);
         // 如果Peer节点已经启动必然存在证书
         File certfileDir = CertfileUtils.getCertfileDir(peer.getCaUsername(), CertfileType.PEER);
         File peerCertfileZip = MyFileUtils.createTempFile("zip");

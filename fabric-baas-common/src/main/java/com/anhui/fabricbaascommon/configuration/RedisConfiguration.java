@@ -16,11 +16,15 @@ public class RedisConfiguration {
         return (target, method, params) -> {
             StringBuilder builder = new StringBuilder();
             builder.append(target.getClass().getSimpleName()).append(':');
-            builder.append(method.getName()).append(':');
-            for (Object param : params) {
-                builder.append(param.toString().replace(" ", "")).append(',');
+            builder.append(method.getName());
+            if (params.length > 0) {
+                builder.append(':');
+                for (Object param : params) {
+                    builder.append(param.toString()).append(',');
+                }
+                return builder.substring(0, builder.length() - 1);
             }
-            return builder.substring(0, builder.length() - 1);
+            return builder.toString();
         };
     }
 

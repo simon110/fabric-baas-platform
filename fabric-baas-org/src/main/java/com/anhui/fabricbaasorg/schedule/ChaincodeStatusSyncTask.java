@@ -12,8 +12,14 @@ public class ChaincodeStatusSyncTask {
     @Autowired
     private ChaincodeService chaincodeService;
 
+    // fixedDelay单位为毫秒
     @Scheduled(fixedDelay = 120000)
-    public void syncChaincodeStatuses() throws Exception {
-        chaincodeService.syncApprovedChaincodeStatuses();
+    public void synchronizeChaincodeStatuses() {
+        try {
+            chaincodeService.synchronizeApprovedChaincodeStatuses();
+        } catch (Exception ex) {
+            // TODO: 邮件通知管理员
+            log.error("同步链码状态时发生异常：" + ex);
+        }
     }
 }
