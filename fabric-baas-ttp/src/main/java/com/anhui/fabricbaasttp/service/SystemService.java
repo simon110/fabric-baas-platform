@@ -15,6 +15,9 @@ import com.anhui.fabricbaascommon.service.CaServerService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +26,7 @@ import java.util.Optional;
 
 @Service
 @Slf4j
+@CacheConfig(cacheNames = "ttp")
 public class SystemService {
     @Autowired
     private AdminConfiguration adminConfiguration;
@@ -56,6 +60,7 @@ public class SystemService {
      * 3. 登记管理员证书
      */
     @Transactional
+    @CacheEvict(key = "'system:is-available'")
     public void init(CaEntity ttp, String newAdminPassword) throws Exception {
         if (isAvailable()) {
             throw new DuplicatedOperationException("CA服务已存在，请勿重复初始化系统");
@@ -76,6 +81,7 @@ public class SystemService {
         }
     }
 
+    @Cacheable(key = "'system:is-available'")
     public boolean isAvailable() {
         return caRepo.count() != 0;
     }

@@ -540,7 +540,7 @@ public class NetworkService {
         ChannelUtils.fetchGenesisBlock(ordererCoreEnv, fabricConfig.getSystemChannelName(), block);
         return MyResourceUtils.saveToDownloadDir(block, "block");
     }
-
+    
     public List<String> queryOrganizations(String networkName) throws NetworkException {
         NetworkEntity network = findNetworkOrThrowEx(networkName);
         return network.getOrganizationNames();

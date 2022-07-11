@@ -1,6 +1,7 @@
 package com.anhui.fabricbaasttp.service;
 
 import cn.hutool.core.lang.Assert;
+import com.anhui.fabricbaascommon.annotation.CacheClean;
 import com.anhui.fabricbaascommon.constant.ApplStatus;
 import com.anhui.fabricbaascommon.constant.Authority;
 import com.anhui.fabricbaascommon.entity.UserEntity;
@@ -19,10 +20,14 @@ import com.anhui.fabricbaasweb.util.JwtUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.mail.MailException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -34,6 +39,7 @@ import java.util.List;
 
 @Service
 @Slf4j
+@CacheConfig(cacheNames = "ttp")
 public class OrganizationService {
     @Autowired
     private JwtUserDetailsService jwtUserDetailsService;
@@ -49,6 +55,8 @@ public class OrganizationService {
     private OrganizationRepo organizationRepo;
     @Autowired
     private MailService mailService;
+    @Autowired
+    private RedisTemplate<String, Object> redisTemplate;
 
     public UserDetails findOrganizationUserDetailsOrThrowEx(String organizationName) throws OrganizationException {
         UserDetails userDetails = jwtUserDetailsService.loadUserByUsername(organizationName);
@@ -73,6 +81,7 @@ public class OrganizationService {
         return token;
     }
 
+    @Cacheable(keyGenerator = "keyGenerator")
     public RegistrationEntity findUnhandledRegistration(String organizationName) {
         List<RegistrationEntity> registrations = registrationRepo.findAllByOrganizationNameAndStatus(organizationName, ApplStatus.UNHANDLED);
         if (!registrations.isEmpty()) {
@@ -125,6 +134,11 @@ public class OrganizationService {
      * 2. 更新数据库中的申请状态
      * 3. 增加相应的组织和用户定义（如果需要）
      */
+    @CacheClean(patterns = {
+            "OrganizationService:queryRegistrations:*",
+            "OrganizationService:queryOrganizations:*"
+    })
+    @CacheEvict(key = "'OrganizationService:findUnhandledRegistration:'+organizationName")
     @Transactional
     public void handleRegistration(String organizationName, boolean isAllowed) throws Exception {
         RegistrationEntity registration = findUnhandledRegistration(organizationName);
@@ -164,12 +178,14 @@ public class OrganizationService {
         }
     }
 
+    @Cacheable(keyGenerator = "keyGenerator")
     public Page<RegistrationEntity> queryRegistrations(int status, int page, int pageSize) {
         Sort sort = Sort.by(Sort.Direction.DESC, "timestamp");
         Pageable pageable = PageRequest.of(page - 1, pageSize, sort);
         return registrationRepo.findAllByStatus(status, pageable);
     }
 
+    @Cacheable(keyGenerator = "keyGenerator")
     public Page<OrganizationEntity> queryOrganizations(String organizationNameKeyword, int page, int pageSize) {
         Sort sort = Sort.by(Sort.Direction.ASC, "name");
         Pageable pageable = PageRequest.of(page - 1, pageSize, sort);
