@@ -3,7 +3,7 @@ package com.anhui.fabricbaasorg.controller;
 import com.anhui.fabricbaascommon.bean.ChannelStatus;
 import com.anhui.fabricbaascommon.constant.Authority;
 import com.anhui.fabricbaascommon.request.*;
-import com.anhui.fabricbaascommon.response.PaginationQueryResult;
+import com.anhui.fabricbaascommon.response.PageResult;
 import com.anhui.fabricbaascommon.response.UniqueResult;
 import com.anhui.fabricbaascommon.service.CaClientService;
 import com.anhui.fabricbaasorg.remote.TTPChannelApi;
@@ -71,7 +71,7 @@ public class ChannelController {
     @Secured({Authority.ADMIN})
     @PostMapping("/queryParticipatedChannels")
     @ApiOperation("查询当前组织已经加入的通道")
-    public PaginationQueryResult<Object> queryParticipatedChannels(@Valid @RequestBody PaginationQueryRequest request) throws Exception {
+    public PageResult<Object> queryParticipatedChannels(@Valid @RequestBody PaginationQueryRequest request) throws Exception {
         return ttpChannelApi.queryOrganizationChannels(caClientService.getCaOrganizationName(), request.getPage(), request.getPageSize());
     }
 

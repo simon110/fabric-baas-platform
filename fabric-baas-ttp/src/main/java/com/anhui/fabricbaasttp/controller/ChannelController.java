@@ -4,7 +4,7 @@ import com.anhui.fabricbaascommon.bean.ChannelStatus;
 import com.anhui.fabricbaascommon.constant.Authority;
 import com.anhui.fabricbaascommon.request.*;
 import com.anhui.fabricbaascommon.response.ListResult;
-import com.anhui.fabricbaascommon.response.PaginationQueryResult;
+import com.anhui.fabricbaascommon.response.PageResult;
 import com.anhui.fabricbaascommon.response.ResourceResult;
 import com.anhui.fabricbaascommon.response.UniqueResult;
 import com.anhui.fabricbaasttp.bean.Peer;
@@ -16,7 +16,6 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -102,9 +101,8 @@ public class ChannelController {
     @Secured({Authority.USER, Authority.ADMIN})
     @PostMapping("/queryOrganizationChannels")
     @ApiOperation("查询指定组织参与的所有通道")
-    public PaginationQueryResult<ChannelEntity> queryOrganizationChannels(@Valid @RequestBody OrganizationPaginationQueryRequest request) {
-        Page<ChannelEntity> page = channelService.getOrganizationChannels(request.getOrganizationName(), request.getPage(), request.getPageSize());
-        return new PaginationQueryResult<>(page.getTotalPages(), page.getContent());
+    public PageResult<ChannelEntity> queryOrganizationChannels(@Valid @RequestBody OrganizationPaginationQueryRequest request) {
+        return channelService.getOrganizationChannels(request.getOrganizationName(), request.getPage(), request.getPageSize());
     }
 
     @Secured({Authority.USER, Authority.ADMIN})

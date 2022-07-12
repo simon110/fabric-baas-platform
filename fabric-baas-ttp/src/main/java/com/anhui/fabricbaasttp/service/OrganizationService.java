@@ -10,6 +10,7 @@ import com.anhui.fabricbaascommon.exception.IncorrectPasswordException;
 import com.anhui.fabricbaascommon.exception.OrganizationException;
 import com.anhui.fabricbaascommon.exception.RegistrationException;
 import com.anhui.fabricbaascommon.repository.UserRepo;
+import com.anhui.fabricbaascommon.response.PageResult;
 import com.anhui.fabricbaascommon.service.MailService;
 import com.anhui.fabricbaasttp.entity.OrganizationEntity;
 import com.anhui.fabricbaasttp.entity.RegistrationEntity;
@@ -21,13 +22,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.mail.MailException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -56,10 +54,7 @@ public class OrganizationService {
     private OrganizationRepo organizationRepo;
     @Autowired
     private MailService mailService;
-    @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
 
-    @Cacheable(keyGenerator = "keyGenerator")
     public UserDetails findOrganizationUserDetailsOrThrowEx(String organizationName) throws OrganizationException {
         UserDetails userDetails = jwtUserDetailsService.loadUserByUsername(organizationName);
         if (userDetails == null) {
@@ -83,7 +78,6 @@ public class OrganizationService {
         return token;
     }
 
-    @Cacheable(keyGenerator = "keyGenerator")
     public Optional<RegistrationEntity> findUnhandledRegistration(String organizationName) {
         List<RegistrationEntity> registrations = registrationRepo.findAllByOrganizationNameAndStatus(organizationName, ApplStatus.UNHANDLED);
         if (!registrations.isEmpty()) {
@@ -103,9 +97,8 @@ public class OrganizationService {
      * 2. 检查组织名称是否还包含未处理的申请
      * 3. 将注册申请保存至数据库
      */
+    @CacheClean(patterns = "'OrganizationService:queryRegistrations:*'")
     @Transactional
-    @CacheEvict(key = "'OrganizationService:findUnhandledRegistration:'+#organizationName")
-    @CacheClean(patterns = {"'OrganizationService:queryRegistrations:*'"})
     public void applyRegistration(
             String organizationName,
             String password,
@@ -139,10 +132,9 @@ public class OrganizationService {
      * 3. 增加相应的组织和用户定义（如果需要）
      */
     @CacheClean(patterns = {
+            "'OrganizationService:queryOrganizations:*'",
             "'OrganizationService:queryRegistrations:*'",
-            "'OrganizationService:queryOrganizations:*'"
     })
-    @CacheEvict(key = "'OrganizationService:findUnhandledRegistration:'+#organizationName")
     @Transactional
     public void handleRegistration(String organizationName, boolean isAllowed) throws Exception {
         Optional<RegistrationEntity> registrationOptional = findUnhandledRegistration(organizationName);
@@ -183,21 +175,21 @@ public class OrganizationService {
         }
     }
 
-    @Cacheable(keyGenerator = "keyGenerator")
-    public Page<RegistrationEntity> queryRegistrations(int status, int page, int pageSize) {
+    @Cacheable(keyGenerator = "redisKeyGenerator")
+    public PageResult<RegistrationEntity> queryRegistrations(int status, int page, int pageSize) {
         Sort sort = Sort.by(Sort.Direction.DESC, "timestamp");
         Pageable pageable = PageRequest.of(page - 1, pageSize, sort);
-        return registrationRepo.findAllByStatus(status, pageable);
+        return new PageResult<>(registrationRepo.findAllByStatus(status, pageable));
     }
 
-    @Cacheable(keyGenerator = "keyGenerator")
-    public Page<OrganizationEntity> queryOrganizations(String organizationNameKeyword, int page, int pageSize) {
+    @Cacheable(keyGenerator = "redisKeyGenerator")
+    public PageResult<OrganizationEntity> queryOrganizations(String organizationNameKeyword, int page, int pageSize) {
         Sort sort = Sort.by(Sort.Direction.ASC, "name");
         Pageable pageable = PageRequest.of(page - 1, pageSize, sort);
         if (StringUtils.isBlank(organizationNameKeyword)) {
-            return organizationRepo.findAll(pageable);
+            return new PageResult<>(organizationRepo.findAll(pageable));
         } else {
-            return organizationRepo.findAllByNameLike(organizationNameKeyword, pageable);
+            return new PageResult<>(organizationRepo.findAllByNameLike(organizationNameKeyword, pageable));
         }
     }
 }

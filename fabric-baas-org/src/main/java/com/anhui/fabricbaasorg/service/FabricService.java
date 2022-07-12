@@ -17,15 +17,12 @@ import com.anhui.fabricbaasorg.entity.PeerEntity;
 import com.anhui.fabricbaasorg.remote.TTPChannelApi;
 import com.anhui.fabricbaasorg.remote.TTPNetworkApi;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.CacheConfig;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.util.List;
 
 @Service
-@CacheConfig(cacheNames = "org")
 public class FabricService {
     @Autowired
     private TTPChannelApi ttpChannelApi;
@@ -38,7 +35,6 @@ public class FabricService {
     @Autowired
     private ChannelService channelService;
 
-    @Cacheable(keyGenerator = "keyGenerator")
     public CoreEnv buildPeerCoreEnv(String peerName) throws NodeException, CertfileException, CaException {
         // 获取Peer证书
         PeerEntity peer = peerService.findPeerOrThrowEx(peerName);
@@ -54,7 +50,6 @@ public class FabricService {
         return coreEnv;
     }
 
-    @Cacheable(keyGenerator = "keyGenerator")
     public TlsEnv buildOrdererTlsEnv(String channelName) throws Exception {
         ChannelEntity channel = channelService.findChannelOrThrowEx(channelName);
         String networkName = channel.getNetworkName();
@@ -67,7 +62,6 @@ public class FabricService {
         return new TlsEnv(selectedOrderer.getAddr(), ordererTlsCert);
     }
 
-    @Cacheable(keyGenerator = "keyGenerator")
     public TlsEnv buildEndorserTlsEnv(String channelName, Node endorser) throws Exception {
         File endorserTlsCert = MyFileUtils.createTempFile("crt");
         ttpChannelApi.queryPeerTlsCert(channelName, endorser, endorserTlsCert);

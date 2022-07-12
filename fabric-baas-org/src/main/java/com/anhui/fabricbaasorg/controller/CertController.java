@@ -2,14 +2,13 @@ package com.anhui.fabricbaasorg.controller;
 
 import com.anhui.fabricbaascommon.constant.Authority;
 import com.anhui.fabricbaascommon.entity.CertfileEntity;
-import com.anhui.fabricbaascommon.response.PaginationQueryResult;
+import com.anhui.fabricbaascommon.response.PageResult;
 import com.anhui.fabricbaasorg.request.CertGenerateRequest;
 import com.anhui.fabricbaasorg.request.CertQueryRequest;
 import com.anhui.fabricbaasorg.service.CertService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -35,9 +34,9 @@ public class CertController {
     @Secured({Authority.ADMIN})
     @PostMapping("/query")
     @ApiOperation("条件查询证书")
-    public PaginationQueryResult<CertfileEntity> query(@Valid @RequestBody CertQueryRequest request) throws Exception {
-        Page<CertfileEntity> page = certService.query(request.getUsertype(), request.getPage(), request.getPageSize());
-        return new PaginationQueryResult<>(page.getTotalPages(), page.getContent());
+    public PageResult<CertfileEntity> query(@Valid @RequestBody CertQueryRequest request) throws Exception {
+        return certService.query(request.getUsertype(), request.getPage(), request.getPageSize());
+
     }
 }
 

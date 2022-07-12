@@ -2,11 +2,10 @@ package com.anhui.fabricbaasorg.controller;
 
 import com.anhui.fabricbaascommon.bean.ChaincodeApproval;
 import com.anhui.fabricbaascommon.constant.Authority;
-import com.anhui.fabricbaasorg.request.ChaincodeExecuteQueryRequest;
 import com.anhui.fabricbaascommon.request.BaseChannelRequest;
 import com.anhui.fabricbaascommon.request.PaginationQueryRequest;
 import com.anhui.fabricbaascommon.response.ListResult;
-import com.anhui.fabricbaascommon.response.PaginationQueryResult;
+import com.anhui.fabricbaascommon.response.PageResult;
 import com.anhui.fabricbaascommon.response.UniqueResult;
 import com.anhui.fabricbaasorg.entity.ApprovedChaincodeEntity;
 import com.anhui.fabricbaasorg.entity.InstalledChaincodeEntity;
@@ -15,7 +14,6 @@ import com.anhui.fabricbaasorg.service.ChaincodeService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -63,25 +61,22 @@ public class ChaincodeController {
     @Secured({Authority.ADMIN})
     @PostMapping("/queryApprovedChaincodes")
     @ApiOperation("查询组织端已投票的所有链码")
-    public PaginationQueryResult<ApprovedChaincodeEntity> queryApprovedChaincodes(@Valid @RequestBody PaginationQueryRequest request) {
-        Page<ApprovedChaincodeEntity> page = chaincodeService.queryApprovedChaincodes(request.getPage(), request.getPageSize());
-        return new PaginationQueryResult<>(page.getTotalPages(), page.getContent());
+    public PageResult<ApprovedChaincodeEntity> queryApprovedChaincodes(@Valid @RequestBody PaginationQueryRequest request) {
+        return chaincodeService.queryApprovedChaincodes(request.getPage(), request.getPageSize());
     }
 
     @Secured({Authority.ADMIN})
     @PostMapping("/queryInstalledChaincodes")
     @ApiOperation("查询组织端已安装的所有链码")
-    public PaginationQueryResult<InstalledChaincodeEntity> queryInstalledChaincodes(@Valid @RequestBody PaginationQueryRequest request) {
-        Page<InstalledChaincodeEntity> page = chaincodeService.queryInstalledChaincodes(request.getPage(), request.getPageSize());
-        return new PaginationQueryResult<>(page.getTotalPages(), page.getContent());
+    public PageResult<InstalledChaincodeEntity> queryInstalledChaincodes(@Valid @RequestBody PaginationQueryRequest request) {
+        return chaincodeService.queryInstalledChaincodes(request.getPage(), request.getPageSize());
     }
 
     @Secured({Authority.ADMIN})
     @PostMapping("/queryCommittedChaincodes")
     @ApiOperation("查询组织端已生效的所有链码")
-    public PaginationQueryResult<ApprovedChaincodeEntity> queryCommittedChaincodes(@Valid @RequestBody PaginationQueryRequest request) {
-        Page<ApprovedChaincodeEntity> page = chaincodeService.queryCommittedChaincodes(request.getPage(), request.getPageSize());
-        return new PaginationQueryResult<>(page.getTotalPages(), page.getContent());
+    public PageResult<ApprovedChaincodeEntity> queryCommittedChaincodes(@Valid @RequestBody PaginationQueryRequest request) {
+        return chaincodeService.queryCommittedChaincodes(request.getPage(), request.getPageSize());
     }
 
     @Secured({Authority.ADMIN})

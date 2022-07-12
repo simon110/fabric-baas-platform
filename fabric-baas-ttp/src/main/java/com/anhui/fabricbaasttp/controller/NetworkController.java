@@ -6,7 +6,7 @@ import com.anhui.fabricbaascommon.request.ParticipationApplyRequest;
 import com.anhui.fabricbaascommon.request.ParticipationHandleRequest;
 import com.anhui.fabricbaascommon.request.ParticipationQueryRequest;
 import com.anhui.fabricbaascommon.response.ListResult;
-import com.anhui.fabricbaascommon.response.PaginationQueryResult;
+import com.anhui.fabricbaascommon.response.PageResult;
 import com.anhui.fabricbaascommon.response.ResourceResult;
 import com.anhui.fabricbaascommon.response.UniqueResult;
 import com.anhui.fabricbaasttp.bean.Orderer;
@@ -22,7 +22,6 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -52,9 +51,8 @@ public class NetworkController {
     @Secured({Authority.USER, Authority.ADMIN})
     @PostMapping("/queryNetworks")
     @ApiOperation("查询网络信息")
-    public PaginationQueryResult<NetworkEntity> queryNetworks(@Valid @RequestBody NetworkQueryRequest request) {
-        Page<NetworkEntity> page = networkService.queryNetworks(request.getNetworkNameKeyword(), request.getOrganizationNameKeyword(), request.getPage(), request.getPageSize());
-        return new PaginationQueryResult<>(page.getTotalPages(), page.getContent());
+    public PageResult<NetworkEntity> queryNetworks(@Valid @RequestBody NetworkQueryRequest request) {
+        return networkService.queryNetworks(request.getNetworkNameKeyword(), request.getOrganizationNameKeyword(), request.getPage(), request.getPageSize());
     }
 
     @Secured({Authority.USER})
@@ -87,9 +85,8 @@ public class NetworkController {
     @Secured({Authority.USER})
     @PostMapping("/queryParticipations")
     @ApiOperation("查询加入网络申请")
-    public PaginationQueryResult<ParticipationEntity> queryParticipations(@Valid @RequestBody ParticipationQueryRequest request) throws Exception {
-        Page<ParticipationEntity> page = networkService.queryParticipations(request.getNetworkName(), request.getStatus(), request.getPage(), request.getPageSize());
-        return new PaginationQueryResult<>(page.getTotalPages(), page.getContent());
+    public PageResult<ParticipationEntity> queryParticipations(@Valid @RequestBody ParticipationQueryRequest request) throws Exception {
+        return networkService.queryParticipations(request.getNetworkName(), request.getStatus(), request.getPage(), request.getPageSize());
     }
 
     @Secured({Authority.USER})

@@ -3,7 +3,7 @@ package com.anhui.fabricbaasorg.remote;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.anhui.fabricbaascommon.bean.Node;
-import com.anhui.fabricbaascommon.response.PaginationQueryResult;
+import com.anhui.fabricbaascommon.response.PageResult;
 import com.anhui.fabricbaasorg.bean.NetworkOrderer;
 import org.apache.commons.io.FileUtils;
 
@@ -48,7 +48,7 @@ public class TTPNetworkApi {
      * @return 所有相关的网络信息
      * @throws Exception 返回请求中任何code!=200的情况都应该抛出异常
      */
-    public PaginationQueryResult<Object> queryNetworks(String networkNameKeyword, String organizationNameKeyword, int page, int pageSize) throws Exception {
+    public PageResult<Object> queryNetworks(String networkNameKeyword, String organizationNameKeyword, int page, int pageSize) throws Exception {
         JSONObject data = new JSONObject();
         data.set("networkNameKeyword", networkNameKeyword);
         data.set("organizationNameKeyword", organizationNameKeyword);
@@ -56,7 +56,7 @@ public class TTPNetworkApi {
         data.set("pageSize", pageSize);
         JSONObject response = httpClient.request("/api/v1/network/queryNetworks", data);
         List<Object> networks = new ArrayList<>(response.getJSONArray("items"));
-        return new PaginationQueryResult<>(response.getInt("totalPages"), networks);
+        return new PageResult<>(response.getInt("totalPages"), networks);
     }
 
     /**
@@ -83,18 +83,17 @@ public class TTPNetworkApi {
      * @return 指定网络中的加入申请及处理状态
      * @throws Exception 返回请求中任何code!=200的情况都应该抛出异常
      */
-    public PaginationQueryResult<Object> queryParticipations(String networkName, int status, int page, int pageSize) throws Exception {
+    public PageResult<Object> queryParticipations(String networkName, int status, int page, int pageSize) throws Exception {
         JSONObject data = new JSONObject();
         data.set("networkName", networkName);
         data.set("status", status);
         data.set("page", page);
         data.set("pageSize", pageSize);
         JSONObject response = httpClient.request("/api/v1/network/queryParticipations", data);
-        PaginationQueryResult<Object> result = new PaginationQueryResult<>();
-        result.setTotalPages((Integer) response.get("totalPages"));
-        List<Object> items = new ArrayList<>(response.getJSONArray("items"));
-        result.setItems(items);
-        return result;
+        return new PageResult<>(
+                (Integer) response.get("totalPages"),
+                new ArrayList<>(response.getJSONArray("items"))
+        );
     }
 
     /**

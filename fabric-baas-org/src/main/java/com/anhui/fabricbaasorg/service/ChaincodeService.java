@@ -4,6 +4,7 @@ import cn.hutool.core.lang.Assert;
 import com.anhui.fabricbaascommon.annotation.CacheClean;
 import com.anhui.fabricbaascommon.bean.*;
 import com.anhui.fabricbaascommon.fabric.ChaincodeUtils;
+import com.anhui.fabricbaascommon.response.PageResult;
 import com.anhui.fabricbaascommon.util.MyFileUtils;
 import com.anhui.fabricbaasorg.entity.ApprovedChaincodeEntity;
 import com.anhui.fabricbaasorg.entity.InstalledChaincodeEntity;
@@ -16,7 +17,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -79,7 +79,7 @@ public class ChaincodeService {
         approvedChaincodeRepo.save(entity);
     }
 
-    @Cacheable(keyGenerator = "keyGenerator")
+    @Cacheable(keyGenerator = "redisKeyGenerator")
     public ApprovedChaincodeEntity findApprovedChaincodeOrThrowEx(ApprovedChaincode approvedChaincode) {
         List<ApprovedChaincodeEntity> approvedChaincodes = approvedChaincodeRepo.findAllByChannelNameAndNameAndSequenceAndVersion(
                 approvedChaincode.getChannelName(),
@@ -128,7 +128,6 @@ public class ChaincodeService {
         List<ApprovedChaincodeEntity> entities = approvedChaincodeRepo.findAllByCommitted(false);
         Map<String, List<ApprovedChaincode>> map = new HashMap<>();
 
-        Set<String> expiredRedisKeySet = new HashSet<>();
         boolean isUpdated = false;
         for (ApprovedChaincodeEntity entity : entities) {
             // 如果已经知道链码生效了就不必要更新状态了
@@ -153,44 +152,30 @@ public class ChaincodeService {
                     approvedChaincodeRepo.save(entity);
                     log.info("已更新链码状态：" + entity);
 
-                    // 增加删除的缓存键值
-                    expiredRedisKeySet.add("org:ChaincodeService:findApprovedChaincodeOrThrowEx:" + approvedChaincode);
-                    expiredRedisKeySet.add("org:ChaincodeService:getAllCommittedChaincodesOnChannel:" + approvedChaincode.getChannelName());
                 }
             }
         }
-
-        if (isUpdated) {
-            expiredRedisKeySet.add("org:ChaincodeService:queryApprovedChaincodes:*");
-            expiredRedisKeySet.add("org:ChaincodeService:queryCommittedChaincodes:*");
-        }
-        redisTemplate.delete(expiredRedisKeySet);
     }
 
-    @Cacheable(keyGenerator = "keyGenerator")
-    public Page<ApprovedChaincodeEntity> queryApprovedChaincodes(int page, int pageSize) {
+    public PageResult<ApprovedChaincodeEntity> queryApprovedChaincodes(int page, int pageSize) {
         Pageable pageable = PageRequest.of(page - 1, pageSize);
-        return approvedChaincodeRepo.findAll(pageable);
+        return new PageResult<>(approvedChaincodeRepo.findAll(pageable));
     }
 
-    @Cacheable(keyGenerator = "keyGenerator")
-    public Page<InstalledChaincodeEntity> queryInstalledChaincodes(int page, int pageSize) {
+    public PageResult<InstalledChaincodeEntity> queryInstalledChaincodes(int page, int pageSize) {
         Pageable pageable = PageRequest.of(page - 1, pageSize);
-        return installedChaincodeRepo.findAll(pageable);
+        return new PageResult<>(installedChaincodeRepo.findAll(pageable));
     }
 
-    @Cacheable(keyGenerator = "keyGenerator")
-    public Page<ApprovedChaincodeEntity> queryCommittedChaincodes(int page, int pageSize) {
+    public PageResult<ApprovedChaincodeEntity> queryCommittedChaincodes(int page, int pageSize) {
         Pageable pageable = PageRequest.of(page - 1, pageSize);
-        return approvedChaincodeRepo.findAllByCommitted(true, pageable);
+        return new PageResult<>(approvedChaincodeRepo.findAllByCommitted(true, pageable));
     }
 
-    @Cacheable(keyGenerator = "keyGenerator")
     public List<InstalledChaincodeEntity> getAllInstalledChaincodesOnPeer(String peerName) {
         return installedChaincodeRepo.findAllByPeerName(peerName);
     }
 
-    @Cacheable(keyGenerator = "keyGenerator")
     public List<ApprovedChaincodeEntity> getAllCommittedChaincodesOnChannel(String channelName) {
         return approvedChaincodeRepo.findAllByChannelNameAndCommitted(channelName, true);
     }

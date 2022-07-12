@@ -17,16 +17,8 @@ public class CoreEnv {
     private String address;
     private File tlsRootCert;
 
-    public MspEnv getMspEnv() {
-        return new MspEnv(mspId, mspConfig);
-    }
-
-    public TlsEnv getTlsEnv() {
-        return new TlsEnv(address, tlsRootCert);
-    }
-
-    public void selfAssert() throws CertfileException {
-        getMspEnv().assertMspCert();
-        getTlsEnv().assertTlsCert();
+    public void check() throws CertfileException {
+        MspEnv.from(this).check();
+        TlsEnv.from(this).check();
     }
 }

@@ -23,8 +23,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -109,7 +107,6 @@ public class SystemService {
      * 4. 初始化TTP远程用户
      */
     @Transactional
-    @CacheEvict(key = "'SystemService:isAvailable'")
     public void init(CaEntity org, RemoteUserEntity remoteUser, String adminPassword, MultipartFile kubernetesConfig) throws Exception {
         if (isAvailable()) {
             throw new DuplicatedOperationException("请勿重复初始化系统");
@@ -130,8 +127,7 @@ public class SystemService {
         }
     }
 
-    @Cacheable(keyGenerator = "keyGenerator")
     public boolean isAvailable() {
-        return caRepo.count() != 0;
+        return caRepo.count() != 0 && caServerService.checkCaServer();
     }
 }

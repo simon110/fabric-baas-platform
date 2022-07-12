@@ -26,7 +26,7 @@ public class ChaincodeUtils {
             String channelName,
             CoreEnv peerCoreEnv)
             throws IOException, InterruptedException, CertfileException, ChaincodeException {
-        peerCoreEnv.selfAssert();
+        peerCoreEnv.check();
         Map<String, String> envs = CommandUtils.buildEnvs(
                 "CORE_PEER_TLS_ENABLED", "true",
                 "CORE_PEER_LOCALMSPID", peerCoreEnv.getMspId(),
@@ -77,7 +77,7 @@ public class ChaincodeUtils {
      */
     public static List<InstalledChaincode> queryInstalledChaincodes(CoreEnv peerCoreEnv)
             throws IOException, InterruptedException, CertfileException, ChaincodeException {
-        peerCoreEnv.selfAssert();
+        peerCoreEnv.check();
         Map<String, String> envs = CommandUtils.buildEnvs(
                 "CORE_PEER_TLS_ENABLED", "true",
                 "CORE_PEER_LOCALMSPID", peerCoreEnv.getMspId(),
@@ -120,7 +120,7 @@ public class ChaincodeUtils {
             File chaincodePackage,
             CoreEnv peerCoreEnv)
             throws IOException, InterruptedException, CertfileException, ChaincodeException {
-        peerCoreEnv.selfAssert();
+        peerCoreEnv.check();
         Map<String, String> envs = CommandUtils.buildEnvs(
                 "CORE_PEER_TLS_ENABLED", "true",
                 "CORE_PEER_LOCALMSPID", peerCoreEnv.getMspId(),
@@ -157,8 +157,8 @@ public class ChaincodeUtils {
             String channelName,
             String packageId,
             BasicChaincodeProperties chaincodeProperties) throws IOException, InterruptedException, CertfileException, ChaincodeException {
-        peerCoreEnv.selfAssert();
-        ordererTlsEnv.assertTlsCert();
+        peerCoreEnv.check();
+        ordererTlsEnv.check();
         Map<String, String> envs = CommandUtils.buildEnvs(
                 "FABRIC_CFG_PATH", MyFileUtils.getWorkingDir(),
                 "CORE_PEER_TLS_ENABLED", "true",
@@ -198,8 +198,8 @@ public class ChaincodeUtils {
             String channelName,
             BasicChaincodeProperties chaincodeProperties)
             throws IOException, InterruptedException, CertfileException, ChaincodeException {
-        peerCoreEnv.selfAssert();
-        ordererTlsEnv.assertTlsCert();
+        peerCoreEnv.check();
+        ordererTlsEnv.check();
         Map<String, String> envs = CommandUtils.buildEnvs(
                 "FABRIC_CFG_PATH", MyFileUtils.getWorkingDir(),
                 "CORE_PEER_TLS_ENABLED", "true",
@@ -255,8 +255,8 @@ public class ChaincodeUtils {
             String channelName,
             BasicChaincodeProperties chaincodeProperties)
             throws IOException, InterruptedException, CertfileException, ChaincodeException {
-        committerPeerCoreEnv.selfAssert();
-        ordererTlsEnv.assertTlsCert();
+        committerPeerCoreEnv.check();
+        ordererTlsEnv.check();
         Map<String, String> envs = CommandUtils.buildEnvs(
                 "FABRIC_CFG_PATH", MyFileUtils.getWorkingDir(),
                 "CORE_PEER_TLS_ENABLED", "true",
@@ -308,9 +308,9 @@ public class ChaincodeUtils {
             TlsEnv ordererTlsEnv,
             CoreEnv committerPeerCoreEnv,
             List<TlsEnv> endorserTlsEnvs) throws CertfileException, IOException, InterruptedException, ChaincodeException {
-        ordererTlsEnv.assertTlsCert();
+        ordererTlsEnv.check();
         for (TlsEnv endorserTlsEnv : endorserTlsEnvs) {
-            endorserTlsEnv.assertTlsCert();
+            endorserTlsEnv.check();
         }
         JSONObject chaincodeParams = buildChaincodeParams(functionName, params);
 
@@ -352,7 +352,7 @@ public class ChaincodeUtils {
             List<String> params,
             String channelName,
             CoreEnv peerCoreEnv) throws CertfileException, IOException, InterruptedException, ChaincodeException {
-        peerCoreEnv.selfAssert();
+        peerCoreEnv.check();
         Map<String, String> envs = CommandUtils.buildEnvs(
                 "FABRIC_CFG_PATH", MyFileUtils.getWorkingDir(),
                 "CORE_PEER_TLS_ENABLED", "true",

@@ -1,13 +1,13 @@
 package com.anhui.fabricbaasttp.service;
 
 import cn.hutool.core.lang.Assert;
-import com.anhui.fabricbaascommon.annotation.CacheClean;
 import com.anhui.fabricbaascommon.bean.*;
 import com.anhui.fabricbaascommon.constant.CertfileType;
 import com.anhui.fabricbaascommon.exception.*;
 import com.anhui.fabricbaascommon.fabric.CertfileUtils;
 import com.anhui.fabricbaascommon.fabric.ChannelUtils;
 import com.anhui.fabricbaascommon.fabric.ConfigtxUtils;
+import com.anhui.fabricbaascommon.response.PageResult;
 import com.anhui.fabricbaascommon.service.CaClientService;
 import com.anhui.fabricbaascommon.service.MinioService;
 import com.anhui.fabricbaascommon.util.*;
@@ -22,10 +22,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.cache.annotation.Caching;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -61,7 +57,6 @@ public class ChannelService {
         }
     }
 
-    @Cacheable(keyGenerator = "keyGenerator")
     public ChannelEntity findChannelOrThrowEx(String channelName) throws ChannelException {
         Optional<ChannelEntity> channelOptional = channelRepo.findById(channelName);
         if (channelOptional.isEmpty()) {
@@ -149,10 +144,6 @@ public class ChannelService {
     }
 
     @Transactional
-    @Caching(evict = {
-            @CacheEvict(key = "'ChannelService:findChannelOrThrowEx:'+#channelName"),
-    })
-    @CacheClean(patterns = "'ChannelService:getOrganizationChannels:*'")
     public void submitInvitationCodes(String currentOrganizationName, String channelName, List<String> invitationCodes) throws Exception {
         ChannelEntity channel = findChannelOrThrowEx(channelName);
         assertOrganizationInChannel(channel, currentOrganizationName, false);
@@ -200,7 +191,7 @@ public class ChannelService {
         String lastChannelOrgName = channelOrganizationNames.get(channelOrganizationNames.size() - 1);
         MspEnv organizationMspEnv = fabricService.buildPeerMspEnv(channel.getNetworkName(), lastChannelOrgName);
         log.info("生成提交Envelope的组织的MSP环境变量：" + organizationMspEnv);
-        ChannelUtils.submitChannelUpdate(organizationMspEnv, ordererCoreEnv.getTlsEnv(), channel.getName(), envelope);
+        ChannelUtils.submitChannelUpdate(organizationMspEnv, TlsEnv.from(ordererCoreEnv), channel.getName(), envelope);
 
         // 将组织保存至MongoDB
         channel.getOrganizationNames().add(currentOrganizationName);
@@ -209,8 +200,6 @@ public class ChannelService {
     }
 
     @Transactional
-    @CacheEvict(key = "'ChannelService:queryChannels:'+#networkName")
-    @CacheClean(patterns = "'ChannelService:getOrganizationChannels:*'")
     public void createChannel(String currentOrganizationName, String channelName, String networkName) throws Exception {
         // 检查操作的组织是否属于相应的网络
         NetworkEntity network = networkService.findNetworkOrThrowEx(networkName);
@@ -274,11 +263,6 @@ public class ChannelService {
     }
 
     @Transactional
-    @Caching(evict = {
-            @CacheEvict(key = "'ChannelService:queryPeers:'+#channelName"),
-            @CacheEvict(key = "'ChannelService:findChannelOrThrowEx:'+#channelName"),
-    })
-    @CacheClean(patterns = "'ChannelService:getOrganizationChannels:*'")
     public void joinChannel(String currentOrganizationName, String channelName, Node peer, MultipartFile peerCertZip) throws Exception {
         ChannelEntity channel = findChannelOrThrowEx(channelName);
 
@@ -389,10 +373,9 @@ public class ChannelService {
 
         // 将Envelope提交到Orderer
         MspEnv organizationMspEnv = fabricService.buildPeerMspEnv(channel.getNetworkName(), currentOrganizationName);
-        ChannelUtils.submitChannelUpdate(organizationMspEnv, ordererCoreEnv.getTlsEnv(), channel.getName(), envelope);
+        ChannelUtils.submitChannelUpdate(organizationMspEnv, TlsEnv.from(ordererCoreEnv), channel.getName(), envelope);
     }
 
-    @Cacheable(keyGenerator = "keyGenerator")
     public String queryPeerTlsCert(String currentOrganizationName, String channelName, Node peer) throws Exception {
         // 检查通道是否存在
         ChannelEntity channel = findChannelOrThrowEx(channelName);
@@ -407,15 +390,13 @@ public class ChannelService {
         return MyResourceUtils.saveToDownloadDir(ordererTlsCert, "crt");
     }
 
-    @Cacheable(keyGenerator = "keyGenerator")
     public List<Peer> queryPeers(String channelName) throws Exception {
         return findChannelOrThrowEx(channelName).getPeers();
     }
 
-    @Cacheable(keyGenerator = "keyGenerator")
-    public Page<ChannelEntity> getOrganizationChannels(String organizationName, int page, int pageSize) {
+    public PageResult<ChannelEntity> getOrganizationChannels(String organizationName, int page, int pageSize) {
         Pageable pageable = PageRequest.of(page - 1, pageSize);
-        return channelRepo.findAllByOrganizationNamesIsContaining(organizationName, pageable);
+        return new PageResult<>(channelRepo.findAllByOrganizationNamesIsContaining(organizationName, pageable));
     }
 
     public ChannelStatus getChannelStatus(String organizationName, String channelName) throws Exception {
@@ -430,7 +411,6 @@ public class ChannelService {
         return ChannelUtils.getChannelStatus(peerCoreEnv, ordererTlsEnv, channelName);
     }
 
-    @Cacheable(keyGenerator = "keyGenerator")
     public List<String> queryChannels(String networkName) {
         List<ChannelEntity> channels = channelRepo.findAllByNetworkName(networkName);
         List<String> channelNames = new ArrayList<>(channels.size());

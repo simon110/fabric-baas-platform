@@ -2,6 +2,7 @@ package com.anhui.fabricbaascommon.configuration;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
@@ -15,6 +16,7 @@ import java.time.Duration;
 
 import static org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair.fromSerializer;
 
+@EnableCaching
 @Configuration
 public class CacheManagerConfiguration {
     @Value("#{'${spring.cache.redis.cache-names}'.split(',')}")

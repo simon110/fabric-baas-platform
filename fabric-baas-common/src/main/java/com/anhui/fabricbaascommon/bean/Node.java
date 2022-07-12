@@ -2,6 +2,7 @@ package com.anhui.fabricbaascommon.bean;
 
 import com.anhui.fabricbaascommon.constant.ParamPattern;
 import com.anhui.fabricbaascommon.constant.ParamRange;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
@@ -15,6 +16,7 @@ import javax.validation.constraints.Pattern;
 @AllArgsConstructor
 @NoArgsConstructor
 @ApiModel(value = "节点信息")
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Node {
     @Pattern(regexp = ParamPattern.HOST_REGEX, message = ParamPattern.HOST_MSG)
     @ApiModelProperty(value = "域名", required = true)
@@ -25,7 +27,7 @@ public class Node {
     private int port;
 
     public String getAddr() {
-        return String.format("%s:%d", host, port);
+        return host + ':' + port;
     }
 
     @Override

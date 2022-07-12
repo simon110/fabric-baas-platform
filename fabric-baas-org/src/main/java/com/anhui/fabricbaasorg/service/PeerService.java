@@ -8,6 +8,7 @@ import com.anhui.fabricbaascommon.exception.CertfileException;
 import com.anhui.fabricbaascommon.exception.NodeException;
 import com.anhui.fabricbaascommon.fabric.CaUtils;
 import com.anhui.fabricbaascommon.fabric.CertfileUtils;
+import com.anhui.fabricbaascommon.response.PageResult;
 import com.anhui.fabricbaascommon.service.CaClientService;
 import com.anhui.fabricbaasorg.entity.PeerEntity;
 import com.anhui.fabricbaasorg.exception.KubernetesException;
@@ -38,8 +39,6 @@ public class PeerService {
     @Autowired
     private PeerRepo peerRepo;
 
-    @CacheClean(patterns = "'PeerService:queryPeersInCluster:*'")
-    @CacheEvict(key = "'PeerService:findPeerOrThrowEx:'+#peer.name")
     public void startPeer(PeerEntity peer) throws Exception {
         if (peer.getKubeNodePort().equals(peer.getKubeEventNodePort())) {
             throw new KubernetesException("Peer的主端口和事件端口必须不同！");
@@ -68,13 +67,10 @@ public class PeerService {
         kubernetesService.startPeer(caEntity.getOrganizationName(), peer, domain, peerCertfileDir);
     }
 
-    @CacheClean(patterns = "'PeerService:queryPeersInCluster:*'")
-    @CacheEvict(key = "'PeerService:findPeerOrThrowEx:'+#peerName")
     public void stopPeer(String peerName) throws Exception {
         kubernetesService.stopPeer(peerName);
     }
 
-    @Cacheable(keyGenerator = "keyGenerator")
     public PeerEntity findPeerOrThrowEx(String peerName) throws NodeException {
         Optional<PeerEntity> peerOptional = peerRepo.findById(peerName);
         if (peerOptional.isEmpty()) {
@@ -83,14 +79,13 @@ public class PeerService {
         return peerOptional.get();
     }
 
-    @Cacheable(keyGenerator = "keyGenerator")
-    public Page<PeerEntity> queryPeersInCluster(int page, int pageSize) {
+    public PageResult<PeerEntity> queryPeersInCluster(int page, int pageSize) {
         Pageable pageable = PageRequest.of(page - 1, pageSize);
         Page<PeerEntity> result = peerRepo.findAll(pageable);
         result.getContent().forEach(item -> {
             item.setCaPassword("Not Available");
             item.setCouchDBPassword("Not Available");
         });
-        return result;
+        return new PageResult<>(result);
     }
 }

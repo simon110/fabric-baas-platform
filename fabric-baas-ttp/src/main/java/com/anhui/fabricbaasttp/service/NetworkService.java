@@ -1,11 +1,7 @@
 package com.anhui.fabricbaasttp.service;
 
 import cn.hutool.core.lang.Assert;
-import com.anhui.fabricbaascommon.annotation.CacheClean;
-import com.anhui.fabricbaascommon.bean.ConfigtxOrderer;
-import com.anhui.fabricbaascommon.bean.ConfigtxOrganization;
-import com.anhui.fabricbaascommon.bean.CoreEnv;
-import com.anhui.fabricbaascommon.bean.Node;
+import com.anhui.fabricbaascommon.bean.*;
 import com.anhui.fabricbaascommon.configuration.FabricConfiguration;
 import com.anhui.fabricbaascommon.constant.ApplStatus;
 import com.anhui.fabricbaascommon.constant.CertfileType;
@@ -14,6 +10,7 @@ import com.anhui.fabricbaascommon.fabric.CaUtils;
 import com.anhui.fabricbaascommon.fabric.CertfileUtils;
 import com.anhui.fabricbaascommon.fabric.ChannelUtils;
 import com.anhui.fabricbaascommon.fabric.ConfigtxUtils;
+import com.anhui.fabricbaascommon.response.PageResult;
 import com.anhui.fabricbaascommon.service.CaClientService;
 import com.anhui.fabricbaascommon.service.MinioService;
 import com.anhui.fabricbaascommon.util.MyFileUtils;
@@ -34,10 +31,10 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.cache.annotation.Caching;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -94,7 +91,6 @@ public class NetworkService {
     /**
      * 如果网络存在则返回相应的实体，否则抛出异常。
      */
-    @Cacheable(keyGenerator = "keyGenerator")
     public NetworkEntity findNetworkOrThrowEx(String networkName) throws NetworkException {
         Optional<NetworkEntity> networkOptional = networkRepo.findById(networkName);
         if (networkOptional.isEmpty()) {
@@ -114,7 +110,6 @@ public class NetworkService {
         throw new NodeNotFoundException("未找到相应的Orderer：" + targetAddr);
     }
 
-    @Cacheable(keyGenerator = "keyGenerator")
     public ParticipationEntity findUnhandledParticipationOrThrowEx(String networkName, String organizationName) throws ParticipationException {
         Optional<ParticipationEntity> participationOptional = participationRepo.findFirstByNetworkNameAndOrganizationNameAndStatus(networkName, organizationName, ApplStatus.UNHANDLED);
         if (participationOptional.isEmpty()) {
@@ -178,15 +173,13 @@ public class NetworkService {
 
         // 将签名后的Envelope提交到Orderer
         log.info("正在将Envelope提交到系统通道：" + fabricConfig.getSystemChannelName());
-        ChannelUtils.submitChannelUpdate(ordererCoreEnv.getMspEnv(), ordererCoreEnv.getTlsEnv(), fabricConfig.getSystemChannelName(), envelope);
+        ChannelUtils.submitChannelUpdate(MspEnv.from(ordererCoreEnv), TlsEnv.from(ordererCoreEnv), fabricConfig.getSystemChannelName(), envelope);
     }
 
-    @Cacheable(keyGenerator = "keyGenerator")
     public List<Orderer> getNetworkOrderers(String networkName) throws NetworkException {
         return findNetworkOrThrowEx(networkName).getOrderers();
     }
 
-    @Cacheable(keyGenerator = "keyGenerator")
     public String queryOrdererTlsCert(String currentOrganizationName, String networkName, Node orderer) throws Exception {
         // 检查网络是否存在
         NetworkEntity network = findNetworkOrThrowEx(networkName);
@@ -201,7 +194,6 @@ public class NetworkService {
         return MyResourceUtils.saveToDownloadDir(ordererTlsCert, "crt");
     }
 
-    @Cacheable(keyGenerator = "keyGenerator")
     public String queryOrdererCert(String currentOrganizationName, String networkName, Node orderer) throws Exception {
         // 检查网络是否存在
         NetworkEntity network = findNetworkOrThrowEx(networkName);
@@ -222,11 +214,6 @@ public class NetworkService {
         return MyResourceUtils.saveToDownloadDir(ordererCertfileZip, "zip");
     }
 
-    @Caching(evict = {
-            @CacheEvict(key = "'NetworkService:findNetworkOrThrowEx'+#networkName"),
-            @CacheEvict(key = "'NetworkService:getNetworkOrderers:'+#networkName")
-    })
-    @CacheClean(patterns = "'NetworkService:queryNetworks:'+#networkName+'*'")
     @Transactional
     public String addOrderer(String currentOrganizationName, String networkName, Node orderer) throws Exception {
         // 检查网络是否存在
@@ -271,8 +258,8 @@ public class NetworkService {
 
         // 将Envelope提交到现有的Orderer节点
         ChannelUtils.submitChannelUpdate(
-                selectedOrdererCoreEnv.getMspEnv(),
-                selectedOrdererCoreEnv.getTlsEnv(),
+                MspEnv.from(selectedOrdererCoreEnv),
+                TlsEnv.from(selectedOrdererCoreEnv),
                 fabricConfig.getSystemChannelName(),
                 envelope
         );
@@ -302,7 +289,6 @@ public class NetworkService {
         return MyResourceUtils.saveToDownloadDir(ordererCertfileZip, "zip");
     }
 
-    @CacheClean(patterns = "'NetworkService:queryNetworks:'+#networkName+'*'")
     @Transactional
     public String createNetwork(
             String currentOrganizationName,
@@ -424,17 +410,16 @@ public class NetworkService {
         return MyResourceUtils.saveToDownloadDir(sysChannelGenesis, "block");
     }
 
-    @Cacheable(keyGenerator = "keyGenerator")
-    public Page<NetworkEntity> queryNetworks(String networkNameKeyword, String organizationNameKeyword, int page, int pageSize) {
+    public PageResult<NetworkEntity> queryNetworks(String networkNameKeyword, String organizationNameKeyword, int page, int pageSize) {
         Sort sort = Sort.by(Sort.Direction.ASC, "name");
         Pageable pageable = PageRequest.of(page - 1, pageSize, sort);
         boolean isNetworkNameKeywordInvalid = networkNameKeyword == null || StringUtils.isBlank(networkNameKeyword);
         boolean isOrganizationNameKeyKeywordInvalid = organizationNameKeyword == null || StringUtils.isBlank(organizationNameKeyword);
         if (isNetworkNameKeywordInvalid && isOrganizationNameKeyKeywordInvalid) {
-            return networkRepo.findAll(pageable);
+            return new PageResult<>(networkRepo.findAll(pageable));
         } else if (isOrganizationNameKeyKeywordInvalid) {
             // 按网络名称关键词进行搜索
-            return networkRepo.findAllByNameLike(networkNameKeyword, pageable);
+            return new PageResult<>(networkRepo.findAllByNameLike(networkNameKeyword, pageable));
         } else {
             List<ParticipationEntity> allowedParticipations;
             if (isNetworkNameKeywordInvalid) {
@@ -458,12 +443,10 @@ public class NetworkService {
                 assert networkOptional.isPresent();
                 networks.add(networkOptional.get());
             });
-            return new PageImpl<>(networks, pageable, networkNameSet.size());
+            return new PageResult<>(new PageImpl<>(networks, pageable, networkNameSet.size()));
         }
     }
 
-    @CacheClean(patterns = "'NetworkService:queryParticipations:'+#networkName+'*'")
-    @CacheEvict(key = "'NetworkService:findUnhandledParticipationOrThrowEx:'+#networkName+','+#currentOrganizationName")
     @Transactional
     public void applyParticipation(
             String currentOrganizationName,
@@ -498,15 +481,7 @@ public class NetworkService {
         participationRepo.save(participation);
     }
 
-    @Caching(evict = {
-            @CacheEvict(key = "'NetworkService:findUnhandledParticipationOrThrowEx:'+#networkName+','+#applierOrganizationName"),
-            @CacheEvict(key = "'NetworkService:queryOrganizations:'+#networkName"),
-            @CacheEvict(key = "'NetworkService:findNetworkOrThrowEx'+#networkName")
-    })
-    @CacheClean(patterns = {
-            "'NetworkService:queryParticipations:'+#networkName+'*'",
-            "'NetworkService:queryNetworks:'+#networkName+'*'"
-    })
+
     @Transactional
     public void handleParticipation(String currentOrganizationName, String networkName, String applierOrganizationName, boolean isAllowed) throws Exception {
         // 找到相应的申请
@@ -553,12 +528,11 @@ public class NetworkService {
         networkRepo.save(network);
     }
 
-    @Cacheable(keyGenerator = "keyGenerator")
-    public Page<ParticipationEntity> queryParticipations(String networkName, int status, int page, int pageSize) throws NetworkException {
+    public PageResult<ParticipationEntity> queryParticipations(String networkName, int status, int page, int pageSize) throws NetworkException {
         findNetworkOrThrowEx(networkName);
         Sort sort = Sort.by(Sort.Direction.DESC, "timestamp");
         Pageable pageable = PageRequest.of(page - 1, pageSize, sort);
-        return participationRepo.findAllByNetworkNameAndStatus(networkName, status, pageable);
+        return new PageResult<>(participationRepo.findAllByNetworkNameAndStatus(networkName, status, pageable));
     }
 
     public String queryGenesisBlock(String currentOrganizationName, String networkName) throws Exception {
@@ -573,7 +547,6 @@ public class NetworkService {
         return MyResourceUtils.saveToDownloadDir(block, "block");
     }
 
-    @Cacheable(keyGenerator = "keyGenerator")
     public List<String> queryOrganizations(String networkName) throws NetworkException {
         NetworkEntity network = findNetworkOrThrowEx(networkName);
         return network.getOrganizationNames();

@@ -4,7 +4,7 @@ import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.anhui.fabricbaascommon.bean.ChannelStatus;
 import com.anhui.fabricbaascommon.bean.Node;
-import com.anhui.fabricbaascommon.response.PaginationQueryResult;
+import com.anhui.fabricbaascommon.response.PageResult;
 import com.anhui.fabricbaasorg.bean.ChannelPeer;
 import org.apache.commons.io.FileUtils;
 
@@ -132,14 +132,14 @@ public class TTPChannelApi {
         return response.get("result");
     }
 
-    public PaginationQueryResult<Object> queryOrganizationChannels(String organizationName, int page, int pageSize) throws Exception {
+    public PageResult<Object> queryOrganizationChannels(String organizationName, int page, int pageSize) throws Exception {
         JSONObject data = new JSONObject();
         data.set("organizationName", organizationName);
         data.set("page", page);
         data.set("pageSize", pageSize);
         JSONObject response = httpClient.request("/api/v1/channel/queryOrganizationChannels", data);
         List<Object> channels = new ArrayList<>(response.getJSONArray("items"));
-        return new PaginationQueryResult<>(response.getInt("totalPages"), channels);
+        return new PageResult<>(response.getInt("totalPages"), channels);
     }
 
     public ChannelStatus getChannelStatus(String channelName) throws Exception {

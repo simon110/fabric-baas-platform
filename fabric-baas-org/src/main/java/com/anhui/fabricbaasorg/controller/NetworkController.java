@@ -2,7 +2,7 @@ package com.anhui.fabricbaasorg.controller;
 
 import com.anhui.fabricbaascommon.constant.Authority;
 import com.anhui.fabricbaascommon.request.*;
-import com.anhui.fabricbaascommon.response.PaginationQueryResult;
+import com.anhui.fabricbaascommon.response.PageResult;
 import com.anhui.fabricbaascommon.response.UniqueResult;
 import com.anhui.fabricbaascommon.service.CaClientService;
 import com.anhui.fabricbaasorg.remote.TTPNetworkApi;
@@ -62,14 +62,14 @@ public class NetworkController {
     @Secured({Authority.ADMIN})
     @PostMapping("/queryParticipations")
     @ApiOperation("查询加入网络申请")
-    public PaginationQueryResult<Object> queryParticipations(@Valid @RequestBody ParticipationQueryRequest request) throws Exception {
+    public PageResult<Object> queryParticipations(@Valid @RequestBody ParticipationQueryRequest request) throws Exception {
         return ttpNetworkApi.queryParticipations(request.getNetworkName(), request.getStatus(), request.getPage(), request.getPageSize());
     }
 
     @Secured({Authority.ADMIN})
     @PostMapping("/queryParticipatedNetworks")
     @ApiOperation("查询已经加入的网络")
-    public PaginationQueryResult<Object> queryParticipatedNetworks(@Valid @RequestBody PaginationQueryRequest request) throws Exception {
+    public PageResult<Object> queryParticipatedNetworks(@Valid @RequestBody PaginationQueryRequest request) throws Exception {
         return ttpNetworkApi.queryNetworks("", caClientService.getCaOrganizationName(), request.getPage(), request.getPageSize());
     }
 

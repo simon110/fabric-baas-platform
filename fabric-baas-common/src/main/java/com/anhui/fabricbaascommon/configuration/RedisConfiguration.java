@@ -12,7 +12,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 @Configuration
 public class RedisConfiguration {
     @Bean
-    public KeyGenerator keyGenerator() {
+    public KeyGenerator redisKeyGenerator() {
         return (target, method, params) -> {
             StringBuilder builder = new StringBuilder();
             builder.append(target.getClass().getSimpleName()).append(':');

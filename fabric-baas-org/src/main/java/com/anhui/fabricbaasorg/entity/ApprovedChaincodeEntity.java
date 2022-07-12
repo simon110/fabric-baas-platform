@@ -24,6 +24,7 @@ import javax.validation.constraints.Pattern;
 @ApiModel(value = "已投票的链码")
 public class ApprovedChaincodeEntity extends ApprovedChaincode {
     @Id
+    @JsonIgnore
     private ObjectId id;
 
     @Pattern(regexp = ParamPattern.DEPLOYMENT_NAME_REGEX, message = ParamPattern.DEPLOYMENT_NAME_MSG)

@@ -60,7 +60,6 @@ public class SystemService {
      * 3. 登记管理员证书
      */
     @Transactional
-    @CacheEvict(key = "'SystemService:isAvailable'")
     public void init(CaEntity ttp, String newAdminPassword) throws Exception {
         if (isAvailable()) {
             throw new DuplicatedOperationException("CA服务已存在，请勿重复初始化系统");
@@ -81,9 +80,8 @@ public class SystemService {
         }
     }
 
-    @Cacheable(keyGenerator = "keyGenerator")
     public boolean isAvailable() {
-        return caRepo.count() != 0;
+        return caRepo.count() != 0 && caServerService.checkCaServer();
     }
 }
 

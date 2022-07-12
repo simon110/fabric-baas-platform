@@ -4,7 +4,7 @@ import com.anhui.fabricbaascommon.constant.Authority;
 import com.anhui.fabricbaascommon.request.BaseNetworkRequest;
 import com.anhui.fabricbaascommon.request.PaginationQueryRequest;
 import com.anhui.fabricbaascommon.response.ListResult;
-import com.anhui.fabricbaascommon.response.PaginationQueryResult;
+import com.anhui.fabricbaascommon.response.PageResult;
 import com.anhui.fabricbaascommon.response.UniqueResult;
 import com.anhui.fabricbaasorg.bean.NetworkOrderer;
 import com.anhui.fabricbaasorg.entity.OrdererEntity;
@@ -17,7 +17,6 @@ import io.fabric8.kubernetes.api.model.PodStatus;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -63,9 +62,8 @@ public class OrdererController {
     @Secured({Authority.ADMIN})
     @PostMapping("/queryOrderersInCluster")
     @ApiOperation("获取组织在集群里所有的Orderer节点")
-    public PaginationQueryResult<OrdererEntity> queryOrderersInCluster(@Valid @RequestBody PaginationQueryRequest request) {
-        Page<OrdererEntity> page = ordererService.queryOrderersInCluster(request.getPage(), request.getPageSize());
-        return new PaginationQueryResult<>(page.getTotalPages(), page.getContent());
+    public PageResult<OrdererEntity> queryOrderersInCluster(@Valid @RequestBody PaginationQueryRequest request) {
+        return ordererService.queryOrderersInCluster(request.getPage(), request.getPageSize());
     }
 
     @Secured({Authority.ADMIN})

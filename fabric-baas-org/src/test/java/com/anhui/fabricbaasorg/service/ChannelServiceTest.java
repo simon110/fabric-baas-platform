@@ -4,6 +4,7 @@ import cn.hutool.core.lang.Pair;
 import com.anhui.fabricbaascommon.bean.Node;
 import com.anhui.fabricbaascommon.constant.CertfileType;
 import com.anhui.fabricbaascommon.entity.CertfileEntity;
+import com.anhui.fabricbaascommon.response.PageResult;
 import com.anhui.fabricbaascommon.util.MyFileUtils;
 import com.anhui.fabricbaascommon.util.PasswordUtils;
 import com.anhui.fabricbaascommon.util.ZipUtils;
@@ -15,7 +16,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.domain.Page;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.File;
@@ -89,8 +89,8 @@ class ChannelServiceTest {
         peer.setKubeEventNodePort(31500);
         peerService.startPeer(peer);
         TimeUnit.SECONDS.sleep(10);
-        Page<PeerEntity> page = peerService.queryPeersInCluster(1, 10);
-        Assertions.assertEquals(1, page.getContent().size());
+        PageResult<PeerEntity> page = peerService.queryPeersInCluster(1, 10);
+        Assertions.assertEquals(1, page.getItems().size());
         channelService.join(channelName, peer.getName());
         channelService.updateAnchor(channelName, peer.getName());
 

@@ -13,8 +13,6 @@ import com.anhui.fabricbaasorg.repository.ChannelRepo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,7 +32,6 @@ public class ChannelService {
     @Autowired
     private ChannelRepo channelRepo;
 
-    @Cacheable(keyGenerator = "keyGenerator")
     public ChannelEntity findChannelOrThrowEx(String channelName) throws ChannelException {
         Optional<ChannelEntity> optional = channelRepo.findById(channelName);
         if (optional.isPresent()) {
@@ -44,7 +41,6 @@ public class ChannelService {
     }
 
     @Transactional
-    @CacheEvict(key = "'ChannelService:findChannelOrThrowEx:'+#channelName")
     public void create(String channelName, String networkName) throws Exception {
         ttpChannelApi.createChannel(networkName, channelName);
         ChannelEntity channel = new ChannelEntity(channelName, networkName);
