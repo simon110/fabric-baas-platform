@@ -1,6 +1,7 @@
 package com.anhui.fabricbaasttp.service;
 
 import cn.hutool.core.lang.Assert;
+import com.anhui.fabricbaascommon.annotation.CacheClean;
 import com.anhui.fabricbaascommon.bean.*;
 import com.anhui.fabricbaascommon.configuration.FabricConfiguration;
 import com.anhui.fabricbaascommon.constant.ApplStatus;
@@ -21,7 +22,6 @@ import com.anhui.fabricbaasttp.bean.Orderer;
 import com.anhui.fabricbaasttp.constant.MinioBucket;
 import com.anhui.fabricbaasttp.entity.NetworkEntity;
 import com.anhui.fabricbaasttp.entity.ParticipationEntity;
-import com.anhui.fabricbaasttp.repository.ChannelRepo;
 import com.anhui.fabricbaasttp.repository.NetworkRepo;
 import com.anhui.fabricbaasttp.repository.ParticipationRepo;
 import com.anhui.fabricbaasttp.util.IdentifierGenerator;
@@ -31,6 +31,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -59,8 +60,6 @@ public class NetworkService {
     private FabricConfiguration fabricConfig;
     @Autowired
     private FabricService fabricService;
-    @Autowired
-    private ChannelRepo channelRepo;
 
     public void assertOrganizationInNetwork(NetworkEntity network, String organizationName, boolean expected) throws OrganizationException {
         if (network.getOrganizationNames().contains(organizationName) != expected) {
@@ -448,6 +447,7 @@ public class NetworkService {
     }
 
     @Transactional
+    @CacheClean(patterns = {"'NetworkService:queryParticipations:*'+#networkName+'*'"})
     public void applyParticipation(
             String currentOrganizationName,
             String networkName,
@@ -482,6 +482,7 @@ public class NetworkService {
     }
 
 
+    @CacheClean(patterns = {"'NetworkService:queryParticipations:*'+#networkName+'*'"})
     @Transactional
     public void handleParticipation(String currentOrganizationName, String networkName, String applierOrganizationName, boolean isAllowed) throws Exception {
         // 找到相应的申请
@@ -528,6 +529,7 @@ public class NetworkService {
         networkRepo.save(network);
     }
 
+    @Cacheable(keyGenerator = "redisKeyGenerator")
     public PageResult<ParticipationEntity> queryParticipations(String networkName, int status, int page, int pageSize) throws NetworkException {
         findNetworkOrThrowEx(networkName);
         Sort sort = Sort.by(Sort.Direction.DESC, "timestamp");

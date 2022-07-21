@@ -53,7 +53,6 @@ public class CaClientService {
         CaUtils.enroll(targetCertfileDir, FABRIC_CA_SERVER_CERT, getCaName(), caServerAddr, certfile, csrHosts);
     }
 
-
     public CertfileEntity findCertfileOrThrowEx(String username) throws CertfileException {
         Optional<CertfileEntity> certfileOptional = certfileRepo.findById(username);
         if (certfileOptional.isEmpty()) {

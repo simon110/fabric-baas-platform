@@ -55,6 +55,18 @@ public class OrganizationService {
     @Autowired
     private MailService mailService;
 
+    public void setPassword(String organizationName, String newPassword) throws OrganizationException {
+        Optional<UserEntity> optional = userRepo.findById(organizationName);
+        if (optional.isEmpty()) {
+            throw new OrganizationException("不存在组织：" + organizationName);
+        }
+        UserEntity organization = optional.get();
+        String encodedPassword = passwordEncoder.encode(newPassword);
+        organization.setPassword(encodedPassword);
+        log.info("正在修改系统管理员密码...");
+        userRepo.save(organization);
+    }
+
     public UserDetails findOrganizationUserDetailsOrThrowEx(String organizationName) throws OrganizationException {
         UserDetails userDetails = jwtUserDetailsService.loadUserByUsername(organizationName);
         if (userDetails == null) {

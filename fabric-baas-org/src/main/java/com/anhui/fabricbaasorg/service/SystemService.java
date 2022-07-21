@@ -1,15 +1,11 @@
 package com.anhui.fabricbaasorg.service;
 
-import cn.hutool.core.lang.Assert;
 import com.anhui.fabricbaascommon.bean.CsrConfig;
-import com.anhui.fabricbaascommon.configuration.AdminConfiguration;
 import com.anhui.fabricbaascommon.entity.CaEntity;
-import com.anhui.fabricbaascommon.entity.UserEntity;
 import com.anhui.fabricbaascommon.exception.CaException;
 import com.anhui.fabricbaascommon.exception.DuplicatedOperationException;
 import com.anhui.fabricbaascommon.fabric.CaUtils;
 import com.anhui.fabricbaascommon.repository.CaRepo;
-import com.anhui.fabricbaascommon.repository.UserRepo;
 import com.anhui.fabricbaascommon.service.CaClientService;
 import com.anhui.fabricbaascommon.service.CaServerService;
 import com.anhui.fabricbaascommon.util.MyFileUtils;
@@ -23,14 +19,12 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Optional;
 
 @Slf4j
 @Service
@@ -39,11 +33,7 @@ public class SystemService {
     @Autowired
     private KubernetesService kubernetesService;
     @Autowired
-    private UserRepo userRepo;
-    @Autowired
-    private AdminConfiguration adminConfiguration;
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private UserService userService;
     @Autowired
     private CaClientService caClientService;
     @Autowired
@@ -88,17 +78,6 @@ public class SystemService {
         kubernetesService.importAdminConfig(tempKubernetesConfig);
     }
 
-    public void setAdminPassword(String password) {
-        Optional<UserEntity> adminOptional = userRepo.findById(adminConfiguration.getDefaultUsername());
-        Assert.isTrue(adminOptional.isPresent());
-        adminOptional.ifPresent(admin -> {
-            log.info("正在初始化管理员信息");
-            String encodedPassword = passwordEncoder.encode(password);
-            admin.setPassword(encodedPassword);
-            userRepo.save(admin);
-        });
-    }
-
     /**
      * 主要包括以下内容
      * 1. 重置管理员的密码
@@ -119,7 +98,7 @@ public class SystemService {
 
             // 更新系统管理员密码
             if (adminPassword != null && !StringUtils.isBlank(adminPassword)) {
-                setAdminPassword(adminPassword);
+                userService.setAdminPassword(adminPassword);
             }
         } catch (Exception e) {
             caServerService.cleanCaServer();
